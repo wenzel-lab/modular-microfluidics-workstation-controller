@@ -2,7 +2,9 @@
 
 Imaging unit based on compact 3D printed microscope (https://gitlab.com/openflexure/openflexure-microscope), with Objective (10x?)
 
-Depending on the load demand, it could operate on the Raspberri Pi computer of the central workstation unit, have it's own computer, and transfer images to a webserver.
+Depending on the load demand, it could operate on the Raspberri Pi computer of the central workstation unit, have it's own computer, and transfer images to a webserver
+
+All versions aim for a userfriendly / self-tuning controll of a stroboscopic illumination (simple high-power LED controlled by Arduino style microcontroller, in turn controlled by the Raspberri Pi where images are processed / viewed and saved/ sent to server)
 
 
 ### Approach Nr.1 Integrated camera
