@@ -63,17 +63,17 @@ void TMR4_Initialize(void)
 {
     // Set TMR4 to the options selected in the User Interface
 
-    // T4CS HFINTOSC; 
-    T4CLKCON = 0x03;
+    // T4CS LC2_out; 
+    T4CLKCON = 0x0B;
 
-    // T4PSYNC Not Synchronized; T4MODE Software control One shot; T4CKPOL Rising Edge; T4CKSYNC Not Synchronized; 
-    T4HLT = 0x08;
+    // T4PSYNC Not Synchronized; T4MODE Resets at TMR4_ers = 0; T4CKPOL Rising Edge; T4CKSYNC Not Synchronized; 
+    T4HLT = 0x06;
 
-    // T4RSEL T4CKIPPS pin; 
-    T4RST = 0x00;
+    // T4RSEL TMR2_postscaled; 
+    T4RST = 0x01;
 
-    // PR4 255; 
-    T4PR = 0xFF;
+    // PR4 250; 
+    T4PR = 0xFA;
 
     // TMR4 0; 
     T4TMR = 0x00;
@@ -81,8 +81,8 @@ void TMR4_Initialize(void)
     // Clearing IF flag.
     PIR4bits.TMR4IF = 0;
 
-    // T4CKPS 1:1; T4OUTPS 1:1; TMR4ON on; 
-    T4CON = 0x80;
+    // T4CKPS 1:128; T4OUTPS 1:2; TMR4ON on; 
+    T4CON = 0xF1;
 }
 
 void TMR4_ModeSet(TMR4_HLT_MODE mode)

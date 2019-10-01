@@ -66,12 +66,12 @@ void PIN_MANAGER_Initialize(void)
     */
     TRISA = 0xFF;
     TRISB = 0xFF;
-    TRISC = 0x7F;
+    TRISC = 0x1F;
 
     /**
     ANSELx registers
     */
-    ANSELC = 0x5E;
+    ANSELC = 0x1E;
     ANSELB = 0xFF;
     ANSELA = 0xFE;
 
@@ -112,9 +112,10 @@ void PIN_MANAGER_Initialize(void)
    
     
 	
-    CLCIN0PPS = 0x00;   //RA0->CLC1:CLCIN0;    
+    CLCIN0PPS = 0x00;   //RA0->CLC3:CLCIN0;    
     T2AINPPS = 0x10;   //RC0->TMR2:T2IN;    
-    T4AINPPS = 0x15;   //RC5->TMR4:T4IN;    
+    RC5PPS = 0x03;   //RC5->CLC3:CLC3OUT;    
+    RC6PPS = 0x02;   //RC6->CLC2:CLC2OUT;    
     RC7PPS = 0x01;   //RC7->CLC1:CLC1OUT;    
 }
   

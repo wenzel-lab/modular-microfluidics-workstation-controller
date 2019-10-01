@@ -13,6 +13,8 @@
         <itemPath>mcc_generated_files/clc1.h</itemPath>
         <itemPath>mcc_generated_files/tmr2.h</itemPath>
         <itemPath>mcc_generated_files/tmr4.h</itemPath>
+        <itemPath>mcc_generated_files/clc2.h</itemPath>
+        <itemPath>mcc_generated_files/clc3.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
@@ -31,6 +33,8 @@
         <itemPath>mcc_generated_files/clc1.c</itemPath>
         <itemPath>mcc_generated_files/tmr2.c</itemPath>
         <itemPath>mcc_generated_files/tmr4.c</itemPath>
+        <itemPath>mcc_generated_files/clc2.c</itemPath>
+        <itemPath>mcc_generated_files/clc3.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
     </logicalFolder>
