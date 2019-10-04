@@ -59,8 +59,8 @@ void CLC3_Initialize(void)
 {
     // Set the CLC3 to the options selected in the User Interface
 
-    // LC3G1POL not_inverted; LC3G2POL inverted; LC3G3POL not_inverted; LC3G4POL not_inverted; LC3POL not_inverted; 
-    CLC3POL = 0x02;
+    // LC3G1POL not_inverted; LC3G2POL inverted; LC3G3POL not_inverted; LC3G4POL inverted; LC3POL not_inverted; 
+    CLC3POL = 0x0A;
     // LC3D1S TMR2=PR2; 
     CLC3SEL0 = 0x0C;
     // LC3D2S TMR4=PR4; 

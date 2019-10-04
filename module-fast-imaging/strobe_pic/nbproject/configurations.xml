@@ -15,7 +15,11 @@
         <itemPath>mcc_generated_files/tmr4.h</itemPath>
         <itemPath>mcc_generated_files/clc2.h</itemPath>
         <itemPath>mcc_generated_files/clc3.h</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/spi1.h</itemPath>
       </logicalFolder>
+      <itemPath>spi.h</itemPath>
+      <itemPath>common.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -35,8 +39,11 @@
         <itemPath>mcc_generated_files/tmr4.c</itemPath>
         <itemPath>mcc_generated_files/clc2.c</itemPath>
         <itemPath>mcc_generated_files/clc3.c</itemPath>
+        <itemPath>mcc_generated_files/spi1.c</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
+      <itemPath>spi.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
