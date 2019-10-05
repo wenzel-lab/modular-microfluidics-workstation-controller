@@ -256,7 +256,7 @@ void main(void)
     {
         if ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) != ERR_OK )
         {
-            spi_packet_clear( &spi_packet );
+//            spi_packet_clear( &spi_packet );
         }
         else
         {
