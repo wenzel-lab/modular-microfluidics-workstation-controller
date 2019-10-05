@@ -12,6 +12,8 @@
 #define WRITE_BUF_SIZE          32
 #define WRITE_BUF_SIZE_MASK     ( WRITE_BUF_SIZE - 1 )
 
+#define STX                     2
+
 #ifdef SPI_READ_SUPPORTED
 volatile uint8_t read_buf[READ_BUF_SIZE];
 volatile uint8_t read_buf_head;
@@ -77,37 +79,53 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
     /* Returns packet type if good packet, 0 otherwise */
     
     /* Packet format:
-     * [size U8][packet type U8][data...]
+     * [STX U8=2][size U8][packet type U8][data...]
      */
     
     err rc = ERR_OK;
     uint8_t packet_size;
     uint8_t type;
+    uint8_t stx;
     
     *packet_type = 0;
     
     while ( spi_read_bytes_available() && ( packet->buf_bytes < SPI_PACKET_BUF_SIZE ) )
-        packet->buf[packet->buf_bytes++] = spi_read_byte();
-    
-    if ( packet->buf_bytes >= 2 )
     {
-        /* We have at minimum: size and packet type */
+        if ( packet->buf_bytes > 0 )
+            packet->buf[packet->buf_bytes++] = spi_read_byte();
+        else
+        {
+            /* If start of packet, read until we find STX */
+            
+            stx = spi_read_byte();
+            if ( stx == STX )
+            {
+                packet->buf[0] = STX;
+                packet->buf_bytes = 1;
+            }
+        }
+    }
+    
+    if ( packet->buf_bytes >= 3 )
+    {
+        /* We have at minimum: STX, size and packet type */
         
-        packet_size = packet->buf[0];
+//        stx = packet->buf[0];
+        packet_size = packet->buf[1];
         
         if ( ( packet_size > SPI_PACKET_BUF_SIZE ) || ( packet_size > data_buf_size ) )
             rc = ERR_PACKET_OVERFLOW;
         else if ( packet->buf_bytes >= packet_size )
         {
-            type = packet->buf[1];
+            type = packet->buf[2];
             
             if ( type == 0 )
                 rc = ERR_PACKET_INVALID;
             else
             {
                 *packet_type = type;
-                *data_size = packet_size - 2;
-                memcpy( data, &packet->buf[2], *data_size );
+                *data_size = packet_size - 3;
+                memcpy( data, &packet->buf[3], *data_size );
                 
                 if ( packet->buf_bytes == packet_size )
                     packet->buf_bytes = 0;
