@@ -17,11 +17,17 @@ spi.open(bus, device)
 spi.max_speed_hz = 500000
 spi.mode = 2
 
-msg = [7, 7, 7, 2, 4, 3, 1]
+msg = [7, 7, 7]
 spi.xfer2(msg)
 
 time.sleep(1)
 
-msg = [2, 4, 3, 0]
+#msg = [7, 7, 7, 2, 5, 3, 1, 245]
+msg = [2, 7, 7, 7, 7, 2, 5, 3, 1, 245]
+spi.xfer2(msg)
+
+time.sleep(1)
+
+msg = [2, 5, 3, 0, 246]
 spi.xfer2(msg)
 
