@@ -1,3 +1,8 @@
+/*
+ * To do:
+ * - Report if detected frame rate is slower than configured strobe strobe pulse
+ */
+
 #include "mcc_generated_files/mcc.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,9 +15,9 @@
 
 /* Strobe Constants */
 #define CLOCK_FREQ          32000000
-#define PS_PER_TICK         ( 1000000000 / ( CLOCK_FREQ / 1000 ) )  // 31250 ps/tick
-#define TIME_SCALING        10  // 31250 can be divided by 10 whole
-#define MAX_TIME_NS         ( INT32_MAX / TIME_SCALING )
+#define PS_PER_TICK         ( 1000000000 / ( CLOCK_FREQ / 1000 ) )      // 31250 ps/tick
+#define TIME_SCALING        10                                          // 31250 can be divided by 10 whole
+#define MAX_TIME_NS         ( ( UINT32_MAX - ( ( PS_PER_TICK >> 1 ) / TIME_SCALING ) ) / ( 1000 / TIME_SCALING ) )  // 42949657 -> 1374389 ticks = 42949656.25ns
 
 /* Comms Constants */
 #define PACKET_TYPE_SET_STROBE_ENABLE   1
@@ -24,74 +29,6 @@ spi_packet_buf_t spi_packet;
 uint8_t packet_type;
 uint8_t packet_data[SPI_PACKET_BUF_SIZE];
 uint8_t packet_data_size;
-
-#if 0
-uint32_t find_scalers_freq( uint32_t target_freq, uint8_t *prescale, uint8_t *postscale, uint8_t *period )
-{
-    /** This function has to be fixed. */
-    
-    uint32_t rem;
-    uint32_t period_loop;
-    uint8_t postscale_loop;
-    int8_t prescale_loop;
-    uint32_t freq_loop;
-    uint8_t postscale_best;
-    uint8_t prescale_best;
-    uint32_t period_best;
-    uint32_t freq_best;
-    uint32_t denom;
-
-    freq_best = 0;
-    postscale_best = 0;
-    prescale_best = 0;
-    period_best = 0;
-
-    if ( target_freq == 0 )
-        return 0;
-
-    for ( postscale_loop=16; postscale_loop>=1; postscale_loop-- )
-    {
-        rem = ( CLOCK_FREQ / target_freq ) / postscale_loop;
-
-        for ( prescale_loop=7; prescale_loop>=0; prescale_loop-- )
-        {
-            if ( prescale_loop == 0 )
-                period_loop = rem;
-            else
-                period_loop = ( ( rem >> ( prescale_loop - 1 ) ) + 1 ) >> 1;  // Round
-
-            denom = postscale_loop * period_loop;
-
-            if ( denom > 0 )
-                freq_loop = ( ( CLOCK_FREQ >> prescale_loop ) / denom );
-            else
-                freq_loop = 0;
-
-            if ( abs( freq_loop - target_freq ) < abs( freq_best - target_freq ) )
-            {
-                freq_best = freq_loop;
-                postscale_best = postscale_loop;
-                prescale_best = prescale_loop;
-                period_best = period_loop;
-            }
-
-            if ( freq_loop == target_freq )
-                break;
-        }
-    }
-    
-    if ( period_best > 0x100 )
-        return 0;   // We failed
-    else
-    {
-        *prescale = prescale_best;
-        *postscale = postscale_best - 1;
-        *period = (uint8_t)( period_best - 1 );
-        
-        return freq_best;
-    }
-}
-#endif
 
 uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t *postscale, uint8_t *period )
 {
@@ -108,8 +45,9 @@ uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t 
 
     if ( target_time_ns > MAX_TIME_NS )
         return 0;
-
-//    ticks = target_time_ns * ( 1000 / TIME_SCALING ) / ( PS_PER_TICK / TIME_SCALING );
+    
+    /* First scale both to ( ps / TIME_SCALING ) */
+    /* These ticks are rounded. */
     ticks = ( target_time_ns * ( 1000 / TIME_SCALING ) + ( ( PS_PER_TICK >> 1 ) / TIME_SCALING ) ) / ( PS_PER_TICK / TIME_SCALING );
 
     time_ns_best = 0;
@@ -153,29 +91,6 @@ uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t 
     return time_ns_best;
 }
 
-#if 0
-void set_strobe_timing( uint32_t target_freq )
-{
-    uint8_t prescale;
-    uint8_t postscale;
-    uint8_t period;
-    uint32_t freq;
-    
-    freq = find_scalers_freq( target_freq, &prescale, &postscale, &period );
-    
-    /* Turn off and reset timers */
-    T2CON = 0;
-    
-    if ( freq > 0 )
-    {
-        /* If freq==0 -> couldn't calculate register values */
-        
-        PR2 = period;
-        T2CON = 0b10000000 | ( prescale << 4 ) | postscale;
-    }
-}
-#endif
-
 void set_strobe_enable( uint8_t enable )
 {
     /* <enable> must be 0 or 1 */
@@ -186,7 +101,7 @@ void set_strobe_enable( uint8_t enable )
 
 void set_strobe_hold( uint8_t hold )
 {
-    /* Hold strobe on regardless? */
+    /* Hold strobe on regardless */
     
     LC3G3POL = hold ? 1 : 0;
 }
@@ -233,7 +148,7 @@ void set_strobe_timing( uint32_t wait_target_ns, uint32_t duration_target_ns )
 
 void main(void)
 {
-    err rc;
+//    err rc;
     
 // --------------------------------------------------------------------------
     
@@ -254,11 +169,7 @@ void main(void)
     
     while ( 1 )
     {
-        if ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) != ERR_OK )
-        {
-//            spi_packet_clear( &spi_packet );
-        }
-        else
+        if ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK )
         {
             switch ( packet_type )
             {
@@ -277,8 +188,8 @@ void main(void)
                 {
                     if ( packet_data_size == 8 )
                     {
-                        uint32_t strobe_wait_ns = *(uint32_t *)packet_data[0];
-                        uint32_t strobe_period_ns = *(uint32_t *)packet_data[4];
+                        uint32_t strobe_wait_ns = *(uint32_t *)&packet_data[0];
+                        uint32_t strobe_period_ns = *(uint32_t *)&packet_data[4];
                         set_strobe_timing( strobe_wait_ns, strobe_period_ns );
                     }
                     break;
