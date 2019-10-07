@@ -1,5 +1,6 @@
 import time
 import spidev
+import pistrobe
 
 def strobe_packet_test():
   msg = [7, 7, 7]
@@ -16,27 +17,21 @@ def strobe_packet_test():
   msg = [2, 5, 3, 0, 246]
   spi.xfer2( msg )
 
-def strobe_packet_write( spi, type, data ):
-  msg = [2, len(data)+4, type] + data
-  msg = bytearray( msg )
-  checksum = ( -( sum( msg ) & 0xFF ) ) & 0xFF
-  msg.append( checksum )
-  spi.xfer2( msg )
-
-def spi_init( spi, bus, device, mode, speed_hz ):
+def spi_init( bus, device, mode, speed_hz ):
+  spi = spidev.SpiDev()
   spi.open( bus, device )
   spi.mode = mode
   spi.max_speed_hz = speed_hz
   #spi.no_cs = False
   #spi.cshigh = False
+  return spi
 
-spi = spidev.SpiDev()
-spi_init( spi, 0, 0, 2, 500000 )
-
-strobe_packet_write( spi, 3, [1] )
-time.sleep(1)
-strobe_packet_write( spi, 3, [0] )
+spi = spi_init( 0, 0, 2, 500000 )
+strobe = pistrobe.PiStrobe( spi )
+strobe.set_timing( 2000000, 2000000 )
+strobe.set_hold( True )
+time.sleep( 1 )
+strobe.set_hold( False )
+spi.close()
 
 #spi.readbytes(n)
-
-spi.close()
