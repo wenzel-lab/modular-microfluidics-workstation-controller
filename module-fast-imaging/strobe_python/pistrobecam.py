@@ -16,14 +16,16 @@ class PiStrobeCam:
         self.camera.iso = 800
     
     def set_timing( self, strobe_wait_padding_ns, strobe_period_ns ):
-        camera_read_time_us = 0
-        shutter_padding_us = 100000
-        self.camera.shutter_speed = int( ( ( strobe_period_ns + strobe_wait_padding_ns ) / 1000 ) + shutter_padding_us )
-#        self.camera.shutter_speed += camera_read_time_us
-        framerate = 1000000 / ( self.camera.shutter_speed + camera_read_time_us )
+        camera_read_time_us = 25000
+        shutter_padding_us = 0
+        shutter_speed_us = int( ( ( strobe_period_ns + strobe_wait_padding_ns ) / 1000 ) + camera_read_time_us + shutter_padding_us )
+        framerate = 1000000 / shutter_speed_us
         if ( framerate > 60 ):
             framerate = 60
         self.camera.framerate = framerate
+        self.camera.shutter_speed = shutter_speed_us;
+#        self.camera.shutter_speed += camera_read_time_us
+#        framerate = 1000000 / ( self.camera.shutter_speed )
         
         # Inter-frame period in microseconds
         frame_rate_period_us = int( 1000000 / float( self.camera.framerate ) )
@@ -37,7 +39,7 @@ class PiStrobeCam:
         #strobe_wait_ns = strobe_wait_padding_ns
         #strobe_period_ns += ( strobe_pre_wait_us * 1000 ) + 3000000
         
-        print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}'.format( strobe_wait_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( self.camera.shutter_speed ) ) )
+        print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( strobe_wait_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
         
         self.strobe.set_timing( strobe_wait_ns, strobe_period_ns )
         self.strobe.set_enable( True )
