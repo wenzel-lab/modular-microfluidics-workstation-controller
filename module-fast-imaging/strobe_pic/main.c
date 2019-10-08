@@ -17,7 +17,7 @@
 #define CLOCK_FREQ          32000000
 #define PS_PER_TICK         ( 1000000000 / ( CLOCK_FREQ / 1000 ) )      // 31250 ps/tick
 #define TIME_SCALING        10                                          // 31250 can be divided by 10 whole
-#define MAX_TIME_NS         ( ( UINT32_MAX - ( ( PS_PER_TICK >> 1 ) / TIME_SCALING ) ) / ( 1000 / TIME_SCALING ) )  // 42949657 -> 1374389 ticks = 42949656.25ns
+#define MAX_TIME_NS         ( ( ( (uint32_t)PS_PER_TICK << 7 ) / 1000 ) * 16 * 255 )    // Max timer period = 522240 ticks = 16320000ns
 
 /* Comms Constants */
 #define PACKET_TYPE_SET_STROBE_ENABLE   1
@@ -48,6 +48,9 @@ uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t 
     
     /* First scale both to ( ps / TIME_SCALING ) */
     /* These ticks are rounded. */
+    /* Maximum target_time_ns value we can process without overflow:
+     * ( ( UINT32_MAX - ( ( PS_PER_TICK >> 1 ) / TIME_SCALING ) ) / ( 1000 / TIME_SCALING ) )  // 42949657 -> 1374389 ticks = 42949656.25ns
+     */
     ticks = ( target_time_ns * ( 1000 / TIME_SCALING ) + ( ( PS_PER_TICK >> 1 ) / TIME_SCALING ) ) / ( PS_PER_TICK / TIME_SCALING );
 
     time_ns_best = 0;
