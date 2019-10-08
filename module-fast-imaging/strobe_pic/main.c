@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
+#include <pic16f18857.h>
 #include "common.h"
 #include "spi.h"
 
@@ -17,7 +18,7 @@
 #define CLOCK_FREQ          32000000
 #define PS_PER_TICK         ( 1000000000 / ( CLOCK_FREQ / 1000 ) )      // 31250 ps/tick
 #define TIME_SCALING        10                                          // 31250 can be divided by 10 whole
-#define MAX_TIME_NS         ( ( ( (uint32_t)PS_PER_TICK << 7 ) / 1000 ) * 16 * 255 )    // Max timer period = 522240 ticks = 16320000ns
+#define MAX_TIME_NS         ( ( ( (uint32_t)PS_PER_TICK << 7 ) / 1000 ) * 16 * 255 )    // Max timer period = 522240 ticks = 16,320,000ns
 
 /* Comms Constants */
 #define PACKET_TYPE_SET_STROBE_ENABLE   1
@@ -42,7 +43,7 @@ uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t 
     uint8_t postscale_best;
     uint8_t prescale_best;
     uint32_t period_best;
-
+    
     if ( target_time_ns > MAX_TIME_NS )
         return 0;
     
@@ -72,8 +73,8 @@ uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t 
             if ( ( period_loop > 0 ) && ( period_loop <= 0xFF ) && ( ( period_loop > 1 ) || ( prescale_loop > 0 ) ) )
             {
                 time_ns_loop = ( ( ( ( (uint32_t)PS_PER_TICK / TIME_SCALING ) << prescale_loop ) * period_loop ) * postscale_loop ) / ( 1000 / TIME_SCALING );
-
-                if ( abs( time_ns_loop - target_time_ns ) < abs( time_ns_best - target_time_ns ) )
+                
+                if ( labs( time_ns_loop - target_time_ns ) < labs( time_ns_best - target_time_ns ) )
                 {
                     time_ns_best = time_ns_loop;
                     postscale_best = postscale_loop;
@@ -98,8 +99,16 @@ void set_strobe_enable( uint8_t enable )
 {
     /* <enable> must be 0 or 1 */
     
-    T4CONbits.T4ON = enable;
+    /* For some reason TMR2==PR2 input to CLC3 stays TRUE regardless
+     * of any amount of TMR2-related register resetting while TMR2 is off.
+     * Therefore I am leaving TMR4 on so that it will reach PR4 and cause
+     * CLC3 output to go FALSE.
+     */
+    
+//    T4CONbits.T4ON = enable;
     T2CONbits.T2ON = enable;
+    T4CONbits.T4ON = 1;
+//    CLC3CONbits.LC3EN = enable;
 }
 
 void set_strobe_hold( uint8_t hold )

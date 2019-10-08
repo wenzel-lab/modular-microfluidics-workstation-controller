@@ -115,7 +115,7 @@ void PIN_MANAGER_Initialize(void)
     
 	
     SSP1CLKPPS = 0x13;   //RC3->MSSP1:SCK1;    
-    CLCIN0PPS = 0x00;   //RC0->CLC1:CLCIN0;    
+    CLCIN0PPS = 0x00;   //RC0->CLC3:CLCIN0;    
     T2AINPPS = 0x10;   //RC0->TMR2:T2IN;    
     SSP1SSPPS = 0x12;   //RC2->MSSP1:SS1;    
     RC5PPS = 0x03;   //RC5->CLC3:CLC3OUT;    
