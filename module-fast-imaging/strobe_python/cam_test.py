@@ -17,7 +17,7 @@ def spi_init( bus, device, mode, speed_hz ):
 
 spi = spi_init( 0, 0, 2, 125000 )
 strobe_cam = PiStrobeCam( spi )
-strobe_cam.set_timing( 10000, 10000000 )
+strobe_cam.set_timing( 10000, 10000000, 23000000 )
 
 #strobe_cam.camera.zoom = 1
 strobe_cam.camera.start_preview()
