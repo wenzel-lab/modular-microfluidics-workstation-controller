@@ -118,7 +118,7 @@ void set_strobe_hold( uint8_t hold )
     LC3G3POL = hold ? 1 : 0;
 }
 
-void set_strobe_timing( uint32_t wait_target_ns, uint32_t duration_target_ns )
+void set_strobe_timing( uint32_t *wait_target_ns, uint32_t *duration_target_ns )
 {
     uint8_t wait_prescale;
     uint8_t wait_postscale;
@@ -130,8 +130,8 @@ void set_strobe_timing( uint32_t wait_target_ns, uint32_t duration_target_ns )
     uint32_t duration_ns;
     uint8_t t4con_copy;
     
-    wait_ns = find_scalers_time( wait_target_ns, &wait_prescale, &wait_postscale, &wait_period );
-    duration_ns = find_scalers_time( duration_target_ns, &duration_prescale, &duration_postscale, &duration_period );
+    *wait_target_ns = find_scalers_time( *wait_target_ns, &wait_prescale, &wait_postscale, &wait_period );
+    *duration_target_ns = find_scalers_time( *duration_target_ns, &duration_prescale, &duration_postscale, &duration_period );
     
 //    duration_prescale = 0;
 //    duration_postscale = 0;
@@ -142,7 +142,7 @@ void set_strobe_timing( uint32_t wait_target_ns, uint32_t duration_target_ns )
 // 7 0 39 25
 // 7 0 255 188
     
-    if ( ( wait_ns > 0 ) && ( duration_ns > 0 ) )
+    if ( ( *wait_target_ns > 0 ) && ( *duration_target_ns > 0 ) )
     {
         /* If time_ns==0 -> couldn't calculate register values */
         
@@ -160,7 +160,7 @@ void set_strobe_timing( uint32_t wait_target_ns, uint32_t duration_target_ns )
 
 void main(void)
 {
-//    err rc;
+    err rc;
     
 // --------------------------------------------------------------------------
     
@@ -176,7 +176,7 @@ void main(void)
     //INTERRUPT_GlobalInterruptDisable();
     //INTERRUPT_PeripheralInterruptDisable();
     
-    set_strobe_timing( 2000000, 2000000 );
+//    set_strobe_timing( 2000000, 2000000 );
 //    set_strobe_enable( 1 );
     
     while ( 1 )
@@ -193,17 +193,36 @@ void main(void)
                 case PACKET_TYPE_SET_STROBE_ENABLE:
                 {
                     if ( packet_data_size == 1 )
+                    {
                         set_strobe_enable( packet_data[0] ? 1 : 0 );
+                        rc = ERR_OK;
+                    }
+                    else
+                        rc = ERR_PACKET_INVALID;
+                    
+                    spi_packet_write( PACKET_TYPE_SET_STROBE_ENABLE, &rc, 1 );
+                    
                     break;
                 }
                 case PACKET_TYPE_SET_STROBE_TIMING:
                 {
                     if ( packet_data_size == 8 )
                     {
-                        uint32_t strobe_wait_ns = *(uint32_t *)&packet_data[0];
-                        uint32_t strobe_period_ns = *(uint32_t *)&packet_data[4];
+                        uint8_t return_buf[9];
+                        uint32_t *strobe_wait_ns = (uint32_t *)&return_buf[1];
+                        uint32_t *strobe_period_ns = (uint32_t *)&return_buf[5];
+                        *strobe_wait_ns = *(uint32_t *)&packet_data[0];
+                        *strobe_period_ns = *(uint32_t *)&packet_data[4];
                         set_strobe_timing( strobe_wait_ns, strobe_period_ns );
+                        return_buf[0] = ERR_OK;
+                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, return_buf, 9 );
                     }
+                    else
+                    {
+                        rc = ERR_PACKET_INVALID;
+                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, &rc, 1 );
+                    }
+                    
                     break;
                 }
                 case PACKET_TYPE_SET_STROBE_HOLD:

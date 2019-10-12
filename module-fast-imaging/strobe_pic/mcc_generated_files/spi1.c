@@ -79,7 +79,7 @@ void SPI1_Initialize(void)
 
 void SPI1_ISR(void)
 {
-        SSP1BUF = SPI1_xchgHandler(SSP1BUF);
+    SSP1BUF = SPI1_xchgHandler(SSP1BUF);
 }
 
 

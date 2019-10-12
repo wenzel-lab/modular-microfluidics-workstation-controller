@@ -41,6 +41,12 @@ extern void spi_init( void )
     read_buf_tail = 0;
     read_buf_remaining = READ_BUF_SIZE;
 #endif
+
+#ifdef SPI_WRITE_SUPPORTED
+    write_buf_head = 0;
+    write_buf_tail = 0;
+    write_buf_remaining = WRITE_BUF_SIZE;
+#endif
     
     SPI1_setExchangeHandler( spi_handler );
 }
@@ -49,6 +55,13 @@ extern void spi_init( void )
 extern uint8_t spi_read_bytes_available( void )
 {
     return ( READ_BUF_SIZE - read_buf_remaining );
+}
+#endif
+
+#ifdef SPI_WRITE_SUPPORTED
+extern uint8_t spi_write_bytes_available( void )
+{
+    return ( WRITE_BUF_SIZE - write_buf_remaining );
 }
 #endif
 
@@ -68,6 +81,42 @@ extern uint8_t spi_read_byte( void )
 }
 #endif
 
+#ifdef SPI_WRITE_SUPPORTED
+extern err spi_write_byte( uint8_t byte )
+{
+    err rc = ERR_OK;
+    uint8_t add_to_buf = 1;
+    
+    if ( write_buf_remaining )
+    {
+        PIE3bits.SSP1IE = 0;
+        
+        if ( WRITE_BUF_SIZE == write_buf_remaining )
+        {
+            /* Empty transmit buffer -> write byte directly */
+            SSP1BUF = byte;
+            
+            /* If collision -> just add to buffer instead */
+            add_to_buf = SSP1CON1bits.WCOL;
+        }
+        
+        if ( add_to_buf )
+        {
+            write_buf[write_buf_head] = byte;
+            write_buf_head = ( write_buf_head + 1 ) & WRITE_BUF_SIZE_MASK;
+            SSP1CON1bits.WCOL = 0;
+        }
+        
+        write_buf_remaining--;
+        PIE3bits.SSP1IE = 1;
+    }
+    else
+        rc = ERR_SPI_WRITE_OVERFLOW;
+    
+    return rc;
+}
+#endif
+
 extern void spi_packet_clear( spi_packet_buf_t *packet )
 {
     packet->buf_bytes = 0;
@@ -76,7 +125,7 @@ extern void spi_packet_clear( spi_packet_buf_t *packet )
 #ifdef SPI_READ_SUPPORTED
 extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint8_t *data, uint8_t *data_size, uint8_t data_buf_size )
 {
-    /* Returns packet type if good packet, 0 otherwise */
+    /* Returns ERR_OK(0) if good packet, non-zero error otherwise */
     
     /* Packet format:
      * [STX U8=2][size U8][packet type U8][data...][checksum U8]
@@ -188,10 +237,48 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
 }
 #endif
 
+#ifdef SPI_WRITE_SUPPORTED
+extern err spi_packet_write( uint8_t packet_type, uint8_t *data, uint8_t data_size )
+{
+    /* Returns ERR_OK(0) if write successful, non-zero error otherwise */
+    
+    /* Packet format:
+     * [STX U8=2][size U8][packet type U8][data...][checksum U8]
+     */
+    
+    uint8_t rc = ERR_OK;
+    uint8_t packet_size;
+    uint8_t checksum;
+    uint8_t byte;
+    
+    packet_size = data_size + 4;
+    
+    if ( write_buf_remaining < packet_size )
+        rc = ERR_SPI_WRITE_OVERFLOW;
+    else
+    {
+        spi_write_byte( STX );          checksum = STX;
+        spi_write_byte( packet_size );  checksum += packet_size;
+        spi_write_byte( packet_type );  checksum += packet_type;
+        while ( data_size-- )
+        {
+            byte = *data++;
+            spi_write_byte( byte );
+            checksum += byte;
+        }
+        spi_write_byte( -checksum );
+    }
+    
+    return rc;
+}
+#endif
+
 // Static Functions --------------------------------------------------------
 
 static uint8_t spi_handler( uint8_t byte )
 {
+	PIR3bits.SSP1IF = 0;
+    
 #ifdef SPI_READ_SUPPORTED
     if ( read_buf_remaining )
     {
@@ -200,8 +287,24 @@ static uint8_t spi_handler( uint8_t byte )
         read_buf_remaining--;
     }
 #endif
+
+#ifdef SPI_WRITE_SUPPORTED
+    /* Decrease buffer count since previous byte just sent */
+    if ( WRITE_BUF_SIZE != write_buf_remaining )
+    {
+        write_buf_remaining++;
+
+        if ( WRITE_BUF_SIZE != write_buf_remaining )
+        {
+            byte = write_buf[write_buf_tail];
+            write_buf_tail = ( write_buf_tail + 1 ) & WRITE_BUF_SIZE_MASK;
+        }
+        else
+            byte = 0;
+    }
+    else
+        byte = 0;
+#endif
     
-	PIR3bits.SSP1IF = 0;
-    
-    return 0;
+    return byte;
 }
