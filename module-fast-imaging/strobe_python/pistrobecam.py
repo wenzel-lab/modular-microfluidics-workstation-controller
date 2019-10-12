@@ -2,18 +2,22 @@ from pistrobe import PiStrobe
 from picamera import PiCamera
 
 class PiStrobeCam:
-    def __init__( self, spi ):
-        self.strobe = PiStrobe( spi )
+    strobe_wait_ns = 0
+    strobe_period_ns = 0
+    
+    def __init__( self, spi, reply_pause_s ):
+        self.strobe = PiStrobe( spi, reply_pause_s )
         self.camera = PiCamera(
-            #resolution=
+            #resolution=()
             #framerate=Fraction(1, 1),
             #framerate = 50,
             #sensor_mode=3
         )
+        #self.camera.resolution = ( 0, 0 )
         self.camera.awb_mode = 'auto'
         self.camera.exposure_mode = 'off'
-        #self.camera.resolution = ( 0, 0 )
-        self.camera.iso = 800
+        #ISO will not adjust gains when exposure_mode='off'
+        #self.camera.iso = 800
     
     def set_timing( self, pre_padding_ns, strobe_period_ns, post_padding_ns ):
         shutter_speed_us = int( ( strobe_period_ns + pre_padding_ns + post_padding_ns ) / 1000 )
@@ -34,7 +38,7 @@ class PiStrobeCam:
         
         print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( pre_padding_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
         
-        self.strobe.set_timing( pre_padding_ns, strobe_period_ns )
+        valid, self.strobe_wait_ns, self.strobe_period_ns = self.strobe.set_timing( pre_padding_ns, strobe_period_ns )
         self.strobe.set_enable( True )
         
     def close( self ):
