@@ -59,6 +59,13 @@ class PiStrobe:
     valid, data = self.packet_read()
     return ( valid and ( data[0] == 0 ) )
 
+  def get_cam_read_time( self ):
+    self.packet_write( 4, [] )
+    time.sleep( self.reply_pause_s )
+    valid, data = self.packet_read()
+    cam_read_time_us = int.from_bytes( data[1:3], byteorder='little', signed=False )
+    return ( valid and ( data[0] == 0 ), cam_read_time_us )
+
 def strobe_packet_test():
   msg = [7, 7, 7]
   spi.xfer2( msg )

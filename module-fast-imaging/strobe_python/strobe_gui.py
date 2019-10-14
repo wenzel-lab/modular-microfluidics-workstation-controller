@@ -27,8 +27,18 @@ def update_strobe():
   global strobe_cam
   strobe_time_slider.value = strobe_period_ns / 1000
   strobe_time_box.value = strobe_time_slider.value
-  strobe_cam.set_timing( 32, strobe_period_ns, 24000000 )
-  print( "strobe wait={}ns, strobe period={}ns".format( strobe_cam.strobe_wait_ns, strobe_cam.strobe_period_ns ) )
+#  strobe_cam.set_timing( 32, strobe_period_ns, 24000000 )
+  
+  get_cam_read_time_us = 10000
+  get_cam_read_time_us_prev = 0
+  strobe_post_padding_ns = 1000000
+  while ( abs( get_cam_read_time_us - get_cam_read_time_us_prev ) > 1000 ):
+    get_cam_read_time_us_prev = get_cam_read_time_us
+    strobe_cam.set_timing( 32, strobe_period_ns, strobe_post_padding_ns )
+    print( "strobe wait={}ns, strobe period={}ns, strobe padding={}ns".format( strobe_cam.strobe_wait_ns, strobe_cam.strobe_period_ns, strobe_post_padding_ns ) )
+    valid, get_cam_read_time_us = strobe_cam.strobe.get_cam_read_time();
+    print( "get_cam_read_time_us={}".format( get_cam_read_time_us ) )
+    strobe_post_padding_ns = ( get_cam_read_time_us + 100 ) * 1000
 
 def strobe_time_slider_cmd( value ):
   # Writes slider value to strobe
