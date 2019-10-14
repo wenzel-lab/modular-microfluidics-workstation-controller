@@ -65,10 +65,10 @@ void CLC2_Initialize(void)
     CLC2SEL0 = 0x05;
     // LC2D2S TMR4=PR4; 
     CLC2SEL1 = 0x0E;
-    // LC2D3S CLCIN0 (CLCIN0PPS); 
-    CLC2SEL2 = 0x00;
-    // LC2D4S CLCIN0 (CLCIN0PPS); 
-    CLC2SEL3 = 0x00;
+    // LC2D3S TMR4=PR4; 
+    CLC2SEL2 = 0x0E;
+    // LC2D4S TMR4=PR4; 
+    CLC2SEL3 = 0x0E;
     // LC2G1D3N disabled; LC2G1D2N disabled; LC2G1D4N disabled; LC2G1D1T enabled; LC2G1D3T disabled; LC2G1D2T disabled; LC2G1D4T disabled; LC2G1D1N disabled; 
     CLC2GLS0 = 0x02;
     // LC2G2D2N disabled; LC2G2D1N disabled; LC2G2D4N disabled; LC2G2D3N disabled; LC2G2D2T enabled; LC2G2D1T disabled; LC2G2D4T disabled; LC2G2D3T disabled; 

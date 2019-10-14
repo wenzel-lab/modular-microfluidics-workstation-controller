@@ -58,6 +58,7 @@ void SYSTEM_Initialize(void)
     CLC2_Initialize();
     TMR4_Initialize();
     TMR2_Initialize();
+    TMR1_Initialize();
 }
 
 void OSCILLATOR_Initialize(void)

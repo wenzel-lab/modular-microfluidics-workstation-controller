@@ -24,12 +24,17 @@
 #define PACKET_TYPE_SET_STROBE_ENABLE   1
 #define PACKET_TYPE_SET_STROBE_TIMING   2
 #define PACKET_TYPE_SET_STROBE_HOLD     3
+#define PACKET_TYPE_GET_CAM_READ_TIME   4
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
 uint8_t packet_type;
 uint8_t packet_data[SPI_PACKET_BUF_SIZE];
 uint8_t packet_data_size;
+uint8_t return_buf[9];
+
+/* Strobe Data */
+uint16_t cam_read_time_us;
 
 uint32_t find_scalers_time( uint32_t target_time_ns, uint8_t *prescale, uint8_t *postscale, uint8_t *period )
 {
@@ -169,6 +174,8 @@ void main(void)
     spi_init();
     spi_packet_clear( &spi_packet );
     
+    cam_read_time_us = 0;
+    
 // --------------------------------------------------------------------------
     
     INTERRUPT_GlobalInterruptEnable();
@@ -199,16 +206,13 @@ void main(void)
                     }
                     else
                         rc = ERR_PACKET_INVALID;
-                    
                     spi_packet_write( PACKET_TYPE_SET_STROBE_ENABLE, &rc, 1 );
-                    
                     break;
                 }
                 case PACKET_TYPE_SET_STROBE_TIMING:
                 {
                     if ( packet_data_size == 8 )
                     {
-                        uint8_t return_buf[9];
                         uint32_t *strobe_wait_ns = (uint32_t *)&return_buf[1];
                         uint32_t *strobe_period_ns = (uint32_t *)&return_buf[5];
                         *strobe_wait_ns = *(uint32_t *)&packet_data[0];
@@ -228,11 +232,41 @@ void main(void)
                 case PACKET_TYPE_SET_STROBE_HOLD:
                 {
                     if ( packet_data_size == 1 )
+                    {
                         set_strobe_hold( packet_data[0] ? 1 : 0 );
+                        rc = ERR_OK;
+                    }
+                    else
+                        rc = ERR_PACKET_INVALID;
+                    spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, &rc, 1 );
+                    break;
+                }
+                case PACKET_TYPE_GET_CAM_READ_TIME:
+                {
+                    if ( packet_data_size == 0 )
+                    {
+                        *(uint16_t *)&return_buf[1] = cam_read_time_us;
+                        return_buf[0] = ERR_OK;
+                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, return_buf, 3 );
+                    }
+                    else
+                    {
+                        rc = ERR_PACKET_INVALID;
+                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, &rc, 1 );
+                    }
                     break;
                 }
                 default:;
             }
+        }
+        
+        if ( T1GCONbits.T1GGO == 0 )
+        {
+            /* Strobe input "read back time" measured using Timer 1 */
+            
+            cam_read_time_us = TMR1_ReadTimer();
+            TMR1_WriteTimer( 0 );
+            TMR1_StartSinglePulseAcquisition();
         }
     }
 }

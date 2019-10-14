@@ -65,10 +65,10 @@ void CLC3_Initialize(void)
     CLC3SEL0 = 0x0C;
     // LC3D2S TMR4=PR4; 
     CLC3SEL1 = 0x0E;
-    // LC3D3S CLCIN0 (CLCIN0PPS); 
-    CLC3SEL2 = 0x00;
-    // LC3D4S CLCIN0 (CLCIN0PPS); 
-    CLC3SEL3 = 0x00;
+    // LC3D3S TMR4=PR4; 
+    CLC3SEL2 = 0x0E;
+    // LC3D4S TMR4=PR4; 
+    CLC3SEL3 = 0x0E;
     // LC3G1D3N disabled; LC3G1D2N disabled; LC3G1D4N disabled; LC3G1D1T enabled; LC3G1D3T disabled; LC3G1D2T disabled; LC3G1D4T disabled; LC3G1D1N disabled; 
     CLC3GLS0 = 0x02;
     // LC3G2D2N disabled; LC3G2D1N disabled; LC3G2D4N disabled; LC3G2D3N disabled; LC3G2D2T enabled; LC3G2D1T disabled; LC3G2D4T disabled; LC3G2D3T disabled; 

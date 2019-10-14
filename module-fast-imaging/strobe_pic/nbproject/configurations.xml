@@ -17,6 +17,7 @@
         <itemPath>mcc_generated_files/clc3.h</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
         <itemPath>mcc_generated_files/spi1.h</itemPath>
+        <itemPath>mcc_generated_files/tmr1.h</itemPath>
       </logicalFolder>
       <itemPath>spi.h</itemPath>
       <itemPath>common.h</itemPath>
@@ -41,6 +42,7 @@
         <itemPath>mcc_generated_files/clc3.c</itemPath>
         <itemPath>mcc_generated_files/spi1.c</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/tmr1.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>spi.c</itemPath>
