@@ -165,20 +165,17 @@ typedef enum {
 
 void SPI2_Initialize (void);
 
-
-
-
 /**
   @Summary
-    Exchanges one byte of data from SPI2
+    Exchanges two word of data from SPI2
 
   @Description
-    This routine exchanges one byte of data from the SPI2.
-    This is a blocking routine.
+    This routine exchanges two word of data from SPI2.
 
   @Preconditions
     The SPI2_Initialize routine must have been called for the specified
     SPI2 driver instance.
+    This is a blocking routine.
 
   @Returns
     Data read from SPI2
@@ -188,16 +185,17 @@ void SPI2_Initialize (void);
 
   @Example 
     Refer to SPI2_Initialize() for an example    
+ 
 */
-        
-uint8_t SPI2_Exchange8bit( uint8_t data );
+
+uint32_t SPI2_Exchange32bit( uint32_t data );
 
 /**
   @Summary
-    Exchanges data from a buffer of size one byte from SPI2
+    Exchanges data from a buffer of size two word from SPI2
 
   @Description
-    This routine exchanges data from a buffer of size one byte from the SPI2.
+    This routine exchanges data from a buffer of size two word from the SPI2.
     This is a blocking routine.
 
   @Preconditions
@@ -205,7 +203,7 @@ uint8_t SPI2_Exchange8bit( uint8_t data );
     SPI2 driver instance.
 
   @Returns
-    Number of 8bit data written/read.
+    Number of 32bit data written/read.
 
   @Param
     dataTransmitted         - Buffer of data to be written onto SPI2.
@@ -214,14 +212,16 @@ uint8_t SPI2_Exchange8bit( uint8_t data );
     byteCount         - Number of bytes to be exchanged.
  
   @Param
-    dataReceived         - Buffer of data to be read from SPI2.
+    dataTransmitted         - Buffer of data to be read from SPI2.
 
   @Example 
     Refer to SPI2_Initialize() for an example    
  
 */
 
-uint16_t SPI2_Exchange8bitBuffer(uint8_t *dataTransmitted, uint16_t byteCount, uint8_t *dataReceived);
+uint16_t SPI2_Exchange32bitBuffer(uint32_t *dataTransmitted, uint16_t byteCount, uint32_t *dataReceived);
+
+
 
 /**
   @Summary

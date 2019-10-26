@@ -365,11 +365,11 @@
   @Example
     <code>
     // Set RB5 high (1)
-    DAC_NSYNC_SetHigh();
+    SS2OUT_SetHigh();
     </code>
 
 */
-#define DAC_NSYNC_SetHigh()          _LATB5 = 1
+#define SS2OUT_SetHigh()          _LATB5 = 1
 /**
   @Summary
     Sets the GPIO pin, RB5, low using LATB5.
@@ -389,11 +389,11 @@
   @Example
     <code>
     // Set RB5 low (0)
-    DAC_NSYNC_SetLow();
+    SS2OUT_SetLow();
     </code>
 
 */
-#define DAC_NSYNC_SetLow()           _LATB5 = 0
+#define SS2OUT_SetLow()           _LATB5 = 0
 /**
   @Summary
     Toggles the GPIO pin, RB5, using LATB5.
@@ -413,11 +413,11 @@
   @Example
     <code>
     // Toggle RB5
-    DAC_NSYNC_Toggle();
+    SS2OUT_Toggle();
     </code>
 
 */
-#define DAC_NSYNC_Toggle()           _LATB5 ^= 1
+#define SS2OUT_Toggle()           _LATB5 ^= 1
 /**
   @Summary
     Reads the value of the GPIO pin, RB5.
@@ -439,11 +439,11 @@
     uint16_t portValue;
 
     // Read RB5
-    postValue = DAC_NSYNC_GetValue();
+    postValue = SS2OUT_GetValue();
     </code>
 
 */
-#define DAC_NSYNC_GetValue()         _RB5
+#define SS2OUT_GetValue()         _RB5
 /**
   @Summary
     Configures the GPIO pin, RB5, as an input.
@@ -463,11 +463,11 @@
   @Example
     <code>
     // Sets the RB5 as an input
-    DAC_NSYNC_SetDigitalInput();
+    SS2OUT_SetDigitalInput();
     </code>
 
 */
-#define DAC_NSYNC_SetDigitalInput()  _TRISB5 = 1
+#define SS2OUT_SetDigitalInput()  _TRISB5 = 1
 /**
   @Summary
     Configures the GPIO pin, RB5, as an output.
@@ -487,11 +487,11 @@
   @Example
     <code>
     // Sets the RB5 as an output
-    DAC_NSYNC_SetDigitalOutput();
+    SS2OUT_SetDigitalOutput();
     </code>
 
 */
-#define DAC_NSYNC_SetDigitalOutput() _TRISB5 = 0
+#define SS2OUT_SetDigitalOutput() _TRISB5 = 0
 
 /**
     Section: Function Prototypes
