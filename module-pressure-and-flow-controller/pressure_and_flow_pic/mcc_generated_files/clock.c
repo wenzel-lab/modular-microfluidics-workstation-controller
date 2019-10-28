@@ -56,8 +56,8 @@ void CLOCK_Initialize(void)
     OSCTUN = 0x00;
     // POST1DIV 1:4; VCODIV FVCO/4; POST2DIV 1:1; 
     PLLDIV = 0x41;
-    // APLLEN disabled; FRCSEL FRC; APLLPRE 1:1; 
-    ACLKCON1 = 0x101;
+    // APLLEN disabled; FRCSEL Primary Oscillator; APLLPRE 1:1; 
+    ACLKCON1 = 0x01;
     // APLLFBDIV 150; 
     APLLFBD1 = 0x96;
     // APOST1DIV 1:4; APOST2DIV 1:1; AVCODIV FVCO/4; 

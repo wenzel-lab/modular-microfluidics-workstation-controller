@@ -46,9 +46,10 @@
 #include "clock.h"
 #include "system.h"
 #include "system_types.h"
-#include "spi2.h"
+#include "adc1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
+#include "spi2.h"
 
 void SYSTEM_Initialize(void)
 {
@@ -56,6 +57,7 @@ void SYSTEM_Initialize(void)
     INTERRUPT_Initialize();
     CLOCK_Initialize();
     SPI2_Initialize();
+    ADC1_Initialize();
     INTERRUPT_GlobalEnable();
     SYSTEM_CORCONModeOperatingSet(CORCON_MODE_PORVALUES);
 }

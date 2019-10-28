@@ -1,9 +1,11 @@
 #include <xc.h>
 #define FCY 8000000UL
 #include <libpic30.h>
-#include "mcc_generated_files/system.h"
-#include "mcc_generated_files/spi2.h"
-#include "mcc_generated_files/pin_manager.h"
+#include "mcc_generated_files/mcc.h"
+//#include "mcc_generated_files/system.h"
+//#include "mcc_generated_files/spi2.h"
+//#include "mcc_generated_files/adc1.h"
+//#include "mcc_generated_files/pin_manager.h"
 
 typedef enum
 {
@@ -53,7 +55,7 @@ void dac_reset( void )
     dac_cmd( 0b101, 0, 0 );                 // Software reset
 }
 
-void dac_ref( uint8_t internal )
+void dac_ref_internal( uint8_t internal )
 {
     dac_cmd( 0b111, 0, internal ? 1 : 0 );  // Internal reference -> 5V range
 }
@@ -71,13 +73,15 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 int main(void)
 {
     uint16_t dac_val = 0;
+    uint16_t adc_val = 0;
     
     SYSTEM_Initialize();
+    ADC1_SoftwareLevelTriggerEnable();
     
     __delay_ms( 100 );
     
     dac_reset();
-//    dac_ref( 1 );
+//    dac_ref_internal( 1 );
     
     while (1)
     {
@@ -85,12 +89,19 @@ int main(void)
         
 //        dac_write_and_update( 0, dac_val << 4 );
         
+        adc_val = ADC1_SharedChannelAN2ConversionResultGet();
+        
         dac_write_ldac( DAC_CHAN_A, dac_val << 4, 0 );
-        dac_write_ldac( DAC_CHAN_B, dac_val << 4, 0 );
+        dac_write_ldac( DAC_CHAN_B, adc_val << 4, 0 );
         dac_write_ldac( DAC_CHAN_C, dac_val << 4, 1 );
         
         dac_val++;
         dac_val &= 0xFFF;
+        
+//        ADC1_IsSharedChannelAN2ConversionComplete()
+//        ADC1_SharedChannelAN2ConversionResultGet();
+//        ADCON3Lbits.CNVCHSEL = 0;   // Individual Channel Select
+//        ADCON3Lbits.CNVRTCH = 1;    // Individual Channel Trigger
     }
     
     return 1; 
