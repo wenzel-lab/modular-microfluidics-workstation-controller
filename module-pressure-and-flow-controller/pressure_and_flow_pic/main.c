@@ -2,6 +2,8 @@
 #define FCY 8000000UL
 #include <libpic30.h>
 #include "mcc_generated_files/mcc.h"
+#include "common.h"
+#include "spi.h"
 //#include "mcc_generated_files/system.h"
 //#include "mcc_generated_files/spi2.h"
 //#include "mcc_generated_files/adc1.h"

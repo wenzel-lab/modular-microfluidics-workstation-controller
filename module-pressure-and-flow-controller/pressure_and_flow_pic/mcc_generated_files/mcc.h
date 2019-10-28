@@ -52,8 +52,9 @@
 #include "pin_manager.h"
 #include <stdint.h>
 #include <stdbool.h>
-#include "adc1.h"
 #include "reset.h"
+#include "adc1.h"
+#include "spi1.h"
 #include "watchdog.h"
 #include "interrupt_manager.h"
 #include "traps.h"
