@@ -200,6 +200,17 @@ void __attribute__ ((weak)) ADC1_CallBack(void)
     // Add your custom callback code here
 }
 
+void ADC1_Tasks ( void )
+{
+	if(IFS5bits.ADCIF)
+	{
+		// ADC1 callback function 
+		ADC1_CallBack();
+		
+		// clear the ADC1 interrupt flag
+		IFS5bits.ADCIF = 0;
+	}
+}
 
 
 

@@ -18,6 +18,13 @@ typedef enum
     DAC_CHAN_ALL    = 0b111,
 } E_DAC_CHAN;
 
+/* Packet Data */
+spi_packet_buf_t spi_packet;
+uint8_t packet_type;
+uint8_t packet_data[SPI_PACKET_BUF_SIZE];
+uint8_t packet_data_size;
+uint8_t return_buf[9];
+
 void dac_cmd( uint8_t cmd, E_DAC_CHAN chan, uint16_t value )
 {
     /*
@@ -74,6 +81,7 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 
 int main(void)
 {
+    err rc = 0;
     uint16_t dac_val = 0;
     uint16_t adc_val = 0;
     
@@ -82,15 +90,17 @@ int main(void)
     
     __delay_ms( 100 );
     
+    spi_init();
     dac_reset();
 //    dac_ref_internal( 1 );
     
+    SPI1STATL = 0;
+    
     while (1)
     {
-//        __delay_ms( 1 );
+        uint8_t dummy;
         
-//        dac_write_and_update( 0, dac_val << 4 );
-        
+        /**/
         adc_val = ADC1_SharedChannelAN2ConversionResultGet();
         
         dac_write_ldac( DAC_CHAN_A, dac_val << 4, 0 );
@@ -99,11 +109,44 @@ int main(void)
         
         dac_val++;
         dac_val &= 0xFFF;
+        /**/
         
 //        ADC1_IsSharedChannelAN2ConversionComplete()
 //        ADC1_SharedChannelAN2ConversionResultGet();
 //        ADCON3Lbits.CNVCHSEL = 0;   // Individual Channel Select
 //        ADCON3Lbits.CNVRTCH = 1;    // Individual Channel Trigger
+        
+//        if ( spi_read_bytes_available() )
+//            PORTAbits.RA0 ^= 1;
+
+#if 1
+//        SPI1STATL = 0;
+//        dummy = SPI1BUFL;
+//        SPI1BUFL = 10;
+        
+//        dummy = SPI1_Exchange8bit( dummy );
+        
+//        if ( PORTBbits.RB13 != 1 )
+        if ( dummy != 0 )
+            PORTAbits.RA0 = 1;
+        
+//        PORTAbits.RA0 = spiflag ? 1 : 0;
+#else
+        if ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK )
+        {
+            switch ( packet_type )
+            {
+                case 0:
+                {
+                    /* No or invalid packet */
+                    break;
+                }
+                default:
+                    PORTAbits.RA0 = 1;
+//                    spi_packet_write( 0x1, &rc, 1 );
+            }
+        }
+#endif
     }
     
     return 1; 

@@ -52,7 +52,4 @@
 */
 void INTERRUPT_Initialize (void)
 {
-    //    SPIRXI: SPI1 RX
-    //    Priority: 1
-        IPC2bits.SPI1RXIP = 1;
 }

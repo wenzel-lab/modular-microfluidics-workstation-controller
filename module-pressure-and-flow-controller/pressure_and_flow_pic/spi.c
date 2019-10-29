@@ -5,7 +5,7 @@
 #include <xc.h>
 #include "common.h"
 #include "spi.h"
-#include "mcc_generated_files/spi1.h"
+//#include "mcc_generated_files/spi1.h"
 
 #define READ_BUF_SIZE           32
 #define READ_BUF_SIZE_MASK      ( READ_BUF_SIZE - 1 )
@@ -13,6 +13,8 @@
 #define WRITE_BUF_SIZE_MASK     ( WRITE_BUF_SIZE - 1 )
 
 #define STX                     2
+
+uint8_t spiflag = 0;
 
 #ifdef SPI_READ_SUPPORTED
 volatile uint8_t read_buf[READ_BUF_SIZE];
@@ -49,6 +51,7 @@ extern void spi_init( void )
 #endif
     
 //    SPI1_setExchangeHandler( spi_handler );
+//    IEC0bits.SPI1RXIE = 1;
 }
 
 #ifdef SPI_READ_SUPPORTED
@@ -313,5 +316,8 @@ static uint8_t spi_handler( uint8_t byte )
 
 void __attribute__((__interrupt__, auto_psv)) _SPI1RXInterrupt(void)
 {
-    SPI1BUFL = spi_handler( SPI1BUFL );
+    SPI1BUFL = 10;
+    spiflag = !spiflag;
+    
+//    SPI1BUFL = spi_handler( SPI1BUFL );
 }
