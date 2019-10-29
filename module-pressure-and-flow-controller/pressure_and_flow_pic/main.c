@@ -4,10 +4,6 @@
 #include "mcc_generated_files/mcc.h"
 #include "common.h"
 #include "spi.h"
-//#include "mcc_generated_files/system.h"
-//#include "mcc_generated_files/spi2.h"
-//#include "mcc_generated_files/adc1.h"
-//#include "mcc_generated_files/pin_manager.h"
 
 typedef enum
 {
@@ -87,20 +83,19 @@ int main(void)
     
     SYSTEM_Initialize();
     ADC1_SoftwareLevelTriggerEnable();
+    spi_init();
+    spi_packet_clear( &spi_packet );
     
     __delay_ms( 100 );
-    
-    spi_init();
+
     dac_reset();
 //    dac_ref_internal( 1 );
-    
-    SPI1STATL = 0;
     
     while (1)
     {
         uint8_t dummy;
         
-        /**/
+        /*
         adc_val = ADC1_SharedChannelAN2ConversionResultGet();
         
         dac_write_ldac( DAC_CHAN_A, dac_val << 4, 0 );
@@ -119,18 +114,23 @@ int main(void)
 //        if ( spi_read_bytes_available() )
 //            PORTAbits.RA0 ^= 1;
 
-#if 1
+#if 0
 //        SPI1STATL = 0;
 //        dummy = SPI1BUFL;
 //        SPI1BUFL = 10;
         
-//        dummy = SPI1_Exchange8bit( dummy );
+//        dummy = SPI1_Exchange8bit( 10 );
         
-//        if ( PORTBbits.RB13 != 1 )
-        if ( dummy != 0 )
-            PORTAbits.RA0 = 1;
+//        spi_read_byte();
+//        spi_write_byte( 11 );
         
-//        PORTAbits.RA0 = spiflag ? 1 : 0;
+//        if ( spiabc == 1 )
+//        if ( dummy != 0 )
+//            PORTAbits.RA0 = 1;
+        
+//        PORTAbits.RA0 = spiabc;
+//        PORTAbits.RA0 = spiabc ? 1 : 0;
+        PORTAbits.RA0 = ( spi_read_bytes_available() > 12 ) ? 1 : 0;
 #else
         if ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK )
         {

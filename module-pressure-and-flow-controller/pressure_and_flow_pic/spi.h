@@ -17,8 +17,6 @@ typedef struct
     uint8_t buf_bytes;
 } spi_packet_buf_t;
 
-extern uint8_t spiflag;
-
 /* SPI Core Functions */
 extern void spi_init( void );
 

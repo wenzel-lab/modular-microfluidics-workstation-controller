@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <inttypes.h>
 #include <string.h>
 #include <xc.h>
 #include "common.h"
@@ -13,8 +12,6 @@
 #define WRITE_BUF_SIZE_MASK     ( WRITE_BUF_SIZE - 1 )
 
 #define STX                     2
-
-uint8_t spiflag = 0;
 
 #ifdef SPI_READ_SUPPORTED
 volatile uint8_t read_buf[READ_BUF_SIZE];
@@ -33,6 +30,7 @@ volatile uint8_t write_buf_remaining;
 // Static Prototypes -------------------------------------------------------
 
 static uint8_t spi_handler( uint8_t byte );
+static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void );
 
 // Extern Functions --------------------------------------------------------
 
@@ -51,7 +49,9 @@ extern void spi_init( void )
 #endif
     
 //    SPI1_setExchangeHandler( spi_handler );
-//    IEC0bits.SPI1RXIE = 1;
+    SPI1STATL = 0;
+    IFS0bits.SPI1RXIF = 0;
+    IEC0bits.SPI1RXIE = 1;
 }
 
 #ifdef SPI_READ_SUPPORTED
@@ -102,7 +102,7 @@ extern err spi_write_byte( uint8_t byte )
             /* If collision -> just add to buffer instead */
 //            add_to_buf = SSP1CON1bits.WCOL;
         }
-        
+        else
 //        if ( add_to_buf )
         {
             write_buf[write_buf_head] = byte;
@@ -202,6 +202,7 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
                 }
                 else
                 {
+                    PORTAbits.RA0 = 1;
                     /* Checksum is good. */
 
                     if ( packet->buf_bytes == packet_size )
@@ -282,7 +283,6 @@ extern err spi_packet_write( uint8_t packet_type, uint8_t *data, uint8_t data_si
 static uint8_t spi_handler( uint8_t byte )
 {
 //	PIR3bits.SSP1IF = 0;
-    SPI1STATL = 0;
     
 #ifdef SPI_READ_SUPPORTED
     if ( read_buf_remaining )
@@ -314,10 +314,20 @@ static uint8_t spi_handler( uint8_t byte )
     return byte;
 }
 
-void __attribute__((__interrupt__, auto_psv)) _SPI1RXInterrupt(void)
+static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void )
 {
-    SPI1BUFL = 10;
-    spiflag = !spiflag;
+    IFS0bits.SPI1RXIF = 0;
+//    SPI1STATL = 0;
+//    uint8_t dummy;
     
-//    SPI1BUFL = spi_handler( SPI1BUFL );
+//    dummy = SPI1BUFL;
+//    SPI1BUFL = 11;
+//    PORTAbits.RA0 = 1;
+    
+    if ( SPI1STATLbits.SPIRBF )
+    {
+//        SPI1STATLbits.SPIRBF = 0;
+//        SPI1STATL = 0;
+        SPI1BUFL = spi_handler( SPI1BUFL );
+    }
 }
