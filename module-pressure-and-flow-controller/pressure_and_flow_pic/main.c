@@ -80,6 +80,7 @@ int main(void)
     err rc = 0;
     uint16_t dac_val = 0;
     uint16_t adc_val = 0;
+    uint8_t pina0 = 0;
     
     SYSTEM_Initialize();
     ADC1_SoftwareLevelTriggerEnable();
@@ -142,8 +143,10 @@ int main(void)
                     break;
                 }
                 default:
-                    PORTAbits.RA0 = 1;
-//                    spi_packet_write( 0x1, &rc, 1 );
+                    pina0 ^= 1;
+                    LATAbits.LATA0 = pina0;
+                    rc = 6;
+                    spi_packet_write( 0x7, &rc, 1 );
             }
         }
 #endif

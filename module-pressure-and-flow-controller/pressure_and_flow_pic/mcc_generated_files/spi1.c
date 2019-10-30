@@ -79,8 +79,8 @@ uint16_t SPI1_ExchangeBuffer(uint8_t *pTransmitData, uint16_t byteCount, uint8_t
 
 void SPI1_Initialize (void)
 {
-    // AUDEN disabled; FRMEN disabled; AUDMOD I2S; FRMSYPW One clock wide; AUDMONO stereo; FRMCNT 0; MSSEN disabled; FRMPOL disabled; IGNROV disabled; SPISGNEXT not sign-extended; FRMSYNC disabled; URDTEN disabled; IGNTUR disabled; 
-    SPI1CON1H = 0x00;
+    // AUDEN disabled; FRMEN disabled; AUDMOD I2S; FRMSYPW One clock wide; AUDMONO stereo; FRMCNT 0; MSSEN disabled; FRMPOL disabled; IGNROV enabled; SPISGNEXT not sign-extended; FRMSYNC disabled; URDTEN disabled; IGNTUR enabled; 
+    SPI1CON1H = 0x3000;
     // WLENGTH 0; 
     SPI1CON2L = 0x00;
     // SPIROV disabled; FRMERR disabled; 
@@ -95,8 +95,8 @@ void SPI1_Initialize (void)
     SPI1URDTL = 0x00;
     // SPI1URDTH 0; 
     SPI1URDTH = 0x00;
-    // SPIEN enabled; DISSDO disabled; MCLKEN FOSC/2; CKP Idle:High, Active:Low; SSEN enabled; MSTEN Slave; MODE16 disabled; SMP Middle; DISSCK disabled; SPIFE Frame Sync pulse precedes; CKE Active to Idle; MODE32 disabled; SPISIDL disabled; ENHBUF disabled; DISSDI disabled; 
-    SPI1CON1L = 0x81C0;
+    // SPIEN enabled; DISSDO disabled; MCLKEN FOSC/2; CKP Idle:High, Active:Low; SSEN enabled; MSTEN Slave; MODE16 disabled; SMP Middle; DISSCK disabled; SPIFE Frame Sync pulse coincides; CKE Active to Idle; MODE32 disabled; SPISIDL disabled; ENHBUF disabled; DISSDI disabled; 
+    SPI1CON1L = 0x81C2;
 
 }
 

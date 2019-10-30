@@ -29,7 +29,7 @@ volatile uint8_t write_buf_remaining;
 
 // Static Prototypes -------------------------------------------------------
 
-static uint8_t spi_handler( uint8_t byte );
+static uint8_t spi_handler( uint8_t byte_in, uint8_t *byte_out );
 static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void );
 
 // Extern Functions --------------------------------------------------------
@@ -202,7 +202,6 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
                 }
                 else
                 {
-                    PORTAbits.RA0 = 1;
                     /* Checksum is good. */
 
                     if ( packet->buf_bytes == packet_size )
@@ -280,14 +279,14 @@ extern err spi_packet_write( uint8_t packet_type, uint8_t *data, uint8_t data_si
 
 // Static Functions --------------------------------------------------------
 
-static uint8_t spi_handler( uint8_t byte )
+static uint8_t spi_handler( uint8_t byte_in, uint8_t *byte_out )
 {
 //	PIR3bits.SSP1IF = 0;
     
 #ifdef SPI_READ_SUPPORTED
     if ( read_buf_remaining )
     {
-        read_buf[read_buf_head] = byte;
+        read_buf[read_buf_head] = byte_in;
         read_buf_head = ( read_buf_head + 1 ) & READ_BUF_SIZE_MASK;
         read_buf_remaining--;
     }
@@ -301,21 +300,24 @@ static uint8_t spi_handler( uint8_t byte )
 
         if ( WRITE_BUF_SIZE != write_buf_remaining )
         {
-            byte = write_buf[write_buf_tail];
+            *byte_out = write_buf[write_buf_tail];
+            byte_in = 1;
             write_buf_tail = ( write_buf_tail + 1 ) & WRITE_BUF_SIZE_MASK;
         }
         else
-            byte = 0;
+            byte_in = 0;
     }
     else
-        byte = 0;
+        byte_in = 0;
 #endif
     
-    return byte;
+    return byte_in;
 }
 
 static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void )
 {
+    uint8_t byte_out;
+    
     IFS0bits.SPI1RXIF = 0;
 //    SPI1STATL = 0;
 //    uint8_t dummy;
@@ -324,10 +326,11 @@ static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void 
 //    SPI1BUFL = 11;
 //    PORTAbits.RA0 = 1;
     
-    if ( SPI1STATLbits.SPIRBF )
+    if ( SPI1IMSKLbits.SPIRBFEN && SPI1STATLbits.SPIRBF )
     {
 //        SPI1STATLbits.SPIRBF = 0;
 //        SPI1STATL = 0;
-        SPI1BUFL = spi_handler( SPI1BUFL );
+        if ( spi_handler( SPI1BUFL, &byte_out ) )
+            SPI1BUFL = byte_out;
     }
 }

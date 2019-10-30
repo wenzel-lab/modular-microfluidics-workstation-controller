@@ -47,8 +47,8 @@
 #include "system.h"
 #include "system_types.h"
 #include "adc1.h"
-#include "spi2.h"
 #include "spi1.h"
+#include "spi2.h"
 #include "interrupt_manager.h"
 #include "traps.h"
 
