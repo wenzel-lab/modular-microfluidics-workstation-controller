@@ -1,6 +1,6 @@
 import time
 import spidev
-import pistrobe
+import piflow
 
 def strobe_packet_test():
   msg = [7, 7, 7]
@@ -27,18 +27,13 @@ def spi_init( bus, device, mode, speed_hz ):
   return spi
 
 spi = spi_init( 0, 1, 2, 50000 )
-strobe = pistrobe.PiStrobe( spi, 0.1 )
-#strobe.set_timing( 2000000, 2000000 )
-#strobe.set_hold( True )
-#time.sleep( 1 )
-#strobe.set_hold( False )
+flow = piflow.PiFlow( spi, 0.1 )
 
-strobe.packet_write( 3, [5] )
-time.sleep( 0.1 )
-valid = False
-while not valid:
-    valid, data = strobe.packet_read()
-print( valid, data )
+valid, id, id_valid = flow.get_id()
+print( valid, bytes(id).decode("ascii"), id_valid )
+
+valid = flow.set_pressure( [100, 200, 300, 4000 << 4] )
+print( valid )
 
 spi.close()
 

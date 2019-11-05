@@ -6879,7 +6879,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="SPI1" registerAlias="SPIURDTH"/>
-         <value>0</value>
+         <value>255</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="System Module" registerAlias="FALTREG" settingAlias="CTXT2" alias="IPL4"/>
@@ -7207,7 +7207,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="SPI1" registerAlias="SPIURDTH" settingAlias="SPIURDTH"/>
-         <value>0</value>
+         <value>255</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="SPI2" registerAlias="SPIURDTH" settingAlias="SPIURDTH"/>
@@ -7219,7 +7219,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="SPI1" registerAlias="SPIURDTL"/>
-         <value>0</value>
+         <value>255</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADTRIG1L" settingAlias="TRGSRC4" alias="Common Software Trigger"/>
@@ -10991,7 +10991,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="SPI1" registerAlias="SPIURDTL" settingAlias="SPIURDTL"/>
-         <value>0</value>
+         <value>255</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="ADC1" registerAlias="ADIEL" settingAlias="IE10" alias="disabled"/>
@@ -11195,7 +11195,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="SPI1" registerAlias="SPICON1H" settingAlias="URDTEN"/>
-         <value>disabled</value>
+         <value>enabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="INTERNAL OSCILLATOR" registerAlias="OSCTUN" settingAlias="TUN" alias="Center Frequency+1.140%"/>
@@ -17039,7 +17039,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="SPI1" registerAlias="SPICON1H"/>
-         <value>12288</value>
+         <value>13312</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="INTERNAL OSCILLATOR" registerAlias="ACLKCON" settingAlias="FRCSEL"/>
@@ -18581,7 +18581,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\pin_manager.c</file>
-         <hash>7b866750fc26988499775497b3ac02178a6d3cdc628e7d6539f7eaa1dcbd923e</hash>
+         <hash>1edd17f8f8b4f3220da40a03f4a0c5bbe1994c3765624e0388076677e169a270</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\system.h</file>
@@ -18589,7 +18589,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\spi1.c</file>
-         <hash>34d8555f69d383b6a52590bcf98d1a51489ff2c6cb83d393d95b04b074342851</hash>
+         <hash>e2ae2ab93428d98109653a9e46bdaa25c43f551b514e5c7a1982f6764b68859d</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\system.c</file>
