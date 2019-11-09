@@ -9,6 +9,11 @@
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
 #define PRESSURE_SHL                        3
+#define PRESSURE_ADC_REF_MV                 3300
+#define PRESSURE_ADC_MBAR                   5000
+
+/* Flow / Pressure Macros */
+#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc << PRESSURE_SHL ) * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
 
 /* DAC Constants */
 typedef enum
@@ -81,10 +86,21 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 
 void capture_pressures( void )
 {
-    pressure_mbar_shl_actual[0] = ADC1_SharedChannelAN2ConversionResultGet();
-    pressure_mbar_shl_actual[1] = ADC1_SharedChannelAN3ConversionResultGet();
-    pressure_mbar_shl_actual[2] = ADC1_SharedChannelAN4ConversionResultGet();
-    pressure_mbar_shl_actual[3] = ADC1_SharedChannelAN9ConversionResultGet();
+//    while ( !ADC1_IsSharedChannelAN2ConversionComplete() );
+    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN2ConversionResultGet() );
+//    while ( !ADC1_IsSharedChannelAN3ConversionComplete() );
+    pressure_mbar_shl_actual[1] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN3ConversionResultGet() );
+//    while ( !ADC1_IsSharedChannelAN4ConversionComplete() );
+    pressure_mbar_shl_actual[2] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN4ConversionResultGet() );
+//    while ( !ADC1_IsSharedChannelAN9ConversionComplete() );
+    pressure_mbar_shl_actual[3] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN9ConversionResultGet() );
+//    ADC1_SoftwareTriggerEnable();
+}
+
+void retrigger_ADCs( void )
+{
+    if ( ADC1_IsSharedChannelAN9ConversionComplete() )
+        ADC1_SoftwareTriggerEnable();
 }
 
 void set_pressures( void )
@@ -181,42 +197,21 @@ void init( void )
 int main(void)
 {
     err rc = 0;
-    uint16_t dac_val = 0;
-    uint16_t adc_val = 0;
     
     SYSTEM_Initialize();
     init();
-    ADC1_SoftwareLevelTriggerEnable();
+//    ADC1_SoftwareLevelTriggerEnable();
+    ADC1_SoftwareTriggerEnable();
     spi_init();
     spi_packet_clear( &spi_packet );
-    
-    __delay_ms( 100 );
-
     dac_reset();
 //    dac_ref_internal( 1 );
     set_pressures();
     
+    __delay_ms( 100 );
+
     while (1)
     {
-        /*
-        adc_val = ADC1_SharedChannelAN2ConversionResultGet();
-        
-        dac_write_ldac( DAC_CHAN_A, dac_val << 4, 0 );
-        dac_write_ldac( DAC_CHAN_B, adc_val << 4, 0 );
-        dac_write_ldac( DAC_CHAN_C, dac_val << 4, 1 );
-        
-        dac_val++;
-        dac_val &= 0xFFF;
-        /**/
-        
-//        ADC1_IsSharedChannelAN2ConversionComplete()
-//        ADC1_SharedChannelAN2ConversionResultGet();
-//        ADCON3Lbits.CNVCHSEL = 0;   // Individual Channel Select
-//        ADCON3Lbits.CNVRTCH = 1;    // Individual Channel Trigger
-        
-//        if ( spi_read_bytes_available() )
-//            PORTAbits.RA0 ^= 1;
-
         if ( ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK ) &&
              ( packet_type != 0 ) )
         {
@@ -256,6 +251,8 @@ int main(void)
             if ( rc != ERR_OK )
                 spi_packet_write( packet_type, &rc, 1 );
         }
+        
+        retrigger_ADCs();
     }
     
     return 1; 

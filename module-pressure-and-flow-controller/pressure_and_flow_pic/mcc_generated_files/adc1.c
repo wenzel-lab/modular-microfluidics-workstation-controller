@@ -64,8 +64,8 @@ void ADC1_Initialize (void)
     ADCON2L = 0x08;
     // SHRSAMC 32; 
     ADCON2H = 0x20;
-    // SWCTRG disabled; SHRSAMP disabled; SUSPEND disabled; SWLCTRG disabled; SUSPCIE disabled; CNVCHSEL AN2; REFSEL disabled; 
-    ADCON3L = 0x02;
+    // SWCTRG disabled; SHRSAMP disabled; SUSPEND disabled; SWLCTRG disabled; SUSPCIE disabled; CNVCHSEL AN9; REFSEL disabled; 
+    ADCON3L = 0x09;
     // SHREN enabled; C1EN disabled; C0EN disabled; CLKDIV 16; CLKSEL FOSC/2; 
     ADCON3H = (0xF80 & 0xFF00); //Disabling C0EN, C1EN, C2EN, C3EN and SHREN bits
     // SAMC0EN disabled; SAMC1EN disabled; 
@@ -130,8 +130,8 @@ void ADC1_Initialize (void)
     ADCMP2CON = 0x00;
     // HIHI disabled; LOLO disabled; HILO disabled; BTWN disabled; LOHI disabled; CMPEN disabled; IE disabled; 
     ADCMP3CON = 0x00;
-    // LVLEN9 enabled; LVLEN8 disabled; LVLEN11 disabled; LVLEN7 disabled; LVLEN10 disabled; LVLEN6 disabled; LVLEN5 disabled; LVLEN4 enabled; LVLEN3 enabled; LVLEN2 enabled; LVLEN1 disabled; LVLEN0 disabled; 
-    ADLVLTRGL = 0x21C;
+    // LVLEN9 disabled; LVLEN8 disabled; LVLEN11 disabled; LVLEN7 disabled; LVLEN10 disabled; LVLEN6 disabled; LVLEN5 disabled; LVLEN4 disabled; LVLEN3 disabled; LVLEN2 disabled; LVLEN1 disabled; LVLEN0 disabled; 
+    ADLVLTRGL = 0x00;
     // LVLEN24 disabled; LVLEN25 disabled; 
     ADLVLTRGH = 0x00;
     // SAMC 0; 
@@ -159,14 +159,14 @@ void ADC1_Initialize (void)
 
     //TRGSRC0 None; TRGSRC1 None; 
     ADTRIG0L = 0x00;
-    //TRGSRC3 Level Software Trigger; TRGSRC2 Level Software Trigger; 
-    ADTRIG0H = 0x202;
-    //TRGSRC4 Level Software Trigger; TRGSRC5 None; 
-    ADTRIG1L = 0x02;
+    //TRGSRC3 Common Software Trigger; TRGSRC2 Common Software Trigger; 
+    ADTRIG0H = 0x101;
+    //TRGSRC4 Common Software Trigger; TRGSRC5 None; 
+    ADTRIG1L = 0x01;
     //TRGSRC6 None; TRGSRC7 None; 
     ADTRIG1H = 0x00;
-    //TRGSRC8 None; TRGSRC9 Level Software Trigger; 
-    ADTRIG2L = 0x200;
+    //TRGSRC8 None; TRGSRC9 Common Software Trigger; 
+    ADTRIG2L = 0x100;
     //TRGSRC11 None; TRGSRC10 None; 
     ADTRIG2H = 0x00;
     //TRGSRC24 None; TRGSRC25 None; 
