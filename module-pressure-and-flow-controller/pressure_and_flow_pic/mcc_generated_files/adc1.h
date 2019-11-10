@@ -789,66 +789,6 @@ inline static void ADC1_SharedCoreConversionClockPrescalerSet(uint8_t prescaler)
 }
 /**
   @Summary
-    Returns the ADC1 conversion value for the shared core channel AN2
-
-  @Description
-    This routine is used to get the analog to digital converted value for channel AN2. This
-    routine gets converted values from the shared core channel AN2.
- 
-  @Preconditions
-    The shared core must be enabled and calibrated before calling this routine 
-    using ADC1_SharedCorePowerEnable() and ADC1_SharedCoreCalibration() 
-    respectively. This routine returns the conversion value only after the 
-    conversion is complete. Completion status conversion can be checked using 
-    ADC1_IsSharedChannelAN2ConversionComplete() routine.
-   
-  @Returns
-    Returns the buffer containing the conversion value.
-
-  @Param
-    Buffer address
-  
-  @Example
-    Refer to ADC1_Initialize(); for an example
- */
-inline static uint16_t ADC1_SharedChannelAN2ConversionResultGet(void) 
-{
-    return ADCBUF2;
-}
-/**
-  @Summary
-    Returns the conversion status of shared channel AN2 selected for conversion
-
-  @Description
-    This routine is used to return the conversion status of the shared channel AN2 
-    selected for conversion.
-  
-  @Preconditions
-    ADC1_Initialize() function should have been 
-    called before calling this function.
- 
-  @Returns
-    The value of the Channel AN2 Conversion register
-
-  @Param
-    None
-  
-  @Example
-    Refer to ADC1_Initialize(); for an example
- 
-*/
-
-inline static bool ADC1_IsSharedChannelAN2ConversionComplete(void)
-{   
-    return ADSTATLbits.AN2RDY;
-}
-/**
-  Shared Channel ConversionResultGet and ConversionComplete APIs are only generated 
-  for the AN channels selected in the MCC UI. To generate for a specific channel,
-  please enable the Shared AN channel in the MCC UI.
-*/
-/**
-  @Summary
     Returns the ADC1 conversion value for the shared core channel AN3
 
   @Description

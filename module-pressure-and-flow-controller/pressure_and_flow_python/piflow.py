@@ -4,6 +4,8 @@ import spidev
 class PiFlow:
   DEVICE_ID                       = 'MICROFLOW'
   STX                             = 2
+  PRESSURE_SHIFT                  = 3
+  PRESSURE_SCALE                  = ( 1 << PRESSURE_SHIFT )
   PACKET_TYPE_GET_ID              = 1
   PACKET_TYPE_SET_PRESSURE_TARGET = 2
   PACKET_TYPE_GET_PRESSURE_TARGET = 3
@@ -46,19 +48,33 @@ class PiFlow:
     self.packet_write( self.PACKET_TYPE_GET_ID, [] )
     time.sleep( self.reply_pause_s )
     valid, data = self.packet_read()
-    id = data[1:-1]
-    id_valid = ( bytes(id).decode("ascii") == self.DEVICE_ID )
+    id = bytes(data[1:-1]).decode("ascii")
+    id_valid = ( id == self.DEVICE_ID )
     return ( valid and ( data[0] == 0 ), id, id_valid )
 
   def set_pressure( self, pressures_mbar ):
     pressures_mbar_bytes = []
     for i in range(self.num_controllers):
       mask = 1 << i
-      pressures_mbar_bytes.extend( [mask] + list( pressures_mbar[i].to_bytes( 2, 'little', signed=False ) ) )
+      pressure_fp = int( pressures_mbar[i] * self.PRESSURE_SCALE );
+      pressures_mbar_bytes.extend( [mask] + list( pressure_fp.to_bytes( 2, 'little', signed=False ) ) )
     self.packet_write( self.PACKET_TYPE_SET_PRESSURE_TARGET, pressures_mbar_bytes )
     time.sleep( self.reply_pause_s )
-    time.sleep( 1 )
+#    time.sleep( 1 )
     valid, data = self.packet_read()
 #    actual_wait_ns = int.from_bytes( data[1:5], byteorder='little', signed=False )
 #    print( "data={}, wait={}, period={}, wait_bytes={}".format( data, actual_wait_ns, actual_period_ns, data[1:5] ) )
     return ( ( valid and ( data[0] == 0 ) ) )
+
+  def get_pressure_actual( self ):
+    self.packet_write( self.PACKET_TYPE_GET_PRESSURE_ACTUAL, [] )
+    time.sleep( self.reply_pause_s )
+    valid, data = self.packet_read()
+    count = int( ( len(data) - 1 ) / 2 )
+    pressures=[]
+    for i in range(count):
+      index = 1 + ( i << 1 )
+      pressure = int.from_bytes( data[index:index+2], byteorder='little', signed=False ) / self.PRESSURE_SCALE
+      pressures.extend( [pressure] )
+    return ( valid and ( data[0] == 0 ), pressures )
+

@@ -80,7 +80,7 @@ void PIN_MANAGER_Initialize (void)
     CNPDA = 0x0000;
     CNPDB = 0x0000;
     CNPUA = 0x0000;
-    CNPUB = 0x3C38;
+    CNPUB = 0x3CBC;
 
     /****************************************************************************
      * Setting the Open Drain SFR(s)
@@ -92,7 +92,7 @@ void PIN_MANAGER_Initialize (void)
      * Setting the Analog/Digital Configuration SFR(s)
      ***************************************************************************/
     ANSELA = 0x001E;
-    ANSELB = 0x0081;
+    ANSELB = 0x0001;
 
 
     /****************************************************************************
@@ -100,14 +100,14 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     __builtin_write_RPCON(0x0000); // unlock PPS
 
-    RPOR1bits.RP35R = 0x0008;    //RB3->SPI2:SDO2
-    RPINR21bits.SS1R = 0x002A;    //RB10->SPI1:SS1
-    RPINR22bits.SCK2R = 0x0024;    //RB4->SPI2:SCK2OUT
-    RPOR2bits.RP36R = 0x0009;    //RB4->SPI2:SCK2OUT
-    RPOR2bits.RP37R = 0x000A;    //RB5->SPI2:SS2OUT
-    RPINR20bits.SCK1R = 0x002D;    //RB13->SPI1:SCK1IN
     RPINR20bits.SDI1R = 0x002C;    //RB12->SPI1:SDI1
+    RPINR22bits.SCK2R = 0x0024;    //RB4->SPI2:SCK2OUT
+    RPINR21bits.SS1R = 0x002A;    //RB10->SPI1:SS1
     RPOR5bits.RP43R = 0x0005;    //RB11->SPI1:SDO1
+    RPINR20bits.SCK1R = 0x002D;    //RB13->SPI1:SCK1IN
+    RPOR1bits.RP35R = 0x0008;    //RB3->SPI2:SDO2
+    RPOR2bits.RP37R = 0x000A;    //RB5->SPI2:SS2OUT
+    RPOR2bits.RP36R = 0x0009;    //RB4->SPI2:SCK2OUT
 
     __builtin_write_RPCON(0x0800); // lock PPS
 

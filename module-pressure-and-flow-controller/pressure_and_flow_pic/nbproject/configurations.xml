@@ -20,9 +20,11 @@
         <itemPath>mcc_generated_files/spi2.h</itemPath>
         <itemPath>mcc_generated_files/adc1.h</itemPath>
         <itemPath>mcc_generated_files/spi1.h</itemPath>
+        <itemPath>mcc_generated_files/i2c3.h</itemPath>
       </logicalFolder>
       <itemPath>spi.h</itemPath>
       <itemPath>common.h</itemPath>
+      <itemPath>ads1115.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -44,9 +46,11 @@
         <itemPath>mcc_generated_files/spi2.c</itemPath>
         <itemPath>mcc_generated_files/adc1.c</itemPath>
         <itemPath>mcc_generated_files/spi1.c</itemPath>
+        <itemPath>mcc_generated_files/i2c3.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>spi.c</itemPath>
+      <itemPath>ads1115.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -55,6 +59,9 @@
       <itemPath>pressure_and_flow.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">

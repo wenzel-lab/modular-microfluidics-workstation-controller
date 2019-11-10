@@ -57,6 +57,7 @@
 #include "adc1.h"
 #include "spi1.h"
 #include "spi2.h"
+#include "i2c3.h"
 #include "interrupt_manager.h"
 #include "traps.h"
 

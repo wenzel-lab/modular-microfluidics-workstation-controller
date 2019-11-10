@@ -5,15 +5,23 @@
 #include "mcc_generated_files/mcc.h"
 #include "common.h"
 #include "spi.h"
+#include "ads1115.h"
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
 #define PRESSURE_SHL                        3
-#define PRESSURE_ADC_REF_MV                 3300
-#define PRESSURE_ADC_MBAR                   5000
+//#define PRESSURE_ADC_REF_MV                 3300
+//#define PRESSURE_ADC_MBAR                   5000
+#define PRESSURE_ADC_REF_MV                 6144
+#define PRESSURE_ADC_BITRES                 15
+#define PRESSURE_CTLR_REF_MV                5000
+#define PRESSURE_CTLR_MBAR                  5000
+#define PRESSURE_ADC_SCALE                  ( (uint32_t)PRESSURE_ADC_REF_MV * PRESSURE_CTLR_MBAR / PRESSURE_CTLR_REF_MV )
 
 /* Flow / Pressure Macros */
-#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc << PRESSURE_SHL ) * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
+#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc * PRESSURE_ADC_SCALE ) >> ( PRESSURE_ADC_BITRES - PRESSURE_SHL ) )
+//#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc << PRESSURE_SHL ) * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
+//#define PRESSURE_ADC_TO_MBAR(adc)        ( (uint32_t)adc * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
 
 /* DAC Constants */
 typedef enum
@@ -86,6 +94,13 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 
 void capture_pressures( void )
 {
+//    uint8_t i;
+    
+//    for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
+//        pressure_mbar_shl_actual[i] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, i, DATARATE_128SPS, FSR_6_144 ) );
+    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 ) );
+    
+/*    
 //    while ( !ADC1_IsSharedChannelAN2ConversionComplete() );
     pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN2ConversionResultGet() );
 //    while ( !ADC1_IsSharedChannelAN3ConversionComplete() );
@@ -95,6 +110,7 @@ void capture_pressures( void )
 //    while ( !ADC1_IsSharedChannelAN9ConversionComplete() );
     pressure_mbar_shl_actual[3] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN9ConversionResultGet() );
 //    ADC1_SoftwareTriggerEnable();
+ */
 }
 
 void retrigger_ADCs( void )
@@ -252,7 +268,7 @@ int main(void)
                 spi_packet_write( packet_type, &rc, 1 );
         }
         
-        retrigger_ADCs();
+//        retrigger_ADCs();
     }
     
     return 1; 

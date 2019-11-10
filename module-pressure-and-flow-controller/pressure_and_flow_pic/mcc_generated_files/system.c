@@ -49,6 +49,7 @@
 #include "adc1.h"
 #include "spi1.h"
 #include "spi2.h"
+#include "i2c3.h"
 #include "interrupt_manager.h"
 #include "traps.h"
 
@@ -60,6 +61,7 @@ void SYSTEM_Initialize(void)
     SPI1_Initialize();
     SPI2_Initialize();
     ADC1_Initialize();
+    I2C3_Initialize();
     INTERRUPT_GlobalEnable();
     SYSTEM_CORCONModeOperatingSet(CORCON_MODE_PORVALUES);
 }
