@@ -132,10 +132,8 @@ typedef enum
 /* ADS1115 FUNCTIONS			                                        */
 /************************************************************************/
 
-uint16_t ads1115_readADC_SingleEnded(uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain);
-int16_t ads1115_readADC_Diff_A0_1(uint8_t addr, ads1115_datarate dr, ads1115_fsr_gain gain);
-int16_t ads1115_readADC_Diff_A0_3(uint8_t addr, ads1115_datarate dr, ads1115_fsr_gain gain);
-int16_t ads1115_readADC_Diff_A1_3(uint8_t addr, ads1115_datarate dr, ads1115_fsr_gain gain);
-int16_t ads1115_readADC_Diff_A2_3(uint8_t addr, ads1115_datarate dr, ads1115_fsr_gain gain);
+void ads1115_set_ready_pin( uint8_t addr );
+void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain );
+uint16_t ads1115_get_result( uint8_t addr );
 
 #endif /* ADS1115_H_ */

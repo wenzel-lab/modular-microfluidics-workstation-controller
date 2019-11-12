@@ -23,6 +23,8 @@ extern "C" {
 
 typedef uint8_t err;
 
+extern volatile uint16_t timer_ms;
+
 #ifdef	__cplusplus
 }
 #endif

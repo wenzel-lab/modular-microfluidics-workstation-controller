@@ -52,14 +52,15 @@
 #include "pin_manager.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "tmr1.h"
 #include "reset.h"
-#include "watchdog.h"
 #include "adc1.h"
-#include "spi1.h"
-#include "spi2.h"
-#include "i2c3.h"
+#include "watchdog.h"
 #include "interrupt_manager.h"
 #include "traps.h"
+#include "i2c3.h"
+#include "spi2.h"
+#include "spi1.h"
 
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ  150000000UL

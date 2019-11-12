@@ -202,6 +202,152 @@
 #define IO_RA0_SetDigitalOutput() _TRISA0 = 0
 /**
   @Summary
+    Sets the GPIO pin, RA1, high using LATA1.
+
+  @Description
+    Sets the GPIO pin, RA1, high using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA1 high (1)
+    IO_RA1_SetHigh();
+    </code>
+
+*/
+#define IO_RA1_SetHigh()          _LATA1 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RA1, low using LATA1.
+
+  @Description
+    Sets the GPIO pin, RA1, low using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA1 low (0)
+    IO_RA1_SetLow();
+    </code>
+
+*/
+#define IO_RA1_SetLow()           _LATA1 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RA1, using LATA1.
+
+  @Description
+    Toggles the GPIO pin, RA1, using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RA1
+    IO_RA1_Toggle();
+    </code>
+
+*/
+#define IO_RA1_Toggle()           _LATA1 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RA1.
+
+  @Description
+    Reads the value of the GPIO pin, RA1.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RA1
+    postValue = IO_RA1_GetValue();
+    </code>
+
+*/
+#define IO_RA1_GetValue()         _RA1
+/**
+  @Summary
+    Configures the GPIO pin, RA1, as an input.
+
+  @Description
+    Configures the GPIO pin, RA1, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA1 as an input
+    IO_RA1_SetDigitalInput();
+    </code>
+
+*/
+#define IO_RA1_SetDigitalInput()  _TRISA1 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RA1, as an output.
+
+  @Description
+    Configures the GPIO pin, RA1, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA1 as an output
+    IO_RA1_SetDigitalOutput();
+    </code>
+
+*/
+#define IO_RA1_SetDigitalOutput() _TRISA1 = 0
+/**
+  @Summary
     Sets the GPIO pin, RA2, high using LATA2.
 
   @Description
@@ -1224,6 +1370,152 @@
 #define SCK1IN_SetDigitalOutput() _TRISB13 = 0
 /**
   @Summary
+    Sets the GPIO pin, RB15, high using LATB15.
+
+  @Description
+    Sets the GPIO pin, RB15, high using LATB15.
+
+  @Preconditions
+    The RB15 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB15 high (1)
+    ADC_RDY_SetHigh();
+    </code>
+
+*/
+#define ADC_RDY_SetHigh()          _LATB15 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RB15, low using LATB15.
+
+  @Description
+    Sets the GPIO pin, RB15, low using LATB15.
+
+  @Preconditions
+    The RB15 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB15 low (0)
+    ADC_RDY_SetLow();
+    </code>
+
+*/
+#define ADC_RDY_SetLow()           _LATB15 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RB15, using LATB15.
+
+  @Description
+    Toggles the GPIO pin, RB15, using LATB15.
+
+  @Preconditions
+    The RB15 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RB15
+    ADC_RDY_Toggle();
+    </code>
+
+*/
+#define ADC_RDY_Toggle()           _LATB15 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RB15.
+
+  @Description
+    Reads the value of the GPIO pin, RB15.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RB15
+    postValue = ADC_RDY_GetValue();
+    </code>
+
+*/
+#define ADC_RDY_GetValue()         _RB15
+/**
+  @Summary
+    Configures the GPIO pin, RB15, as an input.
+
+  @Description
+    Configures the GPIO pin, RB15, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB15 as an input
+    ADC_RDY_SetDigitalInput();
+    </code>
+
+*/
+#define ADC_RDY_SetDigitalInput()  _TRISB15 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RB15, as an output.
+
+  @Description
+    Configures the GPIO pin, RB15, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB15 as an output
+    ADC_RDY_SetDigitalOutput();
+    </code>
+
+*/
+#define ADC_RDY_SetDigitalOutput() _TRISB15 = 0
+/**
+  @Summary
     Sets the GPIO pin, RB3, high using LATB3.
 
   @Description
@@ -1694,6 +1986,26 @@
 
 */
 void PIN_MANAGER_Initialize (void);
+
+/**
+  @Summary
+    Assigns a function pointer with a callback address.
+
+  @Description
+    This routine assigns a function pointer with a callback address.
+
+  @Param
+    Address of the callback routine.
+
+  @Returns
+    None
+ 
+  @Example 
+    <code>
+        ADC_RDY_SetInterruptHandler(&ADC_RDY_CallBack);
+    </code>
+*/
+void ADC_RDY_SetInterruptHandler(void (* InterruptHandler)(void));
 
 
 #endif

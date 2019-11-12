@@ -61,24 +61,6 @@
 
 #endif
 
-typedef enum
-{
-    S_MASTER_IDLE,
-    S_MASTER_RESTART,
-    S_MASTER_SEND_ADDR,
-    S_MASTER_SEND_DATA,
-    S_MASTER_SEND_STOP,
-    S_MASTER_ACK_ADDR,
-    S_MASTER_RCV_DATA,
-    S_MASTER_RCV_STOP,
-    S_MASTER_ACK_RCV_DATA,
-    S_MASTER_NOACK_STOP,
-    S_MASTER_SEND_ADDR_10BIT_LSB,
-    S_MASTER_10BIT_RESTART,
-    S_MASTER_STOP_WAIT,
-    
-} I2C_MASTER_STATES;
-
 /**
  Section: Data Type Definitions
 */
@@ -755,6 +737,10 @@ bool I2C3_MasterQueueIsEmpty(void);
 
 bool I2C3_MasterQueueIsFull(void);             
 
+void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code);
+void I2C3_Abort( void );
+bool I2C3_Aborted( void );
+
 #ifdef __cplusplus  // Provide C++ Compatibility
 
     }
@@ -763,8 +749,6 @@ bool I2C3_MasterQueueIsFull(void);
 
 #endif //_I2C3_H
 
-I2C_MASTER_STATES get_state( void );
-    
 /**
  End of File
 */

@@ -56,8 +56,8 @@ void CLOCK_Initialize(void)
     OSCTUN = 0x00;
     // POST1DIV 1:4; VCODIV FVCO/4; POST2DIV 1:1; 
     PLLDIV = 0x41;
-    // APLLEN disabled; FRCSEL Primary Oscillator; APLLPRE 1:1; 
-    ACLKCON1 = 0x01;
+    // APLLEN disabled; FRCSEL FRC; APLLPRE 1:1; 
+    ACLKCON1 = 0x101;
     // APLLFBDIV 150; 
     APLLFBD1 = 0x96;
     // APOST1DIV 1:4; APOST2DIV 1:1; AVCODIV FVCO/4; 
@@ -86,7 +86,10 @@ void CLOCK_Initialize(void)
     PMD7 = 0x00;
     // DMTMD enabled; CLC3MD enabled; OPAMPMD enabled; BIASMD enabled; CLC4MD enabled; SENT2MD enabled; SENT1MD enabled; CLC1MD enabled; CLC2MD enabled; 
     PMD8 = 0x00;
-    // CF no clock failure; NOSC PRIPLL; CLKLOCK unlocked; OSWEN Switch is Complete; 
-    __builtin_write_OSCCONH((uint8_t) (0x03));
-    __builtin_write_OSCCONL((uint8_t) (0x00));
+    // CF no clock failure; NOSC FRCPLL; CLKLOCK unlocked; OSWEN Request Switch; 
+    __builtin_write_OSCCONH((uint8_t) (0x01));
+    __builtin_write_OSCCONL((uint8_t) (0x01));
+    // Wait for Clock switch to occur
+    while (OSCCONbits.OSWEN != 0);
+    while (OSCCONbits.LOCK != 1);
 }

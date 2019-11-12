@@ -56,6 +56,7 @@
 /**
  Section: File specific functions
 */
+void (*ADC_RDY_InterruptHandler)(void) = NULL;
 
 /**
  Section: Driver Interface Function Definitions
@@ -71,7 +72,7 @@ void PIN_MANAGER_Initialize (void)
     /****************************************************************************
      * Setting the GPIO Direction SFR(s)
      ***************************************************************************/
-    TRISA = 0x001E;
+    TRISA = 0x001C;
     TRISB = 0xF7C7;
 
     /****************************************************************************
@@ -91,7 +92,7 @@ void PIN_MANAGER_Initialize (void)
     /****************************************************************************
      * Setting the Analog/Digital Configuration SFR(s)
      ***************************************************************************/
-    ANSELA = 0x001E;
+    ANSELA = 0x001C;
     ANSELB = 0x0001;
 
 
@@ -100,17 +101,60 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     __builtin_write_RPCON(0x0000); // unlock PPS
 
-    RPINR20bits.SDI1R = 0x002C;    //RB12->SPI1:SDI1
-    RPINR22bits.SCK2R = 0x0024;    //RB4->SPI2:SCK2OUT
-    RPINR21bits.SS1R = 0x002A;    //RB10->SPI1:SS1
-    RPOR5bits.RP43R = 0x0005;    //RB11->SPI1:SDO1
-    RPINR20bits.SCK1R = 0x002D;    //RB13->SPI1:SCK1IN
     RPOR1bits.RP35R = 0x0008;    //RB3->SPI2:SDO2
     RPOR2bits.RP37R = 0x000A;    //RB5->SPI2:SS2OUT
+    RPINR22bits.SCK2R = 0x0024;    //RB4->SPI2:SCK2OUT
+    RPOR5bits.RP43R = 0x0005;    //RB11->SPI1:SDO1
     RPOR2bits.RP36R = 0x0009;    //RB4->SPI2:SCK2OUT
+    RPINR20bits.SDI1R = 0x002C;    //RB12->SPI1:SDI1
+    RPINR20bits.SCK1R = 0x002D;    //RB13->SPI1:SCK1IN
+    RPINR21bits.SS1R = 0x002A;    //RB10->SPI1:SS1
 
     __builtin_write_RPCON(0x0800); // lock PPS
 
+    /****************************************************************************
+     * Interrupt On Change: negative
+     ***************************************************************************/
+    CNEN1Bbits.CNEN1B15 = 1;    //Pin : RB15
+    /****************************************************************************
+     * Interrupt On Change: flag
+     ***************************************************************************/
+    CNFBbits.CNFB15 = 0;    //Pin : RB15
+    /****************************************************************************
+     * Interrupt On Change: config
+     ***************************************************************************/
+    CNCONBbits.CNSTYLE = 1;    //Config for PORTB
+    CNCONBbits.ON = 1;    //Config for PORTB
+
+    /****************************************************************************
+     * Interrupt On Change: Interrupt Enable
+     ***************************************************************************/
+    IFS0bits.CNBIF = 0; //Clear CNBI interrupt flag
+    IEC0bits.CNBIE = 1; //Enable CNBI interrupt
+}
+
+void ADC_RDY_SetInterruptHandler(void (* InterruptHandler)(void))
+{ 
+    IEC0bits.CNBIE = 0; //Disable CNBI interrupt
+    ADC_RDY_InterruptHandler = InterruptHandler; 
+    IEC0bits.CNBIE = 1; //Enable CNBI interrupt
 }
 
 
+/* Interrupt service routine for the CNBI interrupt. */
+void __attribute__ (( interrupt, no_auto_psv )) _CNBInterrupt ( void )
+{
+    if(IFS0bits.CNBIF == 1)
+    {
+        // Clear the flag
+        IFS0bits.CNBIF = 0;
+        if(CNFBbits.CNFB15 == 1)
+        {
+            CNFBbits.CNFB15 = 0;  //Clear flag for Pin - RB15
+            if(ADC_RDY_InterruptHandler) 
+            { 
+                ADC_RDY_InterruptHandler(); 
+            }
+        }
+    }
+}

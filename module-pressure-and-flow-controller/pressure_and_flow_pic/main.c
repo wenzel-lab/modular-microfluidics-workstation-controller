@@ -1,5 +1,6 @@
 #include <xc.h>
-#define FCY 8000000UL
+#define FCY 75000000UL
+//#define FCY 8000000UL
 #include <libpic30.h>
 #include <string.h>
 #include "mcc_generated_files/mcc.h"
@@ -19,9 +20,17 @@
 #define PRESSURE_ADC_SCALE                  ( (uint32_t)PRESSURE_ADC_REF_MV * PRESSURE_CTLR_MBAR / PRESSURE_CTLR_REF_MV )
 
 /* Flow / Pressure Macros */
+#define ADC_CHAN_MAX                        ( NUM_PRESSURE_CLTRLS - 1 )
+#define ADC_PERIOD_MS                       100
 #define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc * PRESSURE_ADC_SCALE ) >> ( PRESSURE_ADC_BITRES - PRESSURE_SHL ) )
 //#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc << PRESSURE_SHL ) * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
 //#define PRESSURE_ADC_TO_MBAR(adc)        ( (uint32_t)adc * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
+
+/* Comms Constants */
+#define PACKET_TYPE_GET_ID                  1
+#define PACKET_TYPE_SET_PRESSURE_TARGET     2
+#define PACKET_TYPE_GET_PRESSURE_TARGET     3
+#define PACKET_TYPE_GET_PRESSURE_ACTUAL     4
 
 /* DAC Constants */
 typedef enum
@@ -33,18 +42,24 @@ typedef enum
     DAC_CHAN_ALL    = 0b111,
 } E_DAC_CHAN;
 
-/* Comms Constants */
-#define PACKET_TYPE_GET_ID                  1
-#define PACKET_TYPE_SET_PRESSURE_TARGET     2
-#define PACKET_TYPE_GET_PRESSURE_TARGET     3
-#define PACKET_TYPE_GET_PRESSURE_ACTUAL     4
+typedef enum
+{
+    ADC_STATE_START,
+    ADC_STATE_SAMPLE,
+    ADC_STATE_WAIT,
+} E_ADC_STATE;
 
 /* System Data */
 uint8_t device_id[] = "MICROFLOW";
+volatile uint16_t timer_ms;
 
 /* Flow / Pressure Data */
-uint16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
+volatile uint16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
 uint16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
+E_ADC_STATE adc_state;
+uint8_t adc_go = 0;
+uint8_t adc_chan;
+uint16_t adc_time;
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
@@ -96,9 +111,13 @@ void capture_pressures( void )
 {
 //    uint8_t i;
     
+    ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+    __delay_ms( 8 );
+    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( ADS1115_ADDR_GND ) );
+    
 //    for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
 //        pressure_mbar_shl_actual[i] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, i, DATARATE_128SPS, FSR_6_144 ) );
-    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 ) );
+//    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 ) );
     
 /*    
 //    while ( !ADC1_IsSharedChannelAN2ConversionComplete() );
@@ -191,7 +210,8 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     return_buf_ptr = return_buf;
     *return_buf_ptr++ = ERR_OK;
     
-    capture_pressures();
+//    capture_pressures();
+//    ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
     
     for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
     {
@@ -208,6 +228,39 @@ void init( void )
 {
     memset( pressure_mbar_shl_target, 0, sizeof(pressure_mbar_shl_target) );
     memset( pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
+    
+    adc_state = ADC_STATE_START;
+    adc_chan = 0;
+    adc_time = 0;
+    timer_ms = 0;
+}
+
+void adc_rdy_isr( void )
+{
+    /*
+    switch ( adc_state )
+    {
+        case ADC_STATE_INIT:
+            ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+            adc_state = ADC_STATE_SAMPLE;
+            break;
+        case ADC_STATE_SAMPLE:
+            pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( ADS1115_ADDR_GND ) );
+            ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+            break;
+        default:;
+    }
+    */
+    adc_go = 1;
+}
+
+void __attribute__ ((weak)) timer_isr(void)
+{
+//    PORTAbits.RA1 = ( ( !PORTAbits.RA1 ) && OSCCONbits.LOCK ) ? 1 : 0;
+//    PORTAbits.RA1 = !PORTAbits.RA1;
+//    PORTAbits.RA1 = OSCCONbits.LOCK ? 1 : 0;
+//    PORTAbits.RA1 = OSCCONbits.OSWEN;
+    timer_ms++;
 }
 
 int main(void)
@@ -216,18 +269,77 @@ int main(void)
     
     SYSTEM_Initialize();
     init();
+    
+    __delay_ms( 100 );
+    
+    /* Init Timers */
+    TMR1_SetInterruptHandler( &timer_isr );
+    
+    /* Init ADC */
+    ads1115_set_ready_pin( ADS1115_ADDR_GND );
+//    ADC_RDY_SetInterruptHandler( adc_rdy_isr );
+//    ads1115_get_result( ADS1115_ADDR_GND );
+//    ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
 //    ADC1_SoftwareLevelTriggerEnable();
-    ADC1_SoftwareTriggerEnable();
-    spi_init();
-    spi_packet_clear( &spi_packet );
+//    ADC1_SoftwareTriggerEnable();
+    
+    /* Init DAC */
     dac_reset();
 //    dac_ref_internal( 1 );
     set_pressures();
     
+    /* Init SPI */
+    spi_init();
+    spi_packet_clear( &spi_packet );
+    
     __delay_ms( 100 );
 
+    adc_time = timer_ms;
+    
     while (1)
     {
+//        if ( I2C3_Aborted() )
+//            adc_state = ADC_STATE_START;
+        
+        switch ( adc_state )
+        {
+            case ADC_STATE_START:
+            {
+                adc_chan = 0;
+                ads1115_start_single( ADS1115_ADDR_GND, adc_chan, DATARATE_128SPS, FSR_6_144 );
+                adc_state = ADC_STATE_SAMPLE;
+                break;
+            }
+            case ADC_STATE_SAMPLE:
+            {
+                if ( !ADC_RDY_GetValue() )
+                {
+                    pressure_mbar_shl_actual[adc_chan] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( ADS1115_ADDR_GND ) );
+                    if ( adc_chan >= ADC_CHAN_MAX )
+                    {
+                        adc_state = ADC_STATE_WAIT;
+                    }
+                    else
+                    {
+                        adc_chan++;
+                        ads1115_start_single( ADS1115_ADDR_GND, adc_chan, DATARATE_128SPS, FSR_6_144 );
+                    }
+                }
+                break;
+            }
+            case ADC_STATE_WAIT:
+            {
+                while ( ( timer_ms - adc_time ) > ADC_PERIOD_MS )
+                {
+                    adc_state = ADC_STATE_START;
+                    adc_time += ADC_PERIOD_MS;
+                }
+                break;
+            }
+            default:
+                adc_state = ADC_STATE_START;
+        }
+        
         if ( ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK ) &&
              ( packet_type != 0 ) )
         {

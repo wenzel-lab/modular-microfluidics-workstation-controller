@@ -126,6 +126,23 @@ typedef struct
     used to process transactions on the i2c bus.
 */
 
+typedef enum
+{
+    S_MASTER_IDLE,
+    S_MASTER_RESTART,
+    S_MASTER_SEND_ADDR,
+    S_MASTER_SEND_DATA,
+    S_MASTER_SEND_STOP,
+    S_MASTER_ACK_ADDR,
+    S_MASTER_RCV_DATA,
+    S_MASTER_RCV_STOP,
+    S_MASTER_ACK_RCV_DATA,
+    S_MASTER_NOACK_STOP,
+    S_MASTER_SEND_ADDR_10BIT_LSB,
+    S_MASTER_10BIT_RESTART,
+    S_MASTER_STOP_WAIT
+} I2C_MASTER_STATES;
+
 /**
  Section: Macro Definitions
 */
@@ -157,7 +174,7 @@ typedef struct
 */
 
 static void I2C3_FunctionComplete(void);
-static void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code);
+//static void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code);
 
 /**
  Section: Local Variables
@@ -171,6 +188,7 @@ volatile static uint8_t                       i2c3_trb_count;
 volatile static I2C3_TRANSACTION_REQUEST_BLOCK *p_i2c3_trb_current;
 volatile static I2C_TR_QUEUE_ENTRY            *p_i2c3_current = NULL;
 
+bool aborted = 0;
 
 /**
   Section: Driver Interface
@@ -187,8 +205,8 @@ void I2C3_Initialize(void)
     i2c3_object.i2cErrors = 0;
     
     // initialize the hardware
-    // Baud Rate Generator Value: I2CBRG 373;   
-    I2C3BRG = 0x175;
+    // Baud Rate Generator Value: I2CBRG 92;   
+    I2C3BRG = 0x5C;
     // ACKEN disabled; STRICT disabled; STREN disabled; GCEN disabled; SMEN disabled; DISSLW enabled; I2CSIDL disabled; ACKDT Sends ACK; SCLREL Holds; RSEN disabled; A10M 7 Bit; PEN disabled; RCEN disabled; SEN disabled; I2CEN enabled; 
     I2C3CONL = 0x8000;
     // BCL disabled; P disabled; S disabled; I2COV disabled; IWCOL disabled; 
@@ -558,7 +576,7 @@ static void I2C3_FunctionComplete(void)
 
 }
 
-static void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code)
+extern void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code)
 {
     // then send a stop
     I2C3_STOP_CONDITION_ENABLE_BIT = 1;
@@ -624,7 +642,8 @@ void I2C3_MasterTRBInsert(
                                 I2C3_TRANSACTION_REQUEST_BLOCK *ptrb_list,
                                 I2C3_MESSAGE_STATUS *pflag)
 {
-
+//    while ( I2C3CONLbits.PEN );
+    
     // check if there is space in the queue
     if (i2c3_object.trStatus.s.full != true)
     {
@@ -658,6 +677,7 @@ void I2C3_MasterTRBInsert(
         {    
             // force the task to run since we know that the queue has
             // something that needs to be sent
+            if ( !I2C3_STOP_CONDITION_ENABLE_BIT )
             IFS8bits.MI2C3IF = 1;
         }           
         
@@ -703,9 +723,18 @@ bool I2C3_MasterQueueIsFull(void)
     return((bool)i2c3_object.trStatus.s.full);
 }
 
-I2C_MASTER_STATES get_state( void )
+void I2C3_Abort( void )
 {
-    return i2c3_state;
+    I2C3_Stop( I2C3_MESSAGE_FAIL );
+    I2C3_Initialize();
+    aborted = 1;
+}
+
+bool I2C3_Aborted( void )
+{
+    bool aborted_tmp = aborted;
+    aborted = 0;
+    return aborted_tmp;
 }
 
 /**
