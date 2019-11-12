@@ -2,7 +2,7 @@
 #include "common.h"
 #include "ads1115.h"
 
-#define I2C_TIMEOUT_MS      10
+#define I2C_TIMEOUT_MS      2
 
 uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
 {
@@ -18,8 +18,8 @@ uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
     
     time = timer_ms;
     while ( ( status != I2C3_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-//    if ( status != I2C3_MESSAGE_COMPLETE )
-//        I2C3_Abort();
+    if ( status != I2C3_MESSAGE_COMPLETE )
+        I2C3_Abort();
     
 	return 0;
 }
@@ -37,8 +37,8 @@ uint16_t ads1115_read_register(uint8_t addr, uint8_t reg)
     
     time = timer_ms;
     while ( ( status != I2C3_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-//    if ( status != I2C3_MESSAGE_COMPLETE )
-//        I2C3_Abort();
+    if ( status != I2C3_MESSAGE_COMPLETE )
+        I2C3_Abort();
     
     return ( ( (uint16_t)(buf[0]) ) << 8 ) | buf[1];
 }

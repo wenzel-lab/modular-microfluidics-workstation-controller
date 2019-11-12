@@ -298,8 +298,8 @@ int main(void)
     
     while (1)
     {
-//        if ( I2C3_Aborted() )
-//            adc_state = ADC_STATE_START;
+        if ( I2C3_Aborted() )
+            adc_state = ADC_STATE_START;
         
         switch ( adc_state )
         {
