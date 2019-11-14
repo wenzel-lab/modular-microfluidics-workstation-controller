@@ -60,6 +60,10 @@ E_ADC_STATE adc_state;
 uint8_t adc_go = 0;
 uint8_t adc_chan;
 uint16_t adc_time;
+ads1115_datarate adc_datarate = DATARATE_128SPS;
+ads1115_fsr_gain adc_gain = FSR_6_144;
+uint8_t adc_i2c_addr = ADS1115_ADDR_GND;
+
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
@@ -111,13 +115,13 @@ void capture_pressures( void )
 {
 //    uint8_t i;
     
-    ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
     __delay_ms( 8 );
-    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( ADS1115_ADDR_GND ) );
+    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( adc_i2c_addr ) );
     
 //    for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
-//        pressure_mbar_shl_actual[i] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, i, DATARATE_128SPS, FSR_6_144 ) );
-//    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 ) );
+//        pressure_mbar_shl_actual[i] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( adc_i2c_addr, i, DATARATE_128SPS, FSR_6_144 ) );
+//    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 ) );
     
 /*    
 //    while ( !ADC1_IsSharedChannelAN2ConversionComplete() );
@@ -211,7 +215,7 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     *return_buf_ptr++ = ERR_OK;
     
 //    capture_pressures();
-//    ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+//    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
     
     for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
     {
@@ -241,12 +245,12 @@ void adc_rdy_isr( void )
     switch ( adc_state )
     {
         case ADC_STATE_INIT:
-            ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+            ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
             adc_state = ADC_STATE_SAMPLE;
             break;
         case ADC_STATE_SAMPLE:
-            pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( ADS1115_ADDR_GND ) );
-            ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+            pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( adc_i2c_addr ) );
+            ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
             break;
         default:;
     }
@@ -276,10 +280,10 @@ int main(void)
     TMR1_SetInterruptHandler( &timer_isr );
     
     /* Init ADC */
-    ads1115_set_ready_pin( ADS1115_ADDR_GND );
+    ads1115_set_ready_pin( adc_i2c_addr );
 //    ADC_RDY_SetInterruptHandler( adc_rdy_isr );
-//    ads1115_get_result( ADS1115_ADDR_GND );
-//    ads1115_start_single( ADS1115_ADDR_GND, 0, DATARATE_128SPS, FSR_6_144 );
+//    ads1115_get_result( adc_i2c_addr );
+//    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
 //    ADC1_SoftwareLevelTriggerEnable();
 //    ADC1_SoftwareTriggerEnable();
     
@@ -306,7 +310,8 @@ int main(void)
             case ADC_STATE_START:
             {
                 adc_chan = 0;
-                ads1115_start_single( ADS1115_ADDR_GND, adc_chan, DATARATE_128SPS, FSR_6_144 );
+//                ads1115_start_single( adc_i2c_addr, adc_chan, DATARATE_128SPS, FSR_6_144 );
+                ads1115_read_adc_next( adc_i2c_addr, 0, adc_chan, adc_datarate, adc_gain );
                 adc_state = ADC_STATE_SAMPLE;
                 break;
             }
@@ -314,15 +319,18 @@ int main(void)
             {
                 if ( !ADC_RDY_GetValue() )
                 {
-                    pressure_mbar_shl_actual[adc_chan] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( ADS1115_ADDR_GND ) );
+//                    pressure_mbar_shl_actual[adc_chan] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( adc_i2c_addr ) );
                     if ( adc_chan >= ADC_CHAN_MAX )
                     {
                         adc_state = ADC_STATE_WAIT;
+                        pressure_mbar_shl_actual[adc_chan] = PRESSURE_ADC_TO_MBARSHL( ads1115_read_adc_next( adc_i2c_addr, 1, -1, adc_datarate, adc_gain ) );
                     }
                     else
                     {
+                        uint8_t adc_chan_tmp = adc_chan;
                         adc_chan++;
-                        ads1115_start_single( ADS1115_ADDR_GND, adc_chan, DATARATE_128SPS, FSR_6_144 );
+//                        ads1115_start_single( adc_i2c_addr, adc_chan, DATARATE_128SPS, FSR_6_144 );
+                        pressure_mbar_shl_actual[adc_chan_tmp] = PRESSURE_ADC_TO_MBARSHL( ads1115_read_adc_next( adc_i2c_addr, 1, adc_chan, adc_datarate, adc_gain ) );
                     }
                 }
                 break;

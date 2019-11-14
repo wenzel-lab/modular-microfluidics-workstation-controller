@@ -133,6 +133,7 @@ typedef enum
 /************************************************************************/
 
 void ads1115_set_ready_pin( uint8_t addr );
+uint16_t ads1115_read_adc_next( uint8_t addr, uint8_t read, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain );
 void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain );
 uint16_t ads1115_get_result( uint8_t addr );
 
