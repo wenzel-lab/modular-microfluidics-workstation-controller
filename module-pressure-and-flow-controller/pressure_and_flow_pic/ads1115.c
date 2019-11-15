@@ -4,6 +4,8 @@
 
 #define I2C_TIMEOUT_MS      2
 
+uint8_t conversion_reg = ADS1115_REG_CONVERSION;
+
 uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
 {
     volatile I2C3_MESSAGE_STATUS status;
@@ -49,27 +51,22 @@ void ads1115_set_ready_pin( uint8_t addr )
     ads1115_write_register( addr, ADS1115_REG_LO_THRESH, 0b00000000 );
 }
 
-uint16_t ads1115_read_adc_next( uint8_t addr, uint8_t read, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain )
+void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain, ads1115_task_t *task )
 {
-    uint8_t buf[2];
-    volatile I2C3_MESSAGE_STATUS status;
-    I2C3_TRANSACTION_REQUEST_BLOCK trBlocks[3];
-    uint8_t read_reg = ADS1115_REG_CONVERSION;
-    uint8_t writeBuffer[3];
     uint16_t adc_config;
     uint8_t trb_count;
-    uint16_t time;
     
     /** Clear I2C buffer */
     
     trb_count = 0;
+    task->channel = read_channel;
     
-    if ( read )
+    if ( read_channel >= 0 )
     {
         /* Read conversion */
         
-        I2C3_MasterWriteTRBBuild( &trBlocks[trb_count++], &read_reg, 1, addr );
-        I2C3_MasterReadTRBBuild( &trBlocks[trb_count++], buf, 2, addr );
+        I2C3_MasterWriteTRBBuild( &task->trBlocks[trb_count++], &conversion_reg, 1, addr );
+        I2C3_MasterReadTRBBuild( &task->trBlocks[trb_count++], task->read_data, 2, addr );
     }
     
     if ( start_channel >= 0 )
@@ -105,24 +102,50 @@ uint16_t ads1115_read_adc_next( uint8_t addr, uint8_t read, int8_t start_channel
 
         if ( start_channel <= 3 )
         {
-            writeBuffer[0] = ADS1115_REG_CONFIG;
-            writeBuffer[1] = adc_config >> 8;
-            writeBuffer[2] = adc_config & 0xFF;
+            task->write_data[0] = ADS1115_REG_CONFIG;
+            task->write_data[1] = adc_config >> 8;
+            task->write_data[2] = adc_config & 0xFF;
 
-            I2C3_MasterWriteTRBBuild( &trBlocks[trb_count++], writeBuffer, 3, addr );
+            I2C3_MasterWriteTRBBuild( &task->trBlocks[trb_count++], task->write_data, 3, addr );
         }
     }
     
-    I2C3_MasterTRBInsert( trb_count, (I2C3_TRANSACTION_REQUEST_BLOCK *)&trBlocks, (I2C3_MESSAGE_STATUS *)&status );
+    I2C3_MasterTRBInsert( trb_count, (I2C3_TRANSACTION_REQUEST_BLOCK *)&task->trBlocks, (I2C3_MESSAGE_STATUS *)&task->status );
     
-    /* Wait for I2C to finish */
-    time = timer_ms;
-    while ( ( status != I2C3_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-    if ( status != I2C3_MESSAGE_COMPLETE )
+    /* Record start time */
+    task->start_time = timer_ms;
+}
+
+int8_t ads1115_read_adc_return( uint16_t *value, int8_t *channel, ads1115_task_t *task )
+{
+    /* Returns: 0 if still waiting
+     *          1 if result available / success
+     *          -1 if timeout
+     * Channel: <ADC channel number> or -1 if no read was requested
+     */
+    
+    int8_t rc;
+    
+    if ( task->status == I2C3_MESSAGE_COMPLETE )
+    {
+        /* Return conversion */
+        *value = ( ( (uint16_t)(task->read_data[0]) ) << 8 ) | task->read_data[1];
+        *channel = task->channel;
+        rc = 1;
+    }
+    else if ( ( timer_ms - task->start_time ) > I2C_TIMEOUT_MS )
+    {
+        /* Timeout */
         I2C3_Abort();
+        rc = -1;
+    }
+    else
+    {
+        /* Still waiting */
+        rc = 0;
+    }
     
-    /* Return conversion */
-    return ( ( (uint16_t)(buf[0]) ) << 8 ) | buf[1];
+    return rc;
 }
 
 void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain )

@@ -63,7 +63,7 @@ uint16_t adc_time;
 ads1115_datarate adc_datarate = DATARATE_128SPS;
 ads1115_fsr_gain adc_gain = FSR_6_144;
 uint8_t adc_i2c_addr = ADS1115_ADDR_GND;
-
+ads1115_task_t adc_task;
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
@@ -153,9 +153,12 @@ void set_pressures( void )
 err parse_packet_get_id( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
     err rc = ERR_OK;
+    uint8_t i;
     uint8_t return_buf[ sizeof(err) + sizeof(device_id)];
     return_buf[0] = ERR_OK;
-    memcpy( &return_buf[1], device_id, sizeof(device_id) );
+    for ( i=0; i<sizeof(device_id); i++ )
+        return_buf[i+1] = device_id[i];
+//    memcpy( &return_buf[1], device_id, sizeof(device_id) );
     
     spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
     
@@ -270,6 +273,7 @@ void __attribute__ ((weak)) timer_isr(void)
 int main(void)
 {
     err rc = 0;
+    bool adc_i2c_wait;
     
     SYSTEM_Initialize();
     init();
@@ -299,19 +303,63 @@ int main(void)
     __delay_ms( 100 );
 
     adc_time = timer_ms;
+    adc_i2c_wait = 0;
     
     while (1)
     {
         if ( I2C3_Aborted() )
-            adc_state = ADC_STATE_START;
+        {
+            adc_state = ADC_STATE_WAIT;
+            adc_i2c_wait = 0;
+        }
         
-        switch ( adc_state )
+        if ( adc_i2c_wait )
+        {
+            int8_t adc_rc;
+            uint16_t adc_value;
+            int8_t channel;
+            
+            /* See what's happening on ADC I2C */
+            adc_rc = ads1115_read_adc_return( &adc_value, &channel, &adc_task );
+
+            switch ( adc_rc )
+            {
+                case 0:
+                {
+                    /* Still waiting */
+                    break;
+                }
+                case 1:
+                {
+                    /* I2C success */
+                    adc_i2c_wait = 0;
+                    
+                    if ( channel >= 0 )
+                    {
+                        /* Value returned */
+                        pressure_mbar_shl_actual[channel] = PRESSURE_ADC_TO_MBARSHL( adc_value );
+                    }
+                    
+                    break;
+                }
+                case -1:
+                {
+                    /* Timeout */
+                    adc_state = ADC_STATE_WAIT;
+                    adc_i2c_wait = 0;
+                    break;
+                }
+                default:
+                    ;
+            }
+        }
+        else switch ( adc_state )
         {
             case ADC_STATE_START:
             {
                 adc_chan = 0;
-//                ads1115_start_single( adc_i2c_addr, adc_chan, DATARATE_128SPS, FSR_6_144 );
-                ads1115_read_adc_next( adc_i2c_addr, 0, adc_chan, adc_datarate, adc_gain );
+                ads1115_read_adc_start( adc_i2c_addr, -1, adc_chan, adc_datarate, adc_gain, &adc_task );
+                adc_i2c_wait = 1;
                 adc_state = ADC_STATE_SAMPLE;
                 break;
             }
@@ -319,20 +367,23 @@ int main(void)
             {
                 if ( !ADC_RDY_GetValue() )
                 {
-//                    pressure_mbar_shl_actual[adc_chan] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( adc_i2c_addr ) );
                     if ( adc_chan >= ADC_CHAN_MAX )
                     {
+                        /* Read last channel */
+                        ads1115_read_adc_start( adc_i2c_addr, adc_chan, -1, adc_datarate, adc_gain, &adc_task );
                         adc_state = ADC_STATE_WAIT;
-                        pressure_mbar_shl_actual[adc_chan] = PRESSURE_ADC_TO_MBARSHL( ads1115_read_adc_next( adc_i2c_addr, 1, -1, adc_datarate, adc_gain ) );
                     }
                     else
                     {
-                        uint8_t adc_chan_tmp = adc_chan;
+                        /* Read and start next */
+                        uint8_t read_chan = adc_chan;
                         adc_chan++;
-//                        ads1115_start_single( adc_i2c_addr, adc_chan, DATARATE_128SPS, FSR_6_144 );
-                        pressure_mbar_shl_actual[adc_chan_tmp] = PRESSURE_ADC_TO_MBARSHL( ads1115_read_adc_next( adc_i2c_addr, 1, adc_chan, adc_datarate, adc_gain ) );
+                        ads1115_read_adc_start( adc_i2c_addr, read_chan, adc_chan, adc_datarate, adc_gain, &adc_task );
                     }
+                    
+                    adc_i2c_wait = 1;
                 }
+                
                 break;
             }
             case ADC_STATE_WAIT:
@@ -347,7 +398,7 @@ int main(void)
             default:
                 adc_state = ADC_STATE_START;
         }
-        
+
         if ( ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK ) &&
              ( packet_type != 0 ) )
         {

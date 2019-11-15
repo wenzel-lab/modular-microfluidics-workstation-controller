@@ -128,12 +128,24 @@ typedef enum
 	DATARATE_860SPS		= ADS1115_DR_860SPS
 } ads1115_datarate;
 
+typedef struct
+{
+    uint8_t write_data[3];
+    volatile uint8_t read_data[2];
+    I2C3_TRANSACTION_REQUEST_BLOCK trBlocks[3];
+    uint16_t start_time;
+    int8_t channel;
+//    bool reading;
+    volatile I2C3_MESSAGE_STATUS status;
+} ads1115_task_t;
+
 /************************************************************************/
 /* ADS1115 FUNCTIONS			                                        */
 /************************************************************************/
 
 void ads1115_set_ready_pin( uint8_t addr );
-uint16_t ads1115_read_adc_next( uint8_t addr, uint8_t read, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain );
+void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain, ads1115_task_t *task );
+int8_t ads1115_read_adc_return( uint16_t *value, int8_t *channel, ads1115_task_t *task );
 void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain );
 uint16_t ads1115_get_result( uint8_t addr );
 
