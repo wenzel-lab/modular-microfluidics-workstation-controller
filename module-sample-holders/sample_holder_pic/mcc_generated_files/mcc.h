@@ -53,10 +53,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "sccp1_compare.h"
+#include "tmr1.h"
+#include "adc1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
 #include "watchdog.h"
-#include "adc1.h"
 #include "reset.h"
 
 #ifndef _XTAL_FREQ
