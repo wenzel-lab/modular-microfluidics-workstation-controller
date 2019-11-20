@@ -51,6 +51,7 @@
 #include "adc1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
+#include "uart1.h"
 
 void SYSTEM_Initialize(void)
 {
@@ -58,6 +59,7 @@ void SYSTEM_Initialize(void)
     INTERRUPT_Initialize();
     CLOCK_Initialize();
     SCCP1_COMPARE_Initialize();
+    UART1_Initialize();
     ADC1_Initialize();
     TMR1_Initialize();
     INTERRUPT_GlobalEnable();

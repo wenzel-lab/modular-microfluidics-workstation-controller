@@ -72,7 +72,7 @@ void PIN_MANAGER_Initialize (void)
      * Setting the GPIO Direction SFR(s)
      ***************************************************************************/
     TRISA = 0x001F;
-    TRISB = 0xFFBD;
+    TRISB = 0x7FBD;
 
     /****************************************************************************
      * Setting the Weak Pull Up and Weak Pull Down SFR(s)
@@ -101,6 +101,7 @@ void PIN_MANAGER_Initialize (void)
     __builtin_write_RPCON(0x0000); // unlock PPS
 
     RPOR3bits.RP38R = 0x000F;    //RB6->SCCP1:OCM1
+    RPOR7bits.RP47R = 0x0001;    //RB15->UART1:U1TX
 
     __builtin_write_RPCON(0x0800); // lock PPS
 
