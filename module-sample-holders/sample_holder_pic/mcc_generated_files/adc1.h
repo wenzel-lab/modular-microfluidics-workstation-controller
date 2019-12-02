@@ -349,28 +349,6 @@ inline static void ADC1_SoftwareLevelTriggerEnable(void)
 {
     ADCON3Lbits.SWLCTRG = 1;
 }
-/**
-  @Summary
-    Polled implementation
-
-  @Description
-    This routine is used to implement the tasks for polled implementations.
-  
-  @Preconditions
-    ADC1_Initialize() function should have been 
-    called before calling this function.
- 
-  @Returns 
-    None
- 
-  @Param
-    None
- 
-  @Example
-    Refer to ADC1_Initialize(); for an example
-    
-*/
-void ADC1_Tasks(void);
 
 /**
   Section: Interface Routines: Dedicated Core

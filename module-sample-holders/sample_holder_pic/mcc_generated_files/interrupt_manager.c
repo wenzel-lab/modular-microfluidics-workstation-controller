@@ -52,9 +52,15 @@
 */
 void INTERRUPT_Initialize (void)
 {
-    //    TI: Timer 1
+    //    SPIRXI: SPI1 RX
     //    Priority: 1
-        IPC0bits.T1IP = 1;
+        IPC2bits.SPI1RXIP = 1;
+    //    ADCAN0: ADC AN0 Convert Done
+    //    Priority: 1
+        IPC22bits.ADCAN0IP = 1;
+    //    ADFLTR0: ADC Oversample Filter 0
+    //    Priority: 1
+        IPC30bits.ADFLTR0IP = 1;
     //    UEVTI: UART1 Event
     //    Priority: 1
         IPC47bits.U1EVTIP = 1;
@@ -67,4 +73,7 @@ void INTERRUPT_Initialize (void)
     //    URXI: UART1 RX
     //    Priority: 1
         IPC2bits.U1RXIP = 1;
+    //    TI: Timer 1
+    //    Priority: 1
+        IPC0bits.T1IP = 1;
 }

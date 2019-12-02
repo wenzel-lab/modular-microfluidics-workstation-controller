@@ -62,14 +62,14 @@ void ADC1_Initialize (void)
     ADCON1H = 0x60;
     // PTGEN disabled; SHRADCS 2; REFCIE disabled; SHREISEL Early interrupt is generated 1 TADCORE clock prior to data being ready; REFERCIE disabled; EIEN disabled; 
     ADCON2L = 0x00;
-    // SHRSAMC 0; 
-    ADCON2H = 0x00;
+    // SHRSAMC 2; 
+    ADCON2H = 0x02;
     // SWCTRG disabled; SHRSAMP disabled; SUSPEND disabled; SWLCTRG disabled; SUSPCIE disabled; CNVCHSEL AN0; REFSEL disabled; 
     ADCON3L = 0x00;
-    // SHREN disabled; C1EN disabled; C0EN enabled; CLKDIV 1; CLKSEL FOSC/2; 
-    ADCON3H = (0x01 & 0xFF00); //Disabling C0EN, C1EN, C2EN, C3EN and SHREN bits
-    // SAMC0EN disabled; SAMC1EN disabled; 
-    ADCON4L = 0x00;
+    // SHREN disabled; C1EN disabled; C0EN enabled; CLKDIV 1; CLKSEL FOSC; 
+    ADCON3H = (0x4001 & 0xFF00); //Disabling C0EN, C1EN, C2EN, C3EN and SHREN bits
+    // SAMC0EN enabled; SAMC1EN disabled; 
+    ADCON4L = 0x01;
     // C0CHS AN0; C1CHS AN1; 
     ADCON4H = 0x00;
     // SIGN0 disabled; SIGN4 disabled; SIGN3 disabled; SIGN2 disabled; SIGN1 disabled; SIGN7 disabled; SIGN6 disabled; DIFF0 disabled; SIGN5 disabled; DIFF1 disabled; DIFF2 disabled; DIFF3 disabled; DIFF4 disabled; DIFF5 disabled; DIFF6 disabled; DIFF7 disabled; 
@@ -78,8 +78,8 @@ void ADC1_Initialize (void)
     ADMOD0H = 0x00;
     // DIFF25 disabled; SIGN25 disabled; 
     ADMOD1H = 0x00;
-    // IE1 disabled; IE0 disabled; IE3 disabled; IE2 disabled; IE5 disabled; IE4 disabled; IE10 disabled; IE7 disabled; IE6 disabled; IE9 disabled; IE8 disabled; IE11 disabled; 
-    ADIEL = 0x00;
+    // IE1 disabled; IE0 enabled; IE3 disabled; IE2 disabled; IE5 disabled; IE4 disabled; IE10 disabled; IE7 disabled; IE6 disabled; IE9 disabled; IE8 disabled; IE11 disabled; 
+    ADIEL = 0x01;
     // IE24 disabled; IE25 disabled; 
     ADIEH = 0x00;
     // CMPEN6 disabled; CMPEN10 disabled; CMPEN5 disabled; CMPEN11 disabled; CMPEN4 disabled; CMPEN3 disabled; CMPEN2 disabled; CMPEN1 disabled; CMPEN0 disabled; CMPEN9 disabled; CMPEN8 disabled; CMPEN7 disabled; 
@@ -114,8 +114,8 @@ void ADC1_Initialize (void)
     ADCMP2HI = 0x00;
     // CMPHI 0; 
     ADCMP3HI = 0x00;
-    // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
-    ADFL0CON = 0x400;
+    // OVRSAM 64x; MODE Oversampling Mode; FLCHSEL AN0; IE enabled; FLEN enabled; 
+    ADFL0CON = 0x9600;
     // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
     ADFL1CON = 0x400;
     // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
@@ -134,8 +134,8 @@ void ADC1_Initialize (void)
     ADLVLTRGL = 0x01;
     // LVLEN24 disabled; LVLEN25 disabled; 
     ADLVLTRGH = 0x00;
-    // SAMC 0; 
-    ADCORE0L = 0x00;
+    // SAMC 16; 
+    ADCORE0L = 0x10;
     // SAMC 0; 
     ADCORE1L = 0x00;
     // RES 12-bit resolution; EISEL Early interrupt is generated 1 TADCORE clock prior to data being ready; ADCS 2; 
@@ -149,6 +149,10 @@ void ADC1_Initialize (void)
     // C0CIE disabled; C1CIE disabled; SHRCIE disabled; WARMTIME 32768 Source Clock Periods; 
     ADCON5H = (0x1500 & 0xF0FF); //Disabling WARMTIME bit
     
+    // Clearing ADCAN0 interrupt flag.
+    IFS5bits.ADCAN0IF = 0;
+    // Enabling ADCAN0 interrupt.
+    IEC5bits.ADCAN0IE = 1;
 
     // Setting WARMTIME bit
     ADCON5Hbits.WARMTIME = 0xF;
@@ -200,19 +204,25 @@ void __attribute__ ((weak)) ADC1_CallBack(void)
     // Add your custom callback code here
 }
 
-void ADC1_Tasks ( void )
+
+/* Callback function for the Analog Channel ADCAN0 Interrupt */
+void __attribute__ ((weak)) ADC1_ADCAN0_CallBack(uint16_t adcVal)
 {
-	if(IFS5bits.ADCIF)
-	{
-		// ADC1 callback function 
-		ADC1_CallBack();
-		
-		// clear the ADC1 interrupt flag
-		IFS5bits.ADCIF = 0;
-	}
+    // Add your custom callback code here
 }
 
-
+/*
+void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADCAN0Interrupt ( void )
+{
+    uint16_t valADCAN0;
+    //Read the ADC value from the ADCBUF
+    valADCAN0 = ADCBUF0;
+    //Callback function to process the ADC data
+    ADC1_ADCAN0_CallBack(valADCAN0);
+    //clear the ADCAN0 interrupt flag
+    IFS5bits.ADCAN0IF = 0;
+}
+*/
 
 /**
   End of File

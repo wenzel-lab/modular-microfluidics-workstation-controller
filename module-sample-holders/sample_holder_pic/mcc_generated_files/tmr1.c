@@ -92,8 +92,8 @@ void TMR1_Initialize (void)
 {
     //TMR 0; 
     TMR1 = 0x00;
-    //Period = 0.001008 s; Frequency = 4000000 Hz; PR 62; 
-    PR1 = 0x3E;
+    //Period = 0.1 s; Frequency = 4000000 Hz; PR 6249; 
+    PR1 = 0x1869;
     //TCKPS 1:64; PRWIP Write complete; TMWIP Write complete; TON enabled; TSIDL disabled; TCS FOSC/2; TECS T1CK; TSYNC disabled; TMWDIS disabled; TGATE disabled; 
     T1CON = 0x8020;
 
@@ -110,7 +110,7 @@ void TMR1_Initialize (void)
 }
 
 
-void __attribute__ ( ( interrupt, no_auto_psv ) ) _T1Interrupt (  )
+void __attribute__ ( ( interrupt, no_auto_psv ) ) _T1Interrupt ( void )
 {
     /* Check if the Timer Interrupt/Status is set */
 
