@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=sample_holder_pic
 
 # Active Configuration
-DEFAULTCONF=default
+DEFAULTCONF=Unpowered
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=default 
+ALLCONFS=Unpowered 3_3v_Powered 
 
 
 # build
@@ -45,13 +45,15 @@ ALLCONFS=default
 
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3v_Powered clean
 
 
 
 # all
 .all-impl: .all-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3v_Powered build
 
 
 

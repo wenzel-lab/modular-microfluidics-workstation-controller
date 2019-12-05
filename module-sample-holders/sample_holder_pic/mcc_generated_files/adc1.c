@@ -78,8 +78,8 @@ void ADC1_Initialize (void)
     ADMOD0H = 0x00;
     // DIFF25 disabled; SIGN25 disabled; 
     ADMOD1H = 0x00;
-    // IE1 disabled; IE0 enabled; IE3 disabled; IE2 disabled; IE5 disabled; IE4 disabled; IE10 disabled; IE7 disabled; IE6 disabled; IE9 disabled; IE8 disabled; IE11 disabled; 
-    ADIEL = 0x01;
+    // IE1 disabled; IE0 disabled; IE3 disabled; IE2 disabled; IE5 disabled; IE4 disabled; IE10 disabled; IE7 disabled; IE6 disabled; IE9 disabled; IE8 disabled; IE11 disabled; 
+    ADIEL = 0x00;
     // IE24 disabled; IE25 disabled; 
     ADIEH = 0x00;
     // CMPEN6 disabled; CMPEN10 disabled; CMPEN5 disabled; CMPEN11 disabled; CMPEN4 disabled; CMPEN3 disabled; CMPEN2 disabled; CMPEN1 disabled; CMPEN0 disabled; CMPEN9 disabled; CMPEN8 disabled; CMPEN7 disabled; 
@@ -149,10 +149,6 @@ void ADC1_Initialize (void)
     // C0CIE disabled; C1CIE disabled; SHRCIE disabled; WARMTIME 32768 Source Clock Periods; 
     ADCON5H = (0x1500 & 0xF0FF); //Disabling WARMTIME bit
     
-    // Clearing ADCAN0 interrupt flag.
-    IFS5bits.ADCAN0IF = 0;
-    // Enabling ADCAN0 interrupt.
-    IEC5bits.ADCAN0IE = 1;
 
     // Setting WARMTIME bit
     ADCON5Hbits.WARMTIME = 0xF;
@@ -205,11 +201,6 @@ void __attribute__ ((weak)) ADC1_CallBack(void)
 }
 
 
-/* Callback function for the Analog Channel ADCAN0 Interrupt */
-void __attribute__ ((weak)) ADC1_ADCAN0_CallBack(uint16_t adcVal)
-{
-    // Add your custom callback code here
-}
 
 /*
 void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADCAN0Interrupt ( void )

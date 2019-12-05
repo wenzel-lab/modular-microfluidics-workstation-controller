@@ -17,7 +17,11 @@
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>default</name>
+                    <name>Unpowered</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>3_3v_Powered</name>
                     <type>2</type>
                 </confElem>
             </confList>

@@ -6,10 +6,11 @@
 #include "spi.h"
 
 /* System Macros */
-#define MIN(a,b)                    ((a)<=(b)?(a):(b))
-#define MAX(a,b)                    ((a)>=(b)?(a):(b))
-#define PTR_TO_16BIT(ptr)           ( ( (*((uint8_t *)ptr+1)) << 8 ) | *(uint8_t *)ptr )
-#define COPY_16BIT_TO_PTR(ptr,val)  {*(ptr+1)=*((uint8_t *)&val+1); *ptr=*(uint8_t *)&val;}
+#define MIN(a,b)                        ((a)<=(b)?(a):(b))
+#define MAX(a,b)                        ((a)>=(b)?(a):(b))
+#define PTR_TO_16BIT(ptr)               ( ( (*((uint8_t *)ptr+1)) << 8 ) | *(uint8_t *)ptr )
+#define COPY_16BIT_TO_PTR(ptr,val)      {*(ptr+1)=*((uint8_t *)&val+1); *ptr=*(uint8_t *)&val;}
+#define COPY_16BIT_TO_PTR_REV(ptr,val)  {*ptr=*((uint8_t *)&val+1); *(ptr+1)=*(uint8_t *)&val;}
 
 /* System Constants */
 #define PI                          3.14159265359
@@ -575,9 +576,10 @@ err parse_packet_temp_set_target( uint8_t packet_type, uint8_t *packet_data, uin
 err parse_packet_temp_get_target( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
     err rc = ERR_OK;
-    uint8_t return_buf[ sizeof(err) + sizeof(hpid_target)];
+    uint8_t return_buf[ sizeof(err) + sizeof(hpid_target) ];
+    
     return_buf[0] = ERR_OK;
-    COPY_16BIT_TO_PTR( &return_buf[1], hpid_target );
+    COPY_16BIT_TO_PTR_REV( &return_buf[1], hpid_target );
     
     spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
     
@@ -587,9 +589,10 @@ err parse_packet_temp_get_target( uint8_t packet_type, uint8_t *packet_data, uin
 err parse_packet_temp_get_actual( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
     err rc = ERR_OK;
-    uint8_t return_buf[ sizeof(err) + sizeof(heater_temp_c_scaled)];
+    uint8_t return_buf[ sizeof(err) + sizeof(heater_temp_c_scaled) ];
+    
     return_buf[0] = ERR_OK;
-    COPY_16BIT_TO_PTR( &return_buf[1], heater_temp_c_scaled );
+    COPY_16BIT_TO_PTR_REV( &return_buf[1], heater_temp_c_scaled );
     
     spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
     
