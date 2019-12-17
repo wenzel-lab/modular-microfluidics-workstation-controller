@@ -22,6 +22,7 @@
         <itemPath>mcc_generated_files/tmr1.h</itemPath>
         <itemPath>mcc_generated_files/uart1.h</itemPath>
         <itemPath>mcc_generated_files/spi1.h</itemPath>
+        <itemPath>mcc_generated_files/spi2.h</itemPath>
       </logicalFolder>
       <itemPath>spi.h</itemPath>
       <itemPath>common.h</itemPath>
@@ -48,6 +49,7 @@
         <itemPath>mcc_generated_files/tmr1.c</itemPath>
         <itemPath>mcc_generated_files/uart1.c</itemPath>
         <itemPath>mcc_generated_files/spi1.c</itemPath>
+        <itemPath>mcc_generated_files/spi2.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>spi.c</itemPath>
@@ -520,6 +522,7 @@
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>

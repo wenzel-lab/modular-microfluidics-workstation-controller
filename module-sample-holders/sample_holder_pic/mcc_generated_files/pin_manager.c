@@ -66,13 +66,13 @@ void PIN_MANAGER_Initialize (void)
      * Setting the Output Latch SFR(s)
      ***************************************************************************/
     LATA = 0x0000;
-    LATB = 0x8000;
+    LATB = 0x8008;
 
     /****************************************************************************
      * Setting the GPIO Direction SFR(s)
      ***************************************************************************/
     TRISA = 0x001F;
-    TRISB = 0x77BD;
+    TRISB = 0x77B2;
 
     /****************************************************************************
      * Setting the Weak Pull Up and Weak Pull Down SFR(s)
@@ -80,7 +80,7 @@ void PIN_MANAGER_Initialize (void)
     CNPDA = 0x0000;
     CNPDB = 0x0000;
     CNPUA = 0x0000;
-    CNPUB = 0x3C00;
+    CNPUB = 0x3C0F;
 
     /****************************************************************************
      * Setting the Open Drain SFR(s)
@@ -92,7 +92,7 @@ void PIN_MANAGER_Initialize (void)
      * Setting the Analog/Digital Configuration SFR(s)
      ***************************************************************************/
     ANSELA = 0x001F;
-    ANSELB = 0x009D;
+    ANSELB = 0x0090;
 
 
     /****************************************************************************
@@ -100,12 +100,17 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     __builtin_write_RPCON(0x0000); // unlock PPS
 
-    RPOR3bits.RP38R = 0x000F;    //RB6->SCCP1:OCM1
-    RPINR21bits.SS1R = 0x002A;    //RB10->SPI1:SS1
-    RPOR5bits.RP43R = 0x0005;    //RB11->SPI1:SDO1
+    RPOR1bits.RP34R = 0x0008;    //RB2->SPI2:SDO2
     RPOR7bits.RP47R = 0x0001;    //RB15->UART1:U1TX
-    RPINR20bits.SDI1R = 0x002C;    //RB12->SPI1:SDI1
+    RPINR22bits.SDI2R = 0x0021;    //RB1->SPI2:SDI2
+    RPINR22bits.SCK2R = 0x0020;    //RB0->SPI2:SCK2OUT
+    RPOR1bits.RP35R = 0x000A;    //RB3->SPI2:SS2OUT
     RPINR20bits.SCK1R = 0x002D;    //RB13->SPI1:SCK1IN
+    RPINR21bits.SS1R = 0x002A;    //RB10->SPI1:SS1
+    RPINR20bits.SDI1R = 0x002C;    //RB12->SPI1:SDI1
+    RPOR5bits.RP43R = 0x0005;    //RB11->SPI1:SDO1
+    RPOR3bits.RP38R = 0x000F;    //RB6->SCCP1:OCM1
+    RPOR0bits.RP32R = 0x0009;    //RB0->SPI2:SCK2OUT
 
     __builtin_write_RPCON(0x0800); // lock PPS
 

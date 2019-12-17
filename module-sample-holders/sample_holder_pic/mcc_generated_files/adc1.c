@@ -62,12 +62,12 @@ void ADC1_Initialize (void)
     ADCON1H = 0x60;
     // PTGEN disabled; SHRADCS 2; REFCIE disabled; SHREISEL Early interrupt is generated 1 TADCORE clock prior to data being ready; REFERCIE disabled; EIEN disabled; 
     ADCON2L = 0x00;
-    // SHRSAMC 2; 
-    ADCON2H = 0x02;
+    // SHRSAMC 414; 
+    ADCON2H = 0x19E;
     // SWCTRG disabled; SHRSAMP disabled; SUSPEND disabled; SWLCTRG disabled; SUSPCIE disabled; CNVCHSEL AN0; REFSEL disabled; 
     ADCON3L = 0x00;
-    // SHREN disabled; C1EN disabled; C0EN enabled; CLKDIV 1; CLKSEL FOSC; 
-    ADCON3H = (0x4001 & 0xFF00); //Disabling C0EN, C1EN, C2EN, C3EN and SHREN bits
+    // SHREN disabled; C1EN disabled; C0EN enabled; CLKDIV 4; CLKSEL AUX VCO DIVMUX; 
+    ADCON3H = (0x8301 & 0xFF00); //Disabling C0EN, C1EN, C2EN, C3EN and SHREN bits
     // SAMC0EN enabled; SAMC1EN disabled; 
     ADCON4L = 0x01;
     // C0CHS AN0; C1CHS AN1; 
@@ -114,8 +114,8 @@ void ADC1_Initialize (void)
     ADCMP2HI = 0x00;
     // CMPHI 0; 
     ADCMP3HI = 0x00;
-    // OVRSAM 64x; MODE Oversampling Mode; FLCHSEL AN0; IE enabled; FLEN enabled; 
-    ADFL0CON = 0x9600;
+    // OVRSAM 64x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
+    ADFL0CON = 0x1400;
     // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
     ADFL1CON = 0x400;
     // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
@@ -134,8 +134,8 @@ void ADC1_Initialize (void)
     ADLVLTRGL = 0x01;
     // LVLEN24 disabled; LVLEN25 disabled; 
     ADLVLTRGH = 0x00;
-    // SAMC 16; 
-    ADCORE0L = 0x10;
+    // SAMC 240; 
+    ADCORE0L = 0xF0;
     // SAMC 0; 
     ADCORE1L = 0x00;
     // RES 12-bit resolution; EISEL Early interrupt is generated 1 TADCORE clock prior to data being ready; ADCS 2; 
@@ -200,20 +200,19 @@ void __attribute__ ((weak)) ADC1_CallBack(void)
     // Add your custom callback code here
 }
 
-
-
-/*
-void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADCAN0Interrupt ( void )
+void ADC1_Tasks ( void )
 {
-    uint16_t valADCAN0;
-    //Read the ADC value from the ADCBUF
-    valADCAN0 = ADCBUF0;
-    //Callback function to process the ADC data
-    ADC1_ADCAN0_CallBack(valADCAN0);
-    //clear the ADCAN0 interrupt flag
-    IFS5bits.ADCAN0IF = 0;
+	if(IFS5bits.ADCIF)
+	{
+		// ADC1 callback function 
+		ADC1_CallBack();
+		
+		// clear the ADC1 interrupt flag
+		IFS5bits.ADCIF = 0;
+	}
 }
-*/
+
+
 
 /**
   End of File

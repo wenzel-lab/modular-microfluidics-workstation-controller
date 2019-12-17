@@ -27,7 +27,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=sample_holder_pic
 
 # Active Configuration
-DEFAULTCONF=Unpowered
+DEFAULTCONF=3_3v_Powered
 CONF=${DEFAULTCONF}
 
 # All Configurations

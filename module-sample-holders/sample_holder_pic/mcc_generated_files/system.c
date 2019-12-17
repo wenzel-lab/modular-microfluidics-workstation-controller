@@ -46,21 +46,23 @@
 #include "clock.h"
 #include "system.h"
 #include "system_types.h"
+#include "sccp1_compare.h"
+#include "adc1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "spi1.h"
-#include "adc1.h"
-#include "uart1.h"
-#include "sccp1_compare.h"
 #include "tmr1.h"
+#include "spi2.h"
+#include "uart1.h"
+#include "spi1.h"
 
 void SYSTEM_Initialize(void)
 {
     PIN_MANAGER_Initialize();
-    INTERRUPT_Initialize();
     CLOCK_Initialize();
+    INTERRUPT_Initialize();
     SCCP1_COMPARE_Initialize();
     SPI1_Initialize();
+    SPI2_Initialize();
     UART1_Initialize();
     ADC1_Initialize();
     TMR1_Initialize();
