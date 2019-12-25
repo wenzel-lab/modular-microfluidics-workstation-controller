@@ -1,10 +1,3 @@
-/* 
- * File:   common.h
- * Author: Cyrus
- *
- * Created on October 4, 2019, 1:04 PM
- */
-
 #ifndef COMMON_H
 #define	COMMON_H
 
@@ -24,6 +17,8 @@ extern "C" {
     
 #define ERR_HEAT_TARGET_INVALID     40
 #define ERR_HEAT_PID_NOT_READY      41
+
+#define ERR_EEPROM_VERIFY_FAIL      50
 
 typedef uint8_t err;
 

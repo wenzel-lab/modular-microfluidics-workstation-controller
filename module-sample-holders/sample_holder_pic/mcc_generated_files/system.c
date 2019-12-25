@@ -46,13 +46,16 @@
 #include "clock.h"
 #include "system.h"
 #include "system_types.h"
+#include "uart1.h"
+#include "tmr1.h"
+#include "sccp4_tmr.h"
+#include "spi2.h"
+#include "sccp2_compare.h"
+#include "sccp3_capture.h"
 #include "sccp1_compare.h"
 #include "adc1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "tmr1.h"
-#include "spi2.h"
-#include "uart1.h"
 #include "spi1.h"
 
 void SYSTEM_Initialize(void)
@@ -60,10 +63,13 @@ void SYSTEM_Initialize(void)
     PIN_MANAGER_Initialize();
     CLOCK_Initialize();
     INTERRUPT_Initialize();
+    SCCP3_CAPTURE_Initialize();
+    SCCP4_TMR_Initialize();
     SCCP1_COMPARE_Initialize();
+    SCCP2_COMPARE_Initialize();
     SPI1_Initialize();
-    SPI2_Initialize();
     UART1_Initialize();
+    SPI2_Initialize();
     ADC1_Initialize();
     TMR1_Initialize();
     INTERRUPT_GlobalEnable();

@@ -4,6 +4,8 @@
 #include <math.h>
 #include "common.h"
 #include "spi.h"
+#include "eeprom.h"
+#include "storage.h"
 
 /* System Macros */
 #define MIN(a,b)                        ((a)<=(b)?(a):(b))
@@ -20,6 +22,7 @@
 
 /* Application Macros */
 #define SET_HEATER_OUTPUT(output)   { heater_output = output; CCP1RA = -(uint16_t)(output); }
+#define SET_FAN_OUTPUT(output)      { CCP2RA = 0x100-output; }
 #define HPID_INTERRUPT_ON()         { IEC7bits.ADFLTR0IE = 1; }
 #define HPID_INTERRUPT_OFF()        { IEC7bits.ADFLTR0IE = 0; }
 
@@ -45,6 +48,8 @@
 #define HEATER_TEMP_SCALE                   100
 #define HEATER_TEMP_MIN_SCALED              (0*HEATER_TEMP_SCALE)
 #define HEATER_TEMP_MAX_SCALED              (80*HEATER_TEMP_SCALE)
+#define HEATER_TEMP_DEFAULT_SCALED          (25*HEATER_TEMP_SCALE)
+#define HEATER_RUN_ON_START_DEFAULT         0
 
 /* Heater Autotune Constants */
 #define HTUNE_POWER_MAX                     ( HEATER_POWER_MAX >> 2 )
@@ -63,6 +68,7 @@
 #define HTUNE_CONV_ASYMMETRY_THRESHOLD_PC   10
 #define HTUNE_CONV_PASS_COUNT_THRESHOLD     3
 #define HTUNE_CONV_CYCLE_MAX_MS_PER_DEGC    (10*60*(int32_t)1000)
+#define HTUNE_TEMP_DEFAULT_SCALED           (35*HEATER_TEMP_SCALE)
 
 /* Comms Constants */
 #define PACKET_TYPE_GET_ID                  1
@@ -76,6 +82,16 @@
 #define PACKET_TYPE_AUTOTUNE_SET_RUNNING    9
 #define PACKET_TYPE_AUTOTUNE_GET_RUNNING    10
 #define PACKET_TYPE_AUTOTUNE_GET_STATUS     11
+
+/* Stirrer Constants*/
+#define STIR_SHIFT                          8
+#define STIR_AVG_SHIFT                      3
+#define STIR_AVG_MUL                        ( ( 1 << STIR_AVG_SHIFT ) - 1 )
+#define STIR_TMRH_STOP_THRESHOLD            20
+#define STIR_LOOP_I_SHIFT                   2
+#define STIR_LOOP_P_SHIFT                   2
+#define STIR_LOOP_I_SHIFT_BOOST             20
+
 
 /* Defined range limits
  * - HTUNE_PERIOD_TIMEOUT_S max is UINT16_MAX / ( 1000 / HEATER_PERIOD_MS )
@@ -167,6 +183,15 @@ float htune_log_tu[HTUNE_CYCLES_MAX];
 uint8_t htune_log_index;
 uint16_t htune_cycle_start_time;
 int16_t htune_cycle_start_temp_scaled;
+
+/* Stirrer Data */
+volatile uint16_t stir_speed_avg;
+volatile uint16_t stir_tmr_prev;
+volatile uint16_t stir_speed;
+uint16_t stir_target;
+uint16_t stir_output;
+int32_t stir_output_integrator;
+int32_t stir_output_scaled;
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
@@ -532,6 +557,13 @@ int16_t get_heater_temp( void )
 void timer1_isr( void )
 {
     timer1_counter++;
+    
+    stir_speed = CCP4TMRL - stir_tmr_prev;
+    stir_tmr_prev = CCP4TMRL;
+    if ( stir_speed == 0 )
+        stir_speed_avg = 0;
+    else
+        stir_speed_avg = ( ( stir_speed_avg * STIR_AVG_MUL ) + ( stir_speed << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
     
 /*
     heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (uint32_t)( HEATER_ADC_FLT_REG & HEATER_ADC_MAX ) << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
@@ -924,311 +956,268 @@ Temp 34.45 /  15607, Output   2768, p   1147, i    296, d  1111, i_int      9, h
 //    hpid_state = HPID_STATE_READY;
 }
 
-#define EE_CMD_READ     0b011
-#define EE_CMD_WRITE    0b010
-#define EE_CMD_WRDI     0b100   // Write Disable
-#define EE_CMD_WREN     0b110   // Write Enable
-#define EE_CMD_RDSR     0b101   // Read Status Register
-#define EE_CMD_WRSR     0b001   // Write Status Register
-
-typedef enum __attribute__((packed))
+void storage_save_defaults()
 {
-    EE_PROTECT_NONE          = 0,
-    EE_PROTECT_UPPER_QUARTER = 1,
-    EE_PROTECT_UPPER_HALF    = 2,
-    EE_PROTECT_ALL           = 3,
-} E_EE_PROTECT;
+    store_save_eeprom_ver( EEPROM_VER );
+    store_save_pid( EEPROM_BLANK_U16, EEPROM_BLANK_U16, EEPROM_BLANK_U16 );
+    store_save_hpid_temp( HEATER_TEMP_DEFAULT_SCALED );
+    store_save_htune_temp( HTUNE_TEMP_DEFAULT_SCALED );
+    store_save_run_on_start( HEATER_RUN_ON_START_DEFAULT );
+}
 
-typedef union
+void storage_startup()
 {
-    struct
+    uint8_t eeprom_ver;
+    uint16_t pid_p;
+    uint16_t pid_i;
+    uint16_t pid_d;
+    int16_t hpid_temp_c_scaled;
+    int16_t htune_temp_c_scaled;
+    uint8_t run_on_start;
+    uint8_t pid_okay = 1;
+
+    store_load_eeprom_ver( &eeprom_ver );
+    printf( "EEPROM Version %hu\n", eeprom_ver );
+    
+    if ( eeprom_ver == EEPROM_BLANK_U8 )
     {
-        uint8_t WIP : 1;
-        uint8_t WEL : 1;
-        E_EE_PROTECT protect : 2;
-    };
-    uint8_t value;
-} ee_status_t;
-
-ee_status_t eeprom_read_status( void )
-{
-    uint8_t buf[2];
-    
-    buf[0] = EE_CMD_RDSR;
-    buf[1] = 0xFF;
-    SS2OUT_SetLow();
-    SPI2_Exchange8bitBuffer( buf, 2, buf );
-    SS2OUT_SetHigh();
-    
-//    printf( "Status size %hu\n", sizeof(ee_status_t) );
-//    printf( "WIP %hu\n", ((ee_status_t)buf[1]).WIP );
-//    printf( "WEL %hu\n", ((ee_status_t)buf[1]).WEL );
-//    printf( "BP %hu\n", ((ee_status_t)buf[1]).protect );
-    
-    return (ee_status_t)buf[1];
-}
-
-uint8_t eeprom_read_byte( uint16_t addr )
-{
-    uint8_t buf[3];
-    
-    buf[0] = EE_CMD_READ | ( ( addr & 0x100 ) >> 5 );
-    buf[1] = addr & 0xFF;
-    buf[2] = 0xFF;
-    SS2OUT_SetLow();
-    SPI2_Exchange8bitBuffer( buf, 3, buf );
-    SS2OUT_SetHigh();
-    
-    return buf[2];
-}
-
-void eeprom_read_bytes( uint16_t addr, uint8_t num, uint8_t *data )
-{
-    uint8_t buf[2];
-    
-    buf[0] = EE_CMD_READ | ( ( addr & 0x100 ) >> 5 );
-    buf[1] = addr & 0xFF;
-    SS2OUT_SetLow();
-    SPI2_Exchange8bitBuffer( buf, 2, NULL );
-    SPI2_Exchange8bitBuffer( NULL, num, data );
-    SS2OUT_SetHigh();
-}
-
-uint8_t eeprom_verify_bytes( uint16_t addr, uint8_t num, uint8_t *data )
-{
-    uint8_t buf[2];
-    uint8_t rc = 0;
-    
-    buf[0] = EE_CMD_READ | ( ( addr & 0x100 ) >> 5 );
-    buf[1] = addr & 0xFF;
-    
-    SS2OUT_SetLow();
-    
-    SPI2_Exchange8bitBuffer( buf, 2, NULL );
-    
-    while ( num )
-    {
-        SPI2_Exchange8bitBuffer( NULL, 1, buf );
-        
-        if ( *buf == *data )
-        {
-            data++;
-            num--;
-        }
-        else
-        {
-            rc = 1;
-            break;
-        }
+        /* Blank EEPROM */
+        printf( "Saving Defaults\n" );
+        storage_save_defaults();
     }
     
-    SS2OUT_SetHigh();
+    pid_p = EEPROM_BLANK_U16;
+    pid_i = EEPROM_BLANK_U16;
+    pid_d = EEPROM_BLANK_U16;
+    store_load_pid( &pid_p, &pid_i, &pid_d );
+    printf( "PID=%u %u %u\n", pid_p, pid_i, pid_d );
     
-    return rc;
-}
-
-void eeprom_write_byte( uint16_t addr, uint8_t byte )
-{
-    uint8_t buf[3];
-    
-    /* Write Enable */
-    buf[0] = EE_CMD_WREN;
-    SS2OUT_SetLow();
-    SPI2_Exchange8bitBuffer( buf, 1, NULL );
-    SS2OUT_SetHigh();
-    
-    /* Write */
-    buf[0] = EE_CMD_WRITE | ( ( addr & 0x100 ) >> 5 );
-    buf[1] = addr & 0xFF;
-    buf[2] = byte;
-    SS2OUT_SetLow();
-    SPI2_Exchange8bitBuffer( buf, 3, NULL );
-    SS2OUT_SetHigh();
-    
-//    printf( "Writing" );
-    while ( eeprom_read_status().WIP );
-//        printf( "." );
-//    printf( "\n" );
-}
-
-void eeprom_write_bytes( uint16_t addr, uint8_t num, uint8_t *data )
-{
-    #define PAGE_SIZE 16
-    uint8_t count;
-    uint8_t buf[2];
-    
-//    eeprom_print_write( addr, num, data );
-    
-    while ( num )
+    if ( ( pid_p != EEPROM_BLANK_U16 ) ||
+         ( pid_i != EEPROM_BLANK_U16 ) ||
+         ( pid_d != EEPROM_BLANK_U16 ) )
     {
-        count = PAGE_SIZE - ( addr & ( PAGE_SIZE - 1 ) );
-        
-        if ( count > num )
-            count = num;
-        
-//        printf( "Write %hu to %hu, %hu bytes\n", addr, addr+count-1, count );
-        
-        /* Write Enable */
-        buf[0] = EE_CMD_WREN;
-        SS2OUT_SetLow();
-        SPI2_Exchange8bitBuffer( buf, 1, NULL );
-        SS2OUT_SetHigh();
-
-        /* Write */
-        buf[0] = EE_CMD_WRITE | ( ( addr & 0x100 ) >> 5 );
-        buf[1] = addr & 0xFF;
-        SS2OUT_SetLow();
-        SPI2_Exchange8bitBuffer( buf, 2, NULL );
-        SPI2_Exchange8bitBuffer( data, count, NULL );
-        SS2OUT_SetHigh();
-
-        while ( eeprom_read_status().WIP );
-        
-/*
-        printf( "Writing" );
-        while ( eeprom_read_status().WIP );
-            printf( "." );
-        printf( "\n" );
- */
-        
-        num -= count;
-        addr += count;
-        data += count;
+        printf( "Setting PID Constants\n" );
+        HPID_INTERRUPT_OFF();
+        hpid_p = pid_p;
+        hpid_i = pid_i;
+        hpid_d = pid_d;
+        HPID_INTERRUPT_ON();
     }
-}
-
-void eeprom_print_write( uint16_t addr, uint8_t num, uint8_t *data )
-{
-    printf( "Write block from %hu to %hu, %hu bytes =", addr, addr+num-1, num );
-    
-    while ( num-- )
-        printf( " %hu", *data++ );
-    
-    printf( "\n" );
-}
-
-void eeprom_read_write_bytes( uint16_t addr, uint8_t num, uint8_t *data )
-{
-    #define PAGE_SIZE 16
-    uint8_t count;
-    uint8_t buf[2];
-    uint8_t page_buf[PAGE_SIZE];
-    uint8_t check_addr;
-    uint8_t check_count;
-    uint8_t *check_data;
-    uint8_t *buf_data;
-    uint8_t write_bytes;
-    uint8_t *write_addr;
-    uint8_t *write_buf_addr;
-    
-    write_bytes = 0;
-    
-    while ( num )
+    else
     {
-        count = PAGE_SIZE - ( addr & ( PAGE_SIZE - 1 ) );
-        
-        if ( count > num )
-            count = num;
-        
-        eeprom_read_bytes( addr, count, page_buf );
-        
-        check_addr = addr;
-        check_count = count;
-        check_data = data;
-        buf_data = page_buf;
-//        write_bytes = 0;
-        
-        while ( check_count )
-        {
-            if ( *check_data != *buf_data )
-            {
-                if ( write_bytes == 0 )
-                {
-                    /* Mark start of block to write */
-                    
-                    write_addr = check_addr;
-                    write_buf_addr = check_data;
-                }
-                
-                write_bytes++;
-            }
-            else if ( write_bytes != 0 )
-            {
-                /* We have a block to write */
-                
-                eeprom_write_bytes( write_addr, write_bytes, write_buf_addr );
-                write_bytes = 0;
-            }
-            
-            check_addr++;
-            check_count--;
-            check_data++;
-            buf_data++;
-        }
-        
-        if ( write_bytes )
-        {
-            eeprom_write_bytes( write_addr, write_bytes, write_buf_addr );
-            write_bytes = 0;
-        }
-        
-        num -= count;
-        addr += count;
-        data += count;
+        printf( "PID Invalid\n" );
+        pid_okay = 0;
     }
     
-    if ( write_bytes )
-        eeprom_write_bytes( write_addr, write_bytes, write_buf_addr );
+    store_load_hpid_temp( &hpid_temp_c_scaled );
+    store_load_htune_temp( &htune_temp_c_scaled );
+    printf( "hpid temp=%i\n", hpid_temp_c_scaled );
+    printf( "htune temp=%i\n", htune_temp_c_scaled );
+    
+    HPID_INTERRUPT_OFF();
+    hpid_target = hpid_temp_c_scaled;
+    htune_target = htune_temp_c_scaled;
+    HPID_INTERRUPT_ON();
+    
+    store_load_run_on_start( &run_on_start );
+    printf( "run on start=%hu\n", run_on_start );
+    if ( run_on_start == EEPROM_BLANK_U8 )
+        run_on_start = 0;
+    else
+        run_on_start = ( run_on_start == 1 );
+    
+    if ( pid_okay )
+    {
+        printf( "PID Ready\n" );
+        HPID_INTERRUPT_OFF();
+        hpid_state = HPID_STATE_READY;
+        HPID_INTERRUPT_ON();
+        
+        if ( run_on_start )
+        {
+            printf( "PID Running\n" );
+            HPID_INTERRUPT_OFF();
+            hpid_state = HPID_STATE_RUNNING;
+            HPID_INTERRUPT_ON();
+        }
+    }
+    else
+    {
+        printf( "PID Error\n" );
+        HPID_INTERRUPT_OFF();
+        hpid_state = HPID_STATE_ERROR;
+        HPID_INTERRUPT_ON();
+    }
+    
+    while (1);
 }
 
 void eeprom_test( void )
 {
-    #define TEST_BYTES_NUM 55
-    #define TEST_BYTES_START 0
-    ee_status_t eeprom_status;
-    uint8_t eeprom_byte;
+    uint8_t buf[100];
     uint8_t i;
-    uint8_t data[TEST_BYTES_NUM];
+    uint8_t eeprom_ver;
+    uint16_t pid_p;
+    uint16_t pid_i;
+    uint16_t pid_d;
+    int16_t hpid_temp_c_scaled;
+    int16_t htune_temp_c_scaled;
+    uint8_t pid_okay = 1;
+    err rc;
     
     printf( "EEPROM Test\n" );
     
-    eeprom_status = eeprom_read_status();
-    printf( "EEPROM Status %hu\n", eeprom_status.value );
+    rc = store_save_pid( 10, 20, 30 );
+    printf( "EEPROM Write PID, rc=%hu\n", rc );
+    rc = store_save_hpid_temp( 3000 );
+    printf( "EEPROM Write HPID Temp, rc=%hu\n", rc );
+    rc = store_save_htune_temp( 3500 );
+    printf( "EEPROM Write HTUNE Temp, rc=%hu\n", rc );
+//    rc = store_save_eeprom_ver( 1 );
+//    printf( "EEPROM Write EEPROM Ver, rc=%hu\n", rc );
     
-#if 0
-    #define TEST_WRITE_ADDR 4
-    eeprom_byte = 66;
-    printf( "EEPROM Write %hu\n", eeprom_byte );
-    eeprom_write_byte( TEST_WRITE_ADDR, eeprom_byte );
+    eeprom_read_bytes( 0, 32, buf );
     
-    eeprom_byte = eeprom_verify_bytes( TEST_WRITE_ADDR, 1, &eeprom_byte );
-    printf( "Verify %s\n", eeprom_byte ? "FAIL" : "OK" );
-#endif
-    
-    eeprom_status = eeprom_read_status();
-    printf( "EEPROM Status %hu\n", eeprom_status.value );
-    eeprom_byte = eeprom_read_byte( 0 );
-    printf( "EEPROM Read %hu\n", eeprom_byte );
-    
-    for ( i=0; i<50; i++ )
-        data[i] = i + 1;
-//    eeprom_write_bytes( 1, 50, data );
-//    for ( i=13; i<20; i++ )
-//        data[i] = i-13;
-    eeprom_read_write_bytes( 1, 50, data );
-    eeprom_byte = eeprom_verify_bytes( 1, 50, data );
-    printf( "Verify %s\n", eeprom_byte ? "FAIL" : "OK" );
-    
-    printf( "Reading %hu bytes starting at %hu:\n", TEST_BYTES_NUM, TEST_BYTES_START );
-    eeprom_read_bytes( TEST_BYTES_START, TEST_BYTES_NUM, data );
-    for ( i=0; i<TEST_BYTES_NUM; i++ )
-        printf( " %hu", data[i] );
+    printf( "EEPROM Contents: " );
+    for ( i=0; i<32; i++ )
+        printf( " %hu", buf[i] );
     printf( "\n" );
     
-    eeprom_byte = eeprom_verify_bytes( TEST_BYTES_START, TEST_BYTES_NUM, data );
-    printf( "Verify %s\n", eeprom_byte ? "FAIL" : "OK" );
+    pid_p = EEPROM_BLANK_U16;
+    pid_i = EEPROM_BLANK_U16;
+    pid_d = EEPROM_BLANK_U16;
+    store_load_pid( &pid_p, &pid_i, &pid_d );
+    printf( "PID=%u %u %u\n", pid_p, pid_i, pid_d );
+    
+    if ( ( pid_p != EEPROM_BLANK_U16 ) || ( pid_i != EEPROM_BLANK_U16 ) || ( pid_d != EEPROM_BLANK_U16 ) )
+    {
+        printf( "Writing PID\n" );
+        HPID_INTERRUPT_OFF();
+        hpid_p = pid_p;
+        hpid_i = pid_i;
+        hpid_d = pid_d;
+        printf( "PID Ready\n" );
+        hpid_state = HPID_STATE_READY;
+//        printf( "PID Running\n" );
+//        hpid_state = HPID_STATE_RUNNING;
+        HPID_INTERRUPT_ON();
+    }
+    else
+    {
+        printf( "PID Fail\n" );
+        pid_okay = 0;
+        HPID_INTERRUPT_OFF();
+        hpid_state = HPID_STATE_ERROR;
+        HPID_INTERRUPT_ON();
+    }
+    
+    store_load_eeprom_ver( &eeprom_ver );
+    printf( "EEPROM Version %hu\n", eeprom_ver );
+    
+    store_load_hpid_temp( &hpid_temp_c_scaled );
+    store_load_htune_temp( &htune_temp_c_scaled );
+    printf( "hpid temp=%i, htune temp=%i\n", hpid_temp_c_scaled, htune_temp_c_scaled );
+    
+    HPID_INTERRUPT_OFF();
+    hpid_target = hpid_temp_c_scaled;
+    htune_target = htune_temp_c_scaled;
+    HPID_INTERRUPT_ON();
     
     printf( "EEPROM Test Finish\n" );
+    while (1);
+}
+
+void fan_test()
+{
+    uint16_t tmr1_prev;
+    uint16_t time_speed_rps_avg_scaled;
+    
+    stir_target = 3;
+    stir_output = 0;
+    stir_output_scaled = 0;
+    stir_output_integrator = 0;
+    time_speed_rps_avg_scaled = 0;
+    
+    SET_FAN_OUTPUT( stir_output );
+    
+    TMR1_SetInterruptHandler( timer1_isr );
+    
+    while (1)
+    {
+        if ( timer1_counter != tmr1_prev )
+        {
+            uint8_t flag = CCP3STATLbits.ICBNE;
+            uint8_t flag2 = IFS2bits.CCT3IF;
+            uint32_t time_speed = (uint32_t)CCP3BUFL | ( (uint32_t)CCP3BUFH << 16 );
+            uint16_t time_speed_rps_avg;
+            uint16_t time_speed_rps;
+            uint16_t speed_rps = ( (uint32_t)stir_speed_avg * HEATER_PERIOD_S_COUNTS ) >> STIR_SHIFT;
+            uint8_t stir_stopped;
+            int16_t error;
+                
+//            time_speed >>= 8;
+            IFS2bits.CCT3IF = 0;
+            CCP3STATLbits.SCEVT = 0;
+            tmr1_prev = timer1_counter;
+            
+            stir_stopped = CCP3TMRH >= STIR_TMRH_STOP_THRESHOLD;
+            if ( stir_stopped )
+            {
+                CCP3TMRH = STIR_TMRH_STOP_THRESHOLD;
+                time_speed = 0;
+                time_speed_rps = 0;
+                
+                stir_output_integrator += STIR_LOOP_I_SHIFT_BOOST;
+            }
+
+//            if ( stir_stopped )
+            if ( 0 )
+            {
+//                CCP3TMRH = STIR_TMRH_STOP_THRESHOLD;
+//                time_speed = 0;
+//                time_speed_rps = 0;
+                stir_output_integrator = 0;
+                stir_output_scaled = 0;
+                stir_output = 150;
+            }
+            else
+            {
+                if ( time_speed == 0 )
+                {
+                    time_speed_rps = 0;
+                    time_speed_rps_avg_scaled = 0;
+                }
+                else
+                {
+                    time_speed_rps = (((uint32_t)_XTAL_FREQ<<8)/520)/time_speed;
+                    
+                    time_speed_rps_avg_scaled = ( ( (uint32_t)time_speed_rps_avg_scaled * STIR_AVG_MUL ) + ( (uint32_t)time_speed_rps << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
+                    time_speed_rps_avg = ( time_speed_rps_avg_scaled + ( 1 << ( STIR_SHIFT - 1 ) ) ) >> STIR_SHIFT;
+                }
+                
+                error = (int16_t)stir_target - (int16_t)time_speed_rps;
+                
+                stir_output_integrator += error;
+                if ( stir_output_integrator > ( (int16_t)0xFF << STIR_LOOP_I_SHIFT ) )
+                    stir_output_integrator = ( (int16_t)0xFF << STIR_LOOP_I_SHIFT );
+                else if ( stir_output_integrator < -( (int16_t)0xFF << STIR_LOOP_I_SHIFT ) )
+                    stir_output_integrator = -( (int16_t)0xFF << STIR_LOOP_I_SHIFT );
+                
+                stir_output_scaled = stir_output_integrator + ( error << ( STIR_LOOP_I_SHIFT + STIR_LOOP_P_SHIFT ) );
+//                stir_output_scaled = stir_output_integrator;
+                if ( stir_output_scaled < 0 )
+                    stir_output_scaled = 0;
+                else if ( stir_output_scaled > ( (int16_t)0xFF << STIR_LOOP_I_SHIFT ) )
+                    stir_output_scaled = ( (int16_t)0xFF << STIR_LOOP_I_SHIFT );
+                stir_output = stir_output_scaled >> STIR_LOOP_I_SHIFT;
+            }
+            
+            SET_FAN_OUTPUT( stir_output );
+            
+            printf( "Out %u, error %i, Speed %lu/%u/%u, flags %hu/%hu, speed2 %u, rps %u, tmr %u, stopped %hu\n", stir_output, error, time_speed, time_speed_rps, time_speed_rps_avg, flag, flag2, stir_speed_avg, speed_rps, CCP3TMRH, stir_stopped );
+        }
+    }
+    
     while (1);
 }
 
@@ -1243,13 +1232,16 @@ int main(void)
     
     printf( "Starting...\n\n" );
     
-    eeprom_test();
+//    eeprom_test();
+//    storage_startup();
+    
+    fan_test();
     
     init();
     
     /* Init SPI */
     spi_init();
-    spi_packet_init( &spi_packet, &timer1_counter, 3 );
+    spi_packet_init( &spi_packet, (uint16_t *)&timer1_counter, 3 );
     
     TMR1_SetInterruptHandler( timer1_isr );
     
@@ -1277,12 +1269,12 @@ int main(void)
             
             if ( htune_active )
             {
-                printf( "Temp %0.2f / %6u, Output %6u, heating %1d, bias %5u, delta %5u, cycles %2u, min %3d, max %3d, heattime %6d, cooltime %6d, ku %0.1f, tu %0.3f, p %6li, i %6li, d %5li\n", (float)heater_temp_c_scaled / HEATER_TEMP_SCALE, HEATER_ADC_FLT_REG, heater_output, htune_heating, htune_bias, htune_delta, htune_cycles, htune_temp_min, htune_temp_max, htune_period_heating, htune_period_cooling, htune_ku, htune_tu, htune_p, htune_i, htune_d );
+                printf( "Temp %0.2f / %6u, Output %6u, heating %1d, bias %5u, delta %5u, cycles %2u, min %3d, max %3d, heattime %6d, cooltime %6d, ku %0.1f, tu %0.3f, p %6li, i %6li, d %5li\n", (double)heater_temp_c_scaled / HEATER_TEMP_SCALE, HEATER_ADC_FLT_REG, heater_output, htune_heating, htune_bias, htune_delta, htune_cycles, htune_temp_min, htune_temp_max, htune_period_heating, htune_period_cooling, (double)htune_ku, (double)htune_tu, htune_p, htune_i, htune_d );
                 autotune_check_timeout();
             }
             else
                 printf( "Temp %0.2f / %6u, Output %6u, p %6li, i %6li, d %5li, i_int %6li, hdiff %6li, pt %6li, it %6li, dt %6li\n",
-                        (float)heater_temp_c_scaled / HEATER_TEMP_SCALE, HEATER_ADC_FLT_REG,
+                        (double)heater_temp_c_scaled / HEATER_TEMP_SCALE, HEATER_ADC_FLT_REG,
                         heater_output,
                         hpid_p, hpid_i, hpid_d,
                         hpid_integrated >> HTUNE_KI_SHL, hpid_diff >> HEATER_ADC_SHIFT,
