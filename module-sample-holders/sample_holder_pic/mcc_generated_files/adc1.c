@@ -68,8 +68,8 @@ void ADC1_Initialize (void)
     ADCON3L = 0x00;
     // SHREN disabled; C1EN disabled; C0EN enabled; CLKDIV 4; CLKSEL AUX VCO DIVMUX; 
     ADCON3H = (0x8301 & 0xFF00); //Disabling C0EN, C1EN, C2EN, C3EN and SHREN bits
-    // SAMC0EN enabled; SAMC1EN disabled; 
-    ADCON4L = 0x01;
+    // SAMC0EN disabled; SAMC1EN disabled; 
+    ADCON4L = 0x00;
     // C0CHS AN0; C1CHS AN1; 
     ADCON4H = 0x00;
     // SIGN0 disabled; SIGN4 disabled; SIGN3 disabled; SIGN2 disabled; SIGN1 disabled; SIGN7 disabled; SIGN6 disabled; DIFF0 disabled; SIGN5 disabled; DIFF1 disabled; DIFF2 disabled; DIFF3 disabled; DIFF4 disabled; DIFF5 disabled; DIFF6 disabled; DIFF7 disabled; 
@@ -130,8 +130,8 @@ void ADC1_Initialize (void)
     ADCMP2CON = 0x00;
     // HIHI disabled; LOLO disabled; HILO disabled; BTWN disabled; LOHI disabled; CMPEN disabled; IE disabled; 
     ADCMP3CON = 0x00;
-    // LVLEN9 disabled; LVLEN8 disabled; LVLEN11 disabled; LVLEN7 disabled; LVLEN10 disabled; LVLEN6 disabled; LVLEN5 disabled; LVLEN4 disabled; LVLEN3 disabled; LVLEN2 disabled; LVLEN1 disabled; LVLEN0 enabled; 
-    ADLVLTRGL = 0x01;
+    // LVLEN9 disabled; LVLEN8 disabled; LVLEN11 disabled; LVLEN7 disabled; LVLEN10 disabled; LVLEN6 disabled; LVLEN5 disabled; LVLEN4 disabled; LVLEN3 disabled; LVLEN2 disabled; LVLEN1 disabled; LVLEN0 disabled; 
+    ADLVLTRGL = 0x00;
     // LVLEN24 disabled; LVLEN25 disabled; 
     ADLVLTRGH = 0x00;
     // SAMC 240; 
@@ -157,8 +157,8 @@ void ADC1_Initialize (void)
     // Enabling Power for Core0
     ADC1_Core0PowerEnable();
 
-    //TRGSRC0 Level Software Trigger; TRGSRC1 None; 
-    ADTRIG0L = 0x02;
+    //TRGSRC0 SCCP5; TRGSRC1 None; 
+    ADTRIG0L = 0x18;
     //TRGSRC3 None; TRGSRC2 None; 
     ADTRIG0H = 0x00;
     //TRGSRC4 None; TRGSRC5 None; 

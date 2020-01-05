@@ -19,9 +19,9 @@ extern ee_status_t eeprom_read_status( void )
     
     buf[0] = EE_CMD_RDSR;
     buf[1] = 0xFF;
-    SS2OUT_SetLow();
+    EE_SS2OUT_SetLow();
     SPI2_Exchange8bitBuffer( buf, 2, buf );
-    SS2OUT_SetHigh();
+    EE_SS2OUT_SetHigh();
     
 //    printf( "Status size %hu\n", sizeof(ee_status_t) );
 //    printf( "WIP %hu\n", ((ee_status_t)buf[1]).WIP );
@@ -38,9 +38,9 @@ extern uint8_t eeprom_read_byte( uint16_t addr )
     buf[0] = EE_CMD_READ | ( ( addr & 0x100 ) >> 5 );
     buf[1] = addr & 0xFF;
     buf[2] = 0xFF;
-    SS2OUT_SetLow();
+    EE_SS2OUT_SetLow();
     SPI2_Exchange8bitBuffer( buf, 3, buf );
-    SS2OUT_SetHigh();
+    EE_SS2OUT_SetHigh();
     
     return buf[2];
 }
@@ -51,10 +51,10 @@ extern void eeprom_read_bytes( uint16_t addr, uint8_t num, uint8_t *data )
     
     buf[0] = EE_CMD_READ | ( ( addr & 0x100 ) >> 5 );
     buf[1] = addr & 0xFF;
-    SS2OUT_SetLow();
+    EE_SS2OUT_SetLow();
     SPI2_Exchange8bitBuffer( buf, 2, NULL );
     SPI2_Exchange8bitBuffer( NULL, num, data );
-    SS2OUT_SetHigh();
+    EE_SS2OUT_SetHigh();
 }
 
 extern uint8_t eeprom_verify_bytes( uint16_t addr, uint8_t num, uint8_t *data )
@@ -65,7 +65,7 @@ extern uint8_t eeprom_verify_bytes( uint16_t addr, uint8_t num, uint8_t *data )
     buf[0] = EE_CMD_READ | ( ( addr & 0x100 ) >> 5 );
     buf[1] = addr & 0xFF;
     
-    SS2OUT_SetLow();
+    EE_SS2OUT_SetLow();
     
     SPI2_Exchange8bitBuffer( buf, 2, NULL );
     
@@ -85,7 +85,7 @@ extern uint8_t eeprom_verify_bytes( uint16_t addr, uint8_t num, uint8_t *data )
         }
     }
     
-    SS2OUT_SetHigh();
+    EE_SS2OUT_SetHigh();
     
     return rc;
 }
@@ -96,17 +96,17 @@ extern void eeprom_write_byte( uint16_t addr, uint8_t byte )
     
     /* Write Enable */
     buf[0] = EE_CMD_WREN;
-    SS2OUT_SetLow();
+    EE_SS2OUT_SetLow();
     SPI2_Exchange8bitBuffer( buf, 1, NULL );
-    SS2OUT_SetHigh();
+    EE_SS2OUT_SetHigh();
     
     /* Write */
     buf[0] = EE_CMD_WRITE | ( ( addr & 0x100 ) >> 5 );
     buf[1] = addr & 0xFF;
     buf[2] = byte;
-    SS2OUT_SetLow();
+    EE_SS2OUT_SetLow();
     SPI2_Exchange8bitBuffer( buf, 3, NULL );
-    SS2OUT_SetHigh();
+    EE_SS2OUT_SetHigh();
     
 //    printf( "Writing" );
     while ( eeprom_read_status().WIP );
@@ -132,17 +132,17 @@ extern void eeprom_write_bytes( uint16_t addr, uint8_t num, uint8_t *data )
         
         /* Write Enable */
         buf[0] = EE_CMD_WREN;
-        SS2OUT_SetLow();
+        EE_SS2OUT_SetLow();
         SPI2_Exchange8bitBuffer( buf, 1, NULL );
-        SS2OUT_SetHigh();
+        EE_SS2OUT_SetHigh();
 
         /* Write */
         buf[0] = EE_CMD_WRITE | ( ( addr & 0x100 ) >> 5 );
         buf[1] = addr & 0xFF;
-        SS2OUT_SetLow();
+        EE_SS2OUT_SetLow();
         SPI2_Exchange8bitBuffer( buf, 2, NULL );
         SPI2_Exchange8bitBuffer( data, count, NULL );
-        SS2OUT_SetHigh();
+        EE_SS2OUT_SetHigh();
 
         while ( eeprom_read_status().WIP );
         

@@ -8,6 +8,7 @@
 #include "storage.h"
 
 /* System Macros */
+#define SIGN(x)                         ((x > 0)-(x < 0))
 #define MIN(a,b)                        ((a)<=(b)?(a):(b))
 #define MAX(a,b)                        ((a)>=(b)?(a):(b))
 #define PTR_TO_16BIT(ptr)               ( ( (*((uint8_t *)ptr+1)) << 8 ) | *(uint8_t *)ptr )
@@ -84,10 +85,16 @@
 #define PACKET_TYPE_AUTOTUNE_GET_STATUS     11
 
 /* Stirrer Constants*/
+#define STIR_DEBUG
+//#define STIR_DEBUG_EXTRA
+#define STIR_POWER_MAX                      0xFF
+#define STIR_POWER_MAX_SCALED               ( (int16_t)STIR_POWER_MAX << STIR_LOOP_I_SHIFT )
+//#define STIR_SPEED_TICKS_PER_SEC            ( ( (uint32_t)_XTAL_FREQ << 8 ) / 520 )
+#define STIR_SPEED_TICKS_PER_SEC            ( (uint32_t)_XTAL_FREQ / ( 512 >> 8 ) )
 #define STIR_SHIFT                          8
 #define STIR_AVG_SHIFT                      3
 #define STIR_AVG_MUL                        ( ( 1 << STIR_AVG_SHIFT ) - 1 )
-#define STIR_TMRH_STOP_THRESHOLD            20
+#define STIR_TMRH_STOP_THRESHOLD            50
 #define STIR_LOOP_I_SHIFT                   2
 #define STIR_LOOP_P_SHIFT                   2
 #define STIR_LOOP_I_SHIFT_BOOST             20
@@ -121,7 +128,7 @@ typedef enum
     HPID_STATE_READY,
     HPID_STATE_RUNNING,
     HPID_STATE_SUSPENDED,
-    HPID_STATE_ERROR,
+    HPID_STATE_ERROR
 } E_HPID_STATE;
 
 /* Heater PID Data */
@@ -184,14 +191,34 @@ uint8_t htune_log_index;
 uint16_t htune_cycle_start_time;
 int16_t htune_cycle_start_temp_scaled;
 
+volatile uint8_t flag;
+
+/* Stirrer Types */
+typedef enum
+{
+    STIR_STATE_UNCONFIGURED,
+    STIR_STATE_READY,
+    STIR_STATE_RUNNING,
+    STIR_STATE_ERROR
+} E_STIR_STATE;
+
 /* Stirrer Data */
-volatile uint16_t stir_speed_avg;
-volatile uint16_t stir_tmr_prev;
-volatile uint16_t stir_speed;
+#ifdef STIR_DEBUG_EXTRA
+volatile uint16_t stir_count_speed;
+volatile uint16_t stir_count_speed_avg;
+volatile uint16_t stir_count_tmr_prev;
+volatile uint16_t stir_count_speed_rps_avg_scaled;
+volatile uint16_t stir_count_speed_rps_avg;
+#endif
+E_STIR_STATE stir_state;
 uint16_t stir_target;
-uint16_t stir_output;
-int32_t stir_output_integrator;
-int32_t stir_output_scaled;
+volatile uint16_t stir_speed_rps_avg;
+volatile uint16_t stir_speed_rps_avg_scaled;
+volatile uint16_t stir_output;
+volatile int32_t stir_output_integrator;
+volatile int32_t stir_output_scaled;
+volatile uint8_t stir_at_target;
+volatile uint8_t stir_stopped;
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
@@ -200,6 +227,7 @@ uint8_t packet_data[SPI_PACKET_BUF_SIZE];
 uint8_t packet_data_size;
 
 /* Static Function Prototypes */
+void stir_pid();
 void heater_pid_start( void );
 void autotune( bool write_output );
 
@@ -558,12 +586,8 @@ void timer1_isr( void )
 {
     timer1_counter++;
     
-    stir_speed = CCP4TMRL - stir_tmr_prev;
-    stir_tmr_prev = CCP4TMRL;
-    if ( stir_speed == 0 )
-        stir_speed_avg = 0;
-    else
-        stir_speed_avg = ( ( stir_speed_avg * STIR_AVG_MUL ) + ( stir_speed << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
+    if ( stir_state == STIR_STATE_RUNNING )
+        stir_pid();
     
 /*
     heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (uint32_t)( HEATER_ADC_FLT_REG & HEATER_ADC_MAX ) << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
@@ -584,13 +608,21 @@ void timer1_isr( void )
 //    ADCON3Lbits.SWLCTRG = 0;
 //    ADCON3Lbits.SWLCTRG = 1;
 //    ADCON3Lbits.SWLCTRG ^= 1;
+    
+    ADFL0CONbits.FLEN = 1;
+    
+    PORTBbits.RB13 = 0;
 }
 
 void __attribute__ ( ( interrupt, no_auto_psv ) ) _ADFLTR0Interrupt ( void )
 {
-    IFS5bits.ADCIF = 0;
-    ADCON3Lbits.SWLCTRG = 0;
+    ADFL0CONbits.FLEN = 0;
+//    IFS5bits.ADCIF = 0;
+//    ADCON3Lbits.SWLCTRG = 0;
     IFS7bits.ADFLTR0IF = 0;
+    flag = 1-flag;
+    
+    PORTBbits.RB13 = 1;
     
 #if 0
     heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (uint32_t)HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
@@ -615,6 +647,8 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _ADFLTR0Interrupt ( void )
     else
         SET_HEATER_OUTPUT( 0 );
 #endif
+    
+//    printf( "* ADC Buf 0=%u, Filter=%u\n", ADCBUF0, ADFL0DAT );
 }
 
 void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADCAN0Interrupt ( void )
@@ -907,9 +941,14 @@ void init( void )
     HPID_INTERRUPT_OFF();
     SET_HEATER_OUTPUT( 0 );
     hpid_state = HPID_STATE_UNCONFIGURED;
+    
     htune_state = HTUNE_STATE_DEFAULT;
     htune_fail = HTUNE_FAIL_NONE;
     htune_active = false;
+    
+    stir_state = STIR_STATE_UNCONFIGURED;
+    stir_target = 10;
+    stir_state = STIR_STATE_READY;
     
 /*
 Temp 34.45 /  15607, Output   2768, p   1147, i    296, d  1111, i_int      9, hdiff      6, pt    985, it      9, dt   1774*/
@@ -928,27 +967,28 @@ Temp 34.45 /  15607, Output   2768, p   1147, i    296, d  1111, i_int      9, h
     hpid_target = 3500;
     
     /* Start ADC level trigger */
-//    HPID_INTERRUPT_ON();
+    HPID_INTERRUPT_ON();
     IFS5bits.ADCAN0IF = 0;
     heater_adc_avg = 0;
     heater_temp_c_scaled = 0;
     ADFL0CONbits.RDY = 0;
 //    ADFL0CONbits.FLEN = 0;
     ADFL0CONbits.FLEN = 1;
-//    ADFL0CONbits.IE = 1;
 //    ADCON3Lbits.SWLCTRG = 1;
 //    while ( HEATER_ADC_RDY_REG == 0 );
 //    IFS7bits.ADFLTR0IF = 0;
 //    ADCON3Lbits.SWCTRG = 1;
 //    ADCON3Lbits.SWLCTRG = 0;
-    ADCON3Lbits.SWLCTRG = 1;
+//    ADCON3Lbits.SWLCTRG = 1;
     printf( "Waiting for filter...\n" );
-    while(ADFL0CONbits.RDY == 0)
+    do
     {
 //        IFS5bits.ADCIF = 0;
         printf( "ADC Buf 0=%u, Filter=%u\n", ADCBUF0, ADFL0DAT );
     }
+    while(ADFL0CONbits.RDY == 0);
     printf( "Filter Ready\n" );
+    ADFL0CONbits.IE = 1;
     
 //    while ( HEATER_ADC_FLT_RDY_REG == 0 );
 //    heater_adc_avg = HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT;
@@ -1127,96 +1167,132 @@ void eeprom_test( void )
     while (1);
 }
 
-void fan_test()
+void stir_pid_start()
 {
-    uint16_t tmr1_prev;
-    uint16_t time_speed_rps_avg_scaled;
+    if ( stir_state == STIR_STATE_READY )
+    {
+        stir_output = 0;
+        stir_output_scaled = 0;
+        stir_output_integrator = 0;
+        stir_speed_rps_avg_scaled = 0;
+        stir_stopped = 0;
+        stir_state = STIR_STATE_RUNNING;
+        
+        #ifdef STIR_DEBUG_EXTRA
+        stir_count_speed_rps_avg_scaled = 0;
+        #endif
+        
+        SET_FAN_OUTPUT( stir_output );
+    }
+}
+
+void stir_stop()
+{
+    if ( stir_state == STIR_STATE_RUNNING )
+    {
+        stir_state = STIR_STATE_READY;
+        stir_speed_rps_avg = 0;
+        stir_output = 0;
+        SET_FAN_OUTPUT( stir_output );
+    }
+}
+
+void stir_pid()
+{
+#ifdef STIR_DEBUG_EXTRA
+    uint8_t capture_has_data = CCP3STATLbits.ICBNE;
+    uint8_t timer_flag = IFS2bits.CCT3IF;
+    uint16_t stir_count_speed_rps = ( (uint32_t)stir_count_speed_avg * HEATER_PERIOD_S_COUNTS ) >> STIR_SHIFT;
+#endif
     
-    stir_target = 3;
-    stir_output = 0;
-    stir_output_scaled = 0;
-    stir_output_integrator = 0;
-    time_speed_rps_avg_scaled = 0;
+    uint32_t stir_speed_time = (uint32_t)CCP3BUFL | ( (uint32_t)CCP3BUFH << 16 );
+    uint16_t stir_speed_rps;
+    int16_t error;
+    int16_t error_avg;
+    int32_t stir_output_proportional;
+    
+#ifdef STIR_DEBUG_EXTRA
+    stir_count_speed = CCP4TMRL - stir_count_tmr_prev;
+    stir_count_tmr_prev = CCP4TMRL;
+    if ( stir_count_speed == 0 )
+        stir_count_speed_avg = 0;
+    else
+        stir_count_speed_avg = ( ( stir_count_speed_avg * STIR_AVG_MUL ) + ( stir_count_speed << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
+#endif
+    
+#ifdef STIR_DEBUG_EXTRA
+    IFS2bits.CCT3IF = 0;
+    CCP3STATLbits.SCEVT = 0;
+#endif
+    
+    stir_stopped = CCP3TMRH >= STIR_TMRH_STOP_THRESHOLD;
+    if ( stir_stopped )
+    {
+        CCP3TMRH = STIR_TMRH_STOP_THRESHOLD;
+        stir_speed_time = 0;
+        stir_output_integrator += STIR_LOOP_I_SHIFT_BOOST;
+    }
+
+    if ( stir_speed_time == 0 )
+    {
+        stir_speed_rps = 0;
+        stir_speed_rps_avg_scaled = 0;
+#ifdef STIR_DEBUG_EXTRA
+        stir_count_speed_rps_avg = 0;
+        stir_count_speed_rps_avg_scaled = 0;
+#endif
+    }
+    else
+    {
+        stir_speed_rps = STIR_SPEED_TICKS_PER_SEC / stir_speed_time;
+        stir_speed_rps_avg_scaled = ( ( (uint32_t)stir_speed_rps_avg_scaled * STIR_AVG_MUL ) + ( (uint32_t)stir_speed_rps << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
+        stir_speed_rps_avg = ( stir_speed_rps_avg_scaled + ( 1 << ( STIR_SHIFT - 1 ) ) ) >> STIR_SHIFT;
+#ifdef STIR_DEBUG_EXTRA
+        stir_count_speed_rps_avg_scaled = ( ( (uint32_t)stir_count_speed_rps_avg_scaled * STIR_AVG_MUL ) + ( (uint32_t)stir_count_speed_rps << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
+        stir_count_speed_rps_avg = ( stir_count_speed_rps_avg_scaled + ( 1 << ( STIR_SHIFT - 1 ) ) ) >> STIR_SHIFT;
+#endif
+    }
+
+    error = (int16_t)stir_target - (int16_t)stir_speed_rps;
+    error_avg = (int16_t)stir_target - (int16_t)stir_speed_rps_avg;
+    stir_at_target = abs( error_avg ) <= 1;
+    
+    if ( stir_at_target )
+    {
+//        stir_output_integrator += SIGN( error ) << STIR_LOOP_I_SHIFT;
+        stir_output_integrator += SIGN( error_avg );
+        stir_output_proportional = 0;
+    }
+    else
+    {
+        stir_output_integrator += error;
+        stir_output_proportional = error << ( STIR_LOOP_I_SHIFT + STIR_LOOP_P_SHIFT );
+    }
+    
+    stir_output_integrator = constrain_i32( stir_output_integrator, 0, STIR_POWER_MAX_SCALED );
+    stir_output_scaled = stir_output_integrator + stir_output_proportional;
+    stir_output_scaled = constrain_i32( stir_output_scaled, 0, STIR_POWER_MAX_SCALED );
+    stir_output = stir_output_scaled >> STIR_LOOP_I_SHIFT;
     
     SET_FAN_OUTPUT( stir_output );
+
+#ifdef STIR_DEBUG
+    printf( "Output %-3u  error %-4i  Speed avg %-3u raw %-3u time %-7lu  timer3 high %-2u  stopped %1hu  at target %1u", stir_output, error, stir_speed_rps_avg, stir_speed_rps, stir_speed_time, CCP3TMRH, stir_stopped, stir_at_target );
+    #ifdef STIR_DEBUG_EXTRA
+    printf( "    [ Captured %hu  timer3 flag %hu  count speed avg %3u  rps %3u ]", capture_has_data, timer_flag, stir_count_speed_avg, stir_count_speed_rps );
+    #endif
+    printf( "\n" );
+#endif
+}
+
+void fan_test()
+{
+    stir_target = 20;
+    stir_state = STIR_STATE_READY;
+    
+    stir_pid_start();
     
     TMR1_SetInterruptHandler( timer1_isr );
-    
-    while (1)
-    {
-        if ( timer1_counter != tmr1_prev )
-        {
-            uint8_t flag = CCP3STATLbits.ICBNE;
-            uint8_t flag2 = IFS2bits.CCT3IF;
-            uint32_t time_speed = (uint32_t)CCP3BUFL | ( (uint32_t)CCP3BUFH << 16 );
-            uint16_t time_speed_rps_avg;
-            uint16_t time_speed_rps;
-            uint16_t speed_rps = ( (uint32_t)stir_speed_avg * HEATER_PERIOD_S_COUNTS ) >> STIR_SHIFT;
-            uint8_t stir_stopped;
-            int16_t error;
-                
-//            time_speed >>= 8;
-            IFS2bits.CCT3IF = 0;
-            CCP3STATLbits.SCEVT = 0;
-            tmr1_prev = timer1_counter;
-            
-            stir_stopped = CCP3TMRH >= STIR_TMRH_STOP_THRESHOLD;
-            if ( stir_stopped )
-            {
-                CCP3TMRH = STIR_TMRH_STOP_THRESHOLD;
-                time_speed = 0;
-                time_speed_rps = 0;
-                
-                stir_output_integrator += STIR_LOOP_I_SHIFT_BOOST;
-            }
-
-//            if ( stir_stopped )
-            if ( 0 )
-            {
-//                CCP3TMRH = STIR_TMRH_STOP_THRESHOLD;
-//                time_speed = 0;
-//                time_speed_rps = 0;
-                stir_output_integrator = 0;
-                stir_output_scaled = 0;
-                stir_output = 150;
-            }
-            else
-            {
-                if ( time_speed == 0 )
-                {
-                    time_speed_rps = 0;
-                    time_speed_rps_avg_scaled = 0;
-                }
-                else
-                {
-                    time_speed_rps = (((uint32_t)_XTAL_FREQ<<8)/520)/time_speed;
-                    
-                    time_speed_rps_avg_scaled = ( ( (uint32_t)time_speed_rps_avg_scaled * STIR_AVG_MUL ) + ( (uint32_t)time_speed_rps << STIR_SHIFT ) ) >> STIR_AVG_SHIFT;
-                    time_speed_rps_avg = ( time_speed_rps_avg_scaled + ( 1 << ( STIR_SHIFT - 1 ) ) ) >> STIR_SHIFT;
-                }
-                
-                error = (int16_t)stir_target - (int16_t)time_speed_rps;
-                
-                stir_output_integrator += error;
-                if ( stir_output_integrator > ( (int16_t)0xFF << STIR_LOOP_I_SHIFT ) )
-                    stir_output_integrator = ( (int16_t)0xFF << STIR_LOOP_I_SHIFT );
-                else if ( stir_output_integrator < -( (int16_t)0xFF << STIR_LOOP_I_SHIFT ) )
-                    stir_output_integrator = -( (int16_t)0xFF << STIR_LOOP_I_SHIFT );
-                
-                stir_output_scaled = stir_output_integrator + ( error << ( STIR_LOOP_I_SHIFT + STIR_LOOP_P_SHIFT ) );
-//                stir_output_scaled = stir_output_integrator;
-                if ( stir_output_scaled < 0 )
-                    stir_output_scaled = 0;
-                else if ( stir_output_scaled > ( (int16_t)0xFF << STIR_LOOP_I_SHIFT ) )
-                    stir_output_scaled = ( (int16_t)0xFF << STIR_LOOP_I_SHIFT );
-                stir_output = stir_output_scaled >> STIR_LOOP_I_SHIFT;
-            }
-            
-            SET_FAN_OUTPUT( stir_output );
-            
-            printf( "Out %u, error %i, Speed %lu/%u/%u, flags %hu/%hu, speed2 %u, rps %u, tmr %u, stopped %hu\n", stir_output, error, time_speed, time_speed_rps, time_speed_rps_avg, flag, flag2, stir_speed_avg, speed_rps, CCP3TMRH, stir_stopped );
-        }
-    }
     
     while (1);
 }
@@ -1235,7 +1311,7 @@ int main(void)
 //    eeprom_test();
 //    storage_startup();
     
-    fan_test();
+//    fan_test();
     
     init();
     
@@ -1245,8 +1321,9 @@ int main(void)
     
     TMR1_SetInterruptHandler( timer1_isr );
     
-    ADCON3Lbits.SWLCTRG = 1;
-    while ( heater_adc_avg == 0 );
+//    ADCON3Lbits.SWLCTRG = 1;
+    while ( heater_adc_avg == 0 )
+        printf( "-ADC Buf 0=%u, Filter=%u, IF=%hu, flag=%hu\n", ADCBUF0, ADFL0DAT, IFS7bits.ADFLTR0IF, flag);
     heater_adc_avg = (uint32_t)HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT;
     heater_temp_c_scaled = get_heater_temp();
 //    hpid_integrated = ( (int32_t)hpid_target - (int32_t)heater_temp_c_scaled ) * hpid_p;
