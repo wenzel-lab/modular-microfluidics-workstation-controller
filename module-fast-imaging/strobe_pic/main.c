@@ -206,7 +206,7 @@ void main(void)
                     }
                     else
                         rc = ERR_PACKET_INVALID;
-                    spi_packet_write( PACKET_TYPE_SET_STROBE_ENABLE, &rc, 1 );
+                    spi_packet_write( packet_type, &rc, 1 );
                     break;
                 }
                 case PACKET_TYPE_SET_STROBE_TIMING:
@@ -219,12 +219,12 @@ void main(void)
                         *strobe_period_ns = *(uint32_t *)&packet_data[4];
                         set_strobe_timing( strobe_wait_ns, strobe_period_ns );
                         return_buf[0] = ERR_OK;
-                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, return_buf, 9 );
+                        spi_packet_write( packet_type, return_buf, 9 );
                     }
                     else
                     {
                         rc = ERR_PACKET_INVALID;
-                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, &rc, 1 );
+                        spi_packet_write( packet_type, &rc, 1 );
                     }
                     
                     break;
@@ -238,7 +238,7 @@ void main(void)
                     }
                     else
                         rc = ERR_PACKET_INVALID;
-                    spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, &rc, 1 );
+                    spi_packet_write( packet_type, &rc, 1 );
                     break;
                 }
                 case PACKET_TYPE_GET_CAM_READ_TIME:
@@ -247,12 +247,12 @@ void main(void)
                     {
                         *(uint16_t *)&return_buf[1] = cam_read_time_us;
                         return_buf[0] = ERR_OK;
-                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, return_buf, 3 );
+                        spi_packet_write( packet_type, return_buf, 3 );
                     }
                     else
                     {
                         rc = ERR_PACKET_INVALID;
-                        spi_packet_write( PACKET_TYPE_SET_STROBE_TIMING, &rc, 1 );
+                        spi_packet_write( packet_type, &rc, 1 );
                     }
                     break;
                 }
