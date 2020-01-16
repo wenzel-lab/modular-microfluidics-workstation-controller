@@ -2,14 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/spi.h</file>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/spi.c</file>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/ads1115.c</file>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/mcc_generated_files/i2c3.h</file>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/main.c</file>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/ads1115.h</file>
-            <file>file:/E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/mcc_generated_files/i2c3.c</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
