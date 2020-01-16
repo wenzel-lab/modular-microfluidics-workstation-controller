@@ -27,6 +27,7 @@
         <itemPath>mcc_generated_files/sccp3_capture.h</itemPath>
         <itemPath>mcc_generated_files/sccp4_tmr.h</itemPath>
         <itemPath>mcc_generated_files/sccp5_compare.h</itemPath>
+        <itemPath>mcc_generated_files/sccp6_compare.h</itemPath>
       </logicalFolder>
       <itemPath>spi.h</itemPath>
       <itemPath>common.h</itemPath>
@@ -60,6 +61,7 @@
         <itemPath>mcc_generated_files/sccp3_capture.c</itemPath>
         <itemPath>mcc_generated_files/sccp4_tmr.c</itemPath>
         <itemPath>mcc_generated_files/sccp5_compare.c</itemPath>
+        <itemPath>mcc_generated_files/sccp6_compare.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>spi.c</itemPath>
@@ -288,6 +290,7 @@
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>

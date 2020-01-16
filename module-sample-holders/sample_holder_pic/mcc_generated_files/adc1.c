@@ -114,8 +114,8 @@ void ADC1_Initialize (void)
     ADCMP2HI = 0x00;
     // CMPHI 0; 
     ADCMP3HI = 0x00;
-    // OVRSAM 64x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
-    ADFL0CON = 0x1400;
+    // OVRSAM 256x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
+    ADFL0CON = 0x1C00;
     // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 
     ADFL1CON = 0x400;
     // OVRSAM 4x; MODE Oversampling Mode; FLCHSEL AN0; IE disabled; FLEN disabled; 

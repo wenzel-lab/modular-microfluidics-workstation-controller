@@ -53,23 +53,23 @@
 void INTERRUPT_Initialize (void)
 {
     //    SPIRXI: SPI1 RX
-    //    Priority: 3
-        IPC2bits.SPI1RXIP = 3;
-    //    ADFLTR0: ADC Oversample Filter 0
-    //    Priority: 1
-        IPC30bits.ADFLTR0IP = 1;
+    //    Priority: 4
+        IPC2bits.SPI1RXIP = 4;
     //    UEVTI: UART1 Event
-    //    Priority: 2
-        IPC47bits.U1EVTIP = 2;
+    //    Priority: 3
+        IPC47bits.U1EVTIP = 3;
     //    UTXI: UART1 TX
-    //    Priority: 2
-        IPC3bits.U1TXIP = 2;
+    //    Priority: 3
+        IPC3bits.U1TXIP = 3;
     //    UEI: UART1 Error
-    //    Priority: 2
-        IPC12bits.U1EIP = 2;
+    //    Priority: 3
+        IPC12bits.U1EIP = 3;
     //    URXI: UART1 RX
+    //    Priority: 3
+        IPC2bits.U1RXIP = 3;
+    //    ADFLTR0: ADC Oversample Filter 0
     //    Priority: 2
-        IPC2bits.U1RXIP = 2;
+        IPC30bits.ADFLTR0IP = 2;
     //    TI: Timer 1
     //    Priority: 1
         IPC0bits.T1IP = 1;

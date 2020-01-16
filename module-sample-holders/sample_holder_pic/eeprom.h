@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #define EEPROM_BLANK_U8     0xFF
-#define EEPROM_BLANK_U16    0xFF
+#define EEPROM_BLANK_U16    0xFFFF
 
 typedef enum __attribute__((packed))
 {

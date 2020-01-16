@@ -46,18 +46,19 @@
 #include "clock.h"
 #include "system.h"
 #include "system_types.h"
+#include "sccp4_tmr.h"
+#include "sccp3_capture.h"
+#include "sccp2_compare.h"
+#include "sccp1_compare.h"
+#include "spi1.h"
+#include "sccp6_compare.h"
+#include "adc1.h"
 #include "sccp5_compare.h"
-#include "tmr1.h"
-#include "uart1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "sccp1_compare.h"
-#include "sccp2_compare.h"
-#include "sccp3_capture.h"
-#include "sccp4_tmr.h"
+#include "tmr1.h"
+#include "uart1.h"
 #include "spi2.h"
-#include "adc1.h"
-#include "spi1.h"
 
 void SYSTEM_Initialize(void)
 {
@@ -65,6 +66,7 @@ void SYSTEM_Initialize(void)
     CLOCK_Initialize();
     INTERRUPT_Initialize();
     SCCP5_COMPARE_Initialize();
+    SCCP6_COMPARE_Initialize();
     SCCP3_CAPTURE_Initialize();
     SCCP4_TMR_Initialize();
     SCCP1_COMPARE_Initialize();

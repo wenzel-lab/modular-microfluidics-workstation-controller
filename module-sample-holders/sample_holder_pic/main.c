@@ -1,3 +1,8 @@
+/*
+ * PCB Changes:
+ * - MCLR must be pulled high via 10k
+ */
+
 #include "mcc_generated_files/mcc.h"
 //#include "mcc_generated_files/system.h"
 #include <stdio.h>
@@ -22,10 +27,16 @@
 #define PI                          3.14159265359
 
 /* Application Macros */
-#define SET_HEATER_OUTPUT(output)   { heater_output = output; CCP1RA = -(uint16_t)(output); }
-#define SET_FAN_OUTPUT(output)      { CCP2RA = 0x100-output; }
+#define SET_HEATER_OUTPUT(output)   { heater_output = output; CCP1RA = 0x100-((uint16_t)(output)>>8); }
+#define SET_LED_OUTPUT(output)      { CCP6RA = (LED_OUTPUT_MAX+1)-(output); }
+#define SET_STIR_OUTPUT(output)     { CCP2RA = 0x100-(output); }
 #define HPID_INTERRUPT_ON()         { IEC7bits.ADFLTR0IE = 1; }
 #define HPID_INTERRUPT_OFF()        { IEC7bits.ADFLTR0IE = 0; }
+
+/* LED Constants */
+#define LED_OUTPUT_MAX              0x7FFFu
+#define LED_OUTPUT_CLIP_MAX         (uint16_t)( ( (uint32_t)LED_OUTPUT_MAX * 16 ) >> 4 )
+#define LED_OUTPUT_CLIP_MIN         (uint16_t)( ( (uint32_t)LED_OUTPUT_MAX * 1 ) >> 7 )
 
 /* Heater Read Constants */
 #define HEATER_POWER_MAX                    0xFFFF
@@ -36,8 +47,8 @@
 #define HEATER_ADC_FILT_MUL                 ( ( 1 << HEATER_ADC_FILT_SHIFT ) - 1 )
 #define HEATER_DIFF_FILT_SHIFT              7
 #define HEATER_DIFF_FILT_MUL                ( ( 1 << HEATER_DIFF_FILT_SHIFT ) - 1 )
-#define HEATER_ADC_BITS                     14
-#define HEATER_ADC_MAX                      ( ( 1 << HEATER_ADC_BITS ) - 1 )
+#define HEATER_ADC_BITS                     16
+#define HEATER_ADC_MAX                      ( ( (int32_t)1 << HEATER_ADC_BITS ) - 1 )
 #define HEATER_ADC_REG                      ADCBUF0
 #define HEATER_ADC_FLT_REG                  ADFL0DAT
 #define HEATER_ADC_RDY_REG                  (ADSTATLbits.AN0RDY)
@@ -53,8 +64,8 @@
 #define HEATER_RUN_ON_START_DEFAULT         0
 
 /* Heater Autotune Constants */
-#define HTUNE_POWER_MAX                     ( HEATER_POWER_MAX >> 2 )
-#define HTUNE_TRANS_TEMP_HYST               ( HEATER_TEMP_SCALE / 2 )
+#define HTUNE_POWER_MAX                     ( HEATER_POWER_MAX >> 0 )
+#define HTUNE_TRANS_TEMP_HYST               ( HEATER_TEMP_SCALE / 10 )
 //#define HTUNE_TRANS_TEMP_HYST               ( HEATER_TEMP_SCALE / 10 )
 #define HTUNE_TRANS_TIME_MIN_S              5
 #define HTUNE_BIAS_ALLOWANCE                20
@@ -68,7 +79,7 @@
 #define HTUNE_CONV_COUNT                    5
 #define HTUNE_CONV_ASYMMETRY_THRESHOLD_PC   10
 #define HTUNE_CONV_PASS_COUNT_THRESHOLD     3
-#define HTUNE_CONV_CYCLE_MAX_MS_PER_DEGC    (10*60*(int32_t)1000)
+#define HTUNE_CONV_CYCLE_MAX_MS_PER_DEGC    (50*60*(int32_t)1000)
 #define HTUNE_TEMP_DEFAULT_SCALED           (35*HEATER_TEMP_SCALE)
 
 /* Comms Constants */
@@ -83,14 +94,16 @@
 #define PACKET_TYPE_AUTOTUNE_SET_RUNNING    9
 #define PACKET_TYPE_AUTOTUNE_GET_RUNNING    10
 #define PACKET_TYPE_AUTOTUNE_GET_STATUS     11
+#define PACKET_TYPE_STIR_SET_RUNNING        12
+#define PACKET_TYPE_STIR_GET_STATUS         13
+#define PACKET_TYPE_STIR_SPEED_GET_ACTUAL   14
 
 /* Stirrer Constants*/
 #define STIR_DEBUG
 //#define STIR_DEBUG_EXTRA
 #define STIR_POWER_MAX                      0xFF
 #define STIR_POWER_MAX_SCALED               ( (int16_t)STIR_POWER_MAX << STIR_LOOP_I_SHIFT )
-//#define STIR_SPEED_TICKS_PER_SEC            ( ( (uint32_t)_XTAL_FREQ << 8 ) / 520 )
-#define STIR_SPEED_TICKS_PER_SEC            ( (uint32_t)_XTAL_FREQ / ( 512 >> 8 ) )
+#define STIR_SPEED_TICKS_PER_SEC            ( (uint32_t)_XTAL_FREQ >> 1 )
 #define STIR_SHIFT                          8
 #define STIR_AVG_SHIFT                      3
 #define STIR_AVG_MUL                        ( ( 1 << STIR_AVG_SHIFT ) - 1 )
@@ -98,7 +111,7 @@
 #define STIR_LOOP_I_SHIFT                   2
 #define STIR_LOOP_P_SHIFT                   2
 #define STIR_LOOP_I_SHIFT_BOOST             20
-
+#define STIR_SPEED_RPS_DEFAULT              10
 
 /* Defined range limits
  * - HTUNE_PERIOD_TIMEOUT_S max is UINT16_MAX / ( 1000 / HEATER_PERIOD_MS )
@@ -117,9 +130,10 @@ uint8_t device_id[] = "SAMPLE_HOLDER";
 volatile uint16_t timer1_counter;
 
 /* Heater Variables */
-uint16_t heater_output;
+volatile uint16_t heater_output;
 volatile uint32_t heater_adc_avg;
-int16_t heater_temp_c_scaled;
+volatile uint16_t heater_temp_filt;
+volatile int16_t heater_temp_c_scaled;
 
 /* Heater PID Types */
 typedef enum
@@ -188,10 +202,9 @@ int32_t htune_log[HTUNE_CYCLES_MAX][2];
 float htune_log_ku[HTUNE_CYCLES_MAX];
 float htune_log_tu[HTUNE_CYCLES_MAX];
 uint8_t htune_log_index;
+bool htune_run_checks;
 uint16_t htune_cycle_start_time;
 int16_t htune_cycle_start_temp_scaled;
-
-volatile uint8_t flag;
 
 /* Stirrer Types */
 typedef enum
@@ -230,6 +243,8 @@ uint8_t packet_data_size;
 void stir_pid();
 void heater_pid_start( void );
 void autotune( bool write_output );
+void stir_pid_start( void );
+void stir_pid_stop( void );
 
 inline int32_t constrain_i32( int32_t value, int32_t min, int32_t max )
 {
@@ -238,6 +253,26 @@ inline int32_t constrain_i32( int32_t value, int32_t min, int32_t max )
     else if ( value > max )
         return max;
     else return value;
+}
+
+void heater_pid_start( void )
+{
+    if ( ( hpid_state == HPID_STATE_READY ) || ( hpid_state == HPID_STATE_SUSPENDED ) )
+    {
+        HPID_INTERRUPT_OFF();
+
+        hpid_integrated = 0;
+        hpid_diff = 0;
+        hpid_error_prev = 0;
+
+        if ( htune_active )
+            htune_state = HTUNE_STATE_ABORTED;
+        htune_active = false;
+        
+        hpid_state = HPID_STATE_RUNNING;
+        
+        HPID_INTERRUPT_ON();
+    }
 }
 
 void heater_pid( void )
@@ -336,6 +371,7 @@ void autotune_start( int16_t target_temp )
     htune_temp_max = heater_temp_c_scaled;
     htune_temp_min = htune_temp_max;
     htune_log_index = 0;
+    htune_run_checks = false;
     htune_target = target_temp;
     
     /* This also initialises cycle start temp and time. */
@@ -356,6 +392,7 @@ void autotune_stop( E_HTUNE_STATE state )
     
     htune_active = false;
     htune_state = state;
+    htune_run_checks = false;
     
     if ( hpid_state == HPID_STATE_SUSPENDED )
         heater_pid_start();
@@ -366,9 +403,12 @@ void autotune_stop( E_HTUNE_STATE state )
 void autotune( bool write_output )
 {
     bool update = false;
-//    int16_t temp_c_scaled = ( heater_temp_c_scaled / 10 ) * 10;
-    int16_t temp_c_scaled = heater_temp_c_scaled;
+    int16_t temp_c_scaled;
     
+    HPID_INTERRUPT_OFF();
+    temp_c_scaled = heater_temp_c_scaled;
+    HPID_INTERRUPT_ON();
+
     if ( temp_c_scaled > htune_temp_max )
         htune_temp_max = temp_c_scaled;
     else if ( temp_c_scaled < htune_temp_min )
@@ -430,6 +470,7 @@ void autotune( bool write_output )
                 htune_log_ku[htune_log_index] = htune_ku;
                 htune_log_tu[htune_log_index] = htune_tu;
                 htune_log_index++;
+                htune_run_checks = true;
             }
         }
             
@@ -525,6 +566,7 @@ void autotune_check_cycle( void )
         htune_ku = htune_log_ku[best_index];
         htune_tu = htune_log_tu[best_index];
         autotune_calculate_pid( htune_ku, htune_tu, &htune_kp, &htune_ki, &htune_kd, &hpid_p, &hpid_i, &hpid_d );
+        store_save_pid( hpid_p, hpid_i, hpid_d );
         
         autotune_stop( HTUNE_STATE_FINISHED );
         printf( "Autotune Finished: Success\n" );
@@ -539,8 +581,12 @@ void autotune_check_cycle( void )
 
 void autotune_check_timeout( void )
 {
-    int16_t temp_c_scaled = heater_temp_c_scaled;
+    int16_t temp_c_scaled;
     int32_t temp_rate;
+    
+    HPID_INTERRUPT_OFF();
+    temp_c_scaled = heater_temp_c_scaled;
+    HPID_INTERRUPT_ON();
     
     if ( temp_c_scaled == htune_cycle_start_temp_scaled )
         temp_rate = 0;
@@ -562,12 +608,17 @@ void autotune_check_timeout( void )
 
 int16_t get_heater_temp( void )
 {
+    uint32_t adc_temp;
     float steinhart;
     float R;
     
-    if ( heater_adc_avg > 0 )
+    HPID_INTERRUPT_OFF();
+    adc_temp = heater_adc_avg;
+    HPID_INTERRUPT_ON();
+    
+    if ( adc_temp > 0 )
     {
-        R = ( (float)( (int32_t)HEATER_ADC_MAX << HEATER_ADC_SHIFT ) / heater_adc_avg ) - 1;
+        R = ( (float)( (int64_t)HEATER_ADC_MAX << HEATER_ADC_SHIFT ) / adc_temp ) - 1;
         R = HEATER_THERM_RES_R / R;
         steinhart = R / HEATER_THERM_REF_R;                     // (R/Ro)
         steinhart = log(steinhart);                             // ln(R/Ro)
@@ -586,57 +637,36 @@ void timer1_isr( void )
 {
     timer1_counter++;
     
+    /* Run stir PID if required */
     if ( stir_state == STIR_STATE_RUNNING )
         stir_pid();
-    
-/*
-    heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (uint32_t)( HEATER_ADC_FLT_REG & HEATER_ADC_MAX ) << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
-    heater_temp_c_scaled = get_heater_temp();
-    
-    if ( htune_active )
-    {
-        autotune( false );
-        htune_timer++;
-    }
-    else if ( hpid_state == HPID_STATE_RUNNING )
-        heater_pid();
     else
-        SET_HEATER_OUTPUT( 0 );
-*/
-
-//    ADCON3Lbits.SWCTRG = 1;
-//    ADCON3Lbits.SWLCTRG = 0;
-//    ADCON3Lbits.SWLCTRG = 1;
-//    ADCON3Lbits.SWLCTRG ^= 1;
+        SET_STIR_OUTPUT( 0 );
     
+    /* Start temperature sampling by enabling ADC filter */
     ADFL0CONbits.FLEN = 1;
-    
     PORTBbits.RB13 = 0;
 }
 
 void __attribute__ ( ( interrupt, no_auto_psv ) ) _ADFLTR0Interrupt ( void )
 {
-    ADFL0CONbits.FLEN = 0;
-//    IFS5bits.ADCIF = 0;
-//    ADCON3Lbits.SWLCTRG = 0;
-    IFS7bits.ADFLTR0IF = 0;
-    flag = 1-flag;
+    /* Note:
+     * For the filter to be read correctly, the order is important.  Adverse
+     * side effects include occasionally reading a 10-bit representation.
+     * 1. Turn off filter. We do this to stop conversion until next timer call.
+     * 2. Read filter. This resets the RDY flag, which allows ADFLTR0IF to be cleared.
+     * 3. Clear ADFLTR0IF to prevent further interrupts.
+     */
     
+    /* Stop filter and read sample */
+    ADFL0CONbits.FLEN = 0;  // Disable filter until timer re-enables it
+    heater_temp_filt = HEATER_ADC_FLT_REG;
+    heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (int64_t)( heater_temp_filt & HEATER_ADC_MAX ) << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
+    heater_temp_c_scaled = get_heater_temp();
+    IFS7bits.ADFLTR0IF = 0;
     PORTBbits.RB13 = 1;
     
-#if 0
-    heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (uint32_t)HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
-//    heater_adc_avg = HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT;
-    heater_temp_c_scaled = get_heater_temp() * 10;
-    
-    if ( !htune_active )
-        heater_pid();
-    else
-        autotune( false );
-#elif 1
-    heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( (uint32_t)( HEATER_ADC_FLT_REG & HEATER_ADC_MAX ) << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
-    heater_temp_c_scaled = get_heater_temp();
-    
+    /* Run heater PID or autotune as required */
     if ( htune_active )
     {
         autotune( false );
@@ -646,19 +676,15 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _ADFLTR0Interrupt ( void )
         heater_pid();
     else
         SET_HEATER_OUTPUT( 0 );
-#endif
-    
-//    printf( "* ADC Buf 0=%u, Filter=%u\n", ADCBUF0, ADFL0DAT );
 }
 
-void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADCAN0Interrupt ( void )
+void wait_initial_temp( void )
 {
-    uint16_t valADCAN0;
-    valADCAN0 = ADCBUF0;
+//    while ( HEATER_ADC_FLT_RDY_REG == 0 );
+    while ( heater_adc_avg == 0 );
     
-//    heater_adc_avg = ( ( heater_adc_avg * HEATER_ADC_FILT_MUL ) + ( valADCAN0 << HEATER_ADC_SHIFT ) ) >> HEATER_ADC_FILT_SHIFT;
-    
-    IFS5bits.ADCAN0IF = 0;
+    heater_adc_avg = (int64_t)( HEATER_ADC_FLT_REG & HEATER_ADC_MAX ) << HEATER_ADC_SHIFT;
+    heater_temp_c_scaled = get_heater_temp();
 }
 
 err temp_valid( int16_t temp_c_scaled )
@@ -727,9 +753,14 @@ err parse_packet_temp_get_actual( uint8_t packet_type, uint8_t *packet_data, uin
 {
     err rc = ERR_OK;
     uint8_t return_buf[ sizeof(err) + sizeof(heater_temp_c_scaled) ];
+    int16_t temp_c_scaled;
+    
+    HPID_INTERRUPT_OFF();
+    temp_c_scaled = heater_temp_c_scaled;
+    HPID_INTERRUPT_ON();
     
     return_buf[0] = ERR_OK;
-    COPY_16BIT_TO_PTR_REV( &return_buf[1], heater_temp_c_scaled );
+    COPY_16BIT_TO_PTR_REV( &return_buf[1], temp_c_scaled );
     
     spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
     
@@ -793,7 +824,7 @@ err parse_packet_pid_set_running( uint8_t packet_type, uint8_t *packet_data, uin
 {
     err rc = ERR_OK;
     uint8_t run;
-    int16_t bias_temp;
+    int16_t temp_target;
     
     if ( packet_data_size < 1 )
         rc = ERR_PACKET_INVALID;
@@ -802,10 +833,10 @@ err parse_packet_pid_set_running( uint8_t packet_type, uint8_t *packet_data, uin
 
         if ( run )
         {
-            if ( packet_data_size == ( 1 + sizeof(bias_temp) ) )
-                bias_temp = (int16_t)PTR_TO_16BIT( &packet_data[1] );
+            if ( packet_data_size == ( 1 + sizeof(temp_target) ) )
+                temp_target = (int16_t)PTR_TO_16BIT( &packet_data[1] );
             else
-                bias_temp = hpid_target;
+                temp_target = hpid_target;
             
             switch ( hpid_state )
             {
@@ -816,18 +847,18 @@ err parse_packet_pid_set_running( uint8_t packet_type, uint8_t *packet_data, uin
                 case HPID_STATE_READY:
                 case HPID_STATE_SUSPENDED:
                 {
-                    rc = temp_valid( bias_temp );
+                    rc = temp_valid( temp_target );
                     if ( rc == ERR_OK )
                     {
-                        hpid_target = bias_temp;
+                        hpid_target = temp_target;
                         heater_pid_start();
                     }
                     break;
                 }
                 case HPID_STATE_RUNNING:
-                    rc = temp_valid( bias_temp );
+                    rc = temp_valid( temp_target );
                     if ( rc == ERR_OK )
-                        hpid_target = bias_temp;
+                        hpid_target = temp_target;
                     break;
                 default:
                     rc = ERR_ERROR;
@@ -914,51 +945,87 @@ err parse_packet_autotune_get_status( uint8_t packet_type, uint8_t *packet_data,
     return rc;
 }
 
-void heater_pid_start( void )
+err parse_packet_stir_set_running( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
-    if ( ( hpid_state == HPID_STATE_READY ) || ( hpid_state == HPID_STATE_SUSPENDED ) )
+    err rc = ERR_OK;
+    uint8_t run;
+    uint16_t stir_speed_rps;
+    
+    if ( packet_data_size < 1 )
+        rc = ERR_PACKET_INVALID;
     {
-        HPID_INTERRUPT_OFF();
+        run = packet_data[0];
 
-        hpid_integrated = 0;
-        hpid_diff = 0;
-        hpid_error_prev = 0;
-
-        if ( htune_active )
-            htune_state = HTUNE_STATE_ABORTED;
-        htune_active = false;
-        
-        hpid_state = HPID_STATE_RUNNING;
-        
-        HPID_INTERRUPT_ON();
+        if ( run )
+        {
+            if ( packet_data_size == ( 1 + sizeof(stir_speed_rps) ) )
+                stir_speed_rps = (uint16_t)PTR_TO_16BIT( &packet_data[1] );
+            else
+                stir_speed_rps = stir_target;
+            
+            switch ( stir_state )
+            {
+                case STIR_STATE_UNCONFIGURED:
+                case STIR_STATE_ERROR:
+                    rc = ERR_STIR_PID_NOT_READY;
+                    break;
+                case STIR_STATE_READY:
+                {
+                    stir_target = stir_speed_rps;
+                    stir_pid_start();
+                    break;
+                }
+                case STIR_STATE_RUNNING:
+                    stir_target = stir_speed_rps;
+                    break;
+                default:
+                    rc = ERR_ERROR;
+            }
+        } else if ( stir_state == STIR_STATE_RUNNING )
+            stir_pid_stop();
     }
+    
+    if ( rc == ERR_OK )
+        spi_packet_write( packet_type, &rc, 1 );
+    
+    return rc;
+}
+
+err parse_packet_stir_get_status( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    err rc = ERR_OK;
+    uint8_t return_buf[ sizeof(err) + 1*sizeof(uint8_t) ];
+    
+    return_buf[0] = ERR_OK;
+    return_buf[1] = stir_state;
+//    return_buf[2] = htune_fail;
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
+    
+    return rc;
+}
+
+err parse_packet_stir_speed_get_actual( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    err rc = ERR_OK;
+    uint8_t return_buf[ sizeof(err) + sizeof(stir_speed_rps_avg) ];
+    
+    return_buf[0] = ERR_OK;
+    COPY_16BIT_TO_PTR_REV( &return_buf[1], stir_speed_rps_avg );
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
+    
+    return rc;
 }
 
 void init( void )
 {
     timer1_counter = 0;
     
+    /* Heater PID init */
     HPID_INTERRUPT_OFF();
     SET_HEATER_OUTPUT( 0 );
     hpid_state = HPID_STATE_UNCONFIGURED;
-    
-    htune_state = HTUNE_STATE_DEFAULT;
-    htune_fail = HTUNE_FAIL_NONE;
-    htune_active = false;
-    
-    stir_state = STIR_STATE_UNCONFIGURED;
-    stir_target = 10;
-    stir_state = STIR_STATE_READY;
-    
-/*
-Temp 34.45 /  15607, Output   2768, p   1147, i    296, d  1111, i_int      9, hdiff      6, pt    985, it      9, dt   1774*/
-    
-//    hpid_p = 9142 / 3;
-//    hpid_i = 28 / 3;
-//    hpid_d = 735940 / 3 / 0.125f * 0.3333f;
-//    hpid_p = 10095;
-//    hpid_i = 34;
-//    hpid_d = 11569;
     hpid_p = 0;
     hpid_i = 0;
     hpid_d = 0;
@@ -966,34 +1033,24 @@ Temp 34.45 /  15607, Output   2768, p   1147, i    296, d  1111, i_int      9, h
     hpid_windup_limit = HEATER_POWER_MAX;
     hpid_target = 3500;
     
-    /* Start ADC level trigger */
-    HPID_INTERRUPT_ON();
-    IFS5bits.ADCAN0IF = 0;
+    /* Heater autotune init */
+    htune_state = HTUNE_STATE_DEFAULT;
+    htune_fail = HTUNE_FAIL_NONE;
+    htune_active = false;
+    htune_run_checks = false;
+    
+    /* Stirrer init */
+    stir_state = STIR_STATE_UNCONFIGURED;
+    stir_target = STIR_SPEED_RPS_DEFAULT;
+    stir_state = STIR_STATE_READY;
+    
+    /* Start ADC */
     heater_adc_avg = 0;
     heater_temp_c_scaled = 0;
-    ADFL0CONbits.RDY = 0;
-//    ADFL0CONbits.FLEN = 0;
-    ADFL0CONbits.FLEN = 1;
-//    ADCON3Lbits.SWLCTRG = 1;
-//    while ( HEATER_ADC_RDY_REG == 0 );
-//    IFS7bits.ADFLTR0IF = 0;
-//    ADCON3Lbits.SWCTRG = 1;
-//    ADCON3Lbits.SWLCTRG = 0;
-//    ADCON3Lbits.SWLCTRG = 1;
-    printf( "Waiting for filter...\n" );
-    do
-    {
-//        IFS5bits.ADCIF = 0;
-        printf( "ADC Buf 0=%u, Filter=%u\n", ADCBUF0, ADFL0DAT );
-    }
-    while(ADFL0CONbits.RDY == 0);
-    printf( "Filter Ready\n" );
-    ADFL0CONbits.IE = 1;
-    
-//    while ( HEATER_ADC_FLT_RDY_REG == 0 );
-//    heater_adc_avg = HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT;
-    
-//    hpid_state = HPID_STATE_READY;
+    HPID_INTERRUPT_ON();    // ADC Filter ISR enable
+    ADFL0CONbits.IE = 1;    // ADC Filter Interrupt enable
+    ADFL0CONbits.FLEN = 1;  // ADC Filter enable
+    wait_initial_temp();
 }
 
 void storage_save_defaults()
@@ -1032,9 +1089,14 @@ void storage_startup()
     store_load_pid( &pid_p, &pid_i, &pid_d );
     printf( "PID=%u %u %u\n", pid_p, pid_i, pid_d );
     
-    if ( ( pid_p != EEPROM_BLANK_U16 ) ||
-         ( pid_i != EEPROM_BLANK_U16 ) ||
-         ( pid_d != EEPROM_BLANK_U16 ) )
+    if ( ( pid_p == EEPROM_BLANK_U16 ) ||
+         ( pid_i == EEPROM_BLANK_U16 ) ||
+         ( pid_d == EEPROM_BLANK_U16 ) )
+    {
+        printf( "PID Invalid\n" );
+        pid_okay = 0;
+    }
+    else
     {
         printf( "Setting PID Constants\n" );
         HPID_INTERRUPT_OFF();
@@ -1042,11 +1104,6 @@ void storage_startup()
         hpid_i = pid_i;
         hpid_d = pid_d;
         HPID_INTERRUPT_ON();
-    }
-    else
-    {
-        printf( "PID Invalid\n" );
-        pid_okay = 0;
     }
     
     store_load_hpid_temp( &hpid_temp_c_scaled );
@@ -1088,6 +1145,25 @@ void storage_startup()
         hpid_state = HPID_STATE_ERROR;
         HPID_INTERRUPT_ON();
     }
+    
+//    while (1);
+}
+
+void eeprom_test2( void )
+{
+    uint8_t buf[100];
+    uint8_t i;
+    
+    printf( "Status: %hu\n", eeprom_read_status().value );
+    
+//    eeprom_write_byte( 2, 2 );
+    
+    eeprom_read_bytes( 0, 32, buf );
+    
+    printf( "EEPROM Contents: " );
+    for ( i=0; i<32; i++ )
+        printf( " %hu", buf[i] );
+    printf( "\n" );
     
     while (1);
 }
@@ -1167,7 +1243,7 @@ void eeprom_test( void )
     while (1);
 }
 
-void stir_pid_start()
+void stir_pid_start( void )
 {
     if ( stir_state == STIR_STATE_READY )
     {
@@ -1182,18 +1258,18 @@ void stir_pid_start()
         stir_count_speed_rps_avg_scaled = 0;
         #endif
         
-        SET_FAN_OUTPUT( stir_output );
+        SET_STIR_OUTPUT( stir_output );
     }
 }
 
-void stir_stop()
+void stir_pid_stop( void )
 {
     if ( stir_state == STIR_STATE_RUNNING )
     {
         stir_state = STIR_STATE_READY;
         stir_speed_rps_avg = 0;
         stir_output = 0;
-        SET_FAN_OUTPUT( stir_output );
+        SET_STIR_OUTPUT( stir_output );
     }
 }
 
@@ -1274,7 +1350,7 @@ void stir_pid()
     stir_output_scaled = constrain_i32( stir_output_scaled, 0, STIR_POWER_MAX_SCALED );
     stir_output = stir_output_scaled >> STIR_LOOP_I_SHIFT;
     
-    SET_FAN_OUTPUT( stir_output );
+    SET_STIR_OUTPUT( stir_output );
 
 #ifdef STIR_DEBUG
     printf( "Output %-3u  error %-4i  Speed avg %-3u raw %-3u time %-7lu  timer3 high %-2u  stopped %1hu  at target %1u", stir_output, error, stir_speed_rps_avg, stir_speed_rps, stir_speed_time, CCP3TMRH, stir_stopped, stir_at_target );
@@ -1285,7 +1361,7 @@ void stir_pid()
 #endif
 }
 
-void fan_test()
+void stir_test()
 {
     stir_target = 20;
     stir_state = STIR_STATE_READY;
@@ -1302,18 +1378,18 @@ int main(void)
     err rc = 0;
     err comms_rc;
     uint16_t time;
-    uint8_t htune_log_index_last;
+    int16_t temp_c_scaled;
     
     SYSTEM_Initialize();
     
     printf( "Starting...\n\n" );
     
-//    eeprom_test();
-//    storage_startup();
-    
-//    fan_test();
-    
     init();
+    
+//    eeprom_test2();
+//    eeprom_test();
+    storage_startup();
+//    stir_test();
     
     /* Init SPI */
     spi_init();
@@ -1321,50 +1397,59 @@ int main(void)
     
     TMR1_SetInterruptHandler( timer1_isr );
     
-//    ADCON3Lbits.SWLCTRG = 1;
-    while ( heater_adc_avg == 0 )
-        printf( "-ADC Buf 0=%u, Filter=%u, IF=%hu, flag=%hu\n", ADCBUF0, ADFL0DAT, IFS7bits.ADFLTR0IF, flag);
-    heater_adc_avg = (uint32_t)HEATER_ADC_FLT_REG << HEATER_ADC_SHIFT;
-    heater_temp_c_scaled = get_heater_temp();
-//    hpid_integrated = ( (int32_t)hpid_target - (int32_t)heater_temp_c_scaled ) * hpid_p;
-//    hpid_integrated >>= 1;
-//    if ( hpid_integrated > hpid_windup_limit )
-//        hpid_integrated = hpid_windup_limit;    
+    stir_target = 20;
+    stir_state = STIR_STATE_READY;
     
+//    stir_pid_start();
+//    autotune_start( 4000 );
+//    hpid_target = 3000;
 //    heater_pid_start();
-//    autotune_start( 3500 );
-    
-    htune_log_index_last = htune_log_index;
     
     while (1)
     {
-//        SPI1STATLbits.SPIROV = 0;
-        
-        if ( ( timer1_counter - time ) >= 10 )
+        if ( ( timer1_counter - time ) >= 5 )
         {
             time = timer1_counter;
             
+            HPID_INTERRUPT_OFF();
+            temp_c_scaled = heater_temp_c_scaled;
+            HPID_INTERRUPT_ON();
+            
             if ( htune_active )
             {
-                printf( "Temp %0.2f / %6u, Output %6u, heating %1d, bias %5u, delta %5u, cycles %2u, min %3d, max %3d, heattime %6d, cooltime %6d, ku %0.1f, tu %0.3f, p %6li, i %6li, d %5li\n", (double)heater_temp_c_scaled / HEATER_TEMP_SCALE, HEATER_ADC_FLT_REG, heater_output, htune_heating, htune_bias, htune_delta, htune_cycles, htune_temp_min, htune_temp_max, htune_period_heating, htune_period_cooling, (double)htune_ku, (double)htune_tu, htune_p, htune_i, htune_d );
+                printf( "Temp %0.2f / %6u, Output %6u, heating %1d, bias %5u, delta %5u, cycles %2u, min %3d, max %3d, heattime %6d, cooltime %6d, ku %0.1f, tu %0.3f, p %6li, i %6li, d %5li\n", (double)temp_c_scaled / HEATER_TEMP_SCALE, heater_temp_filt, heater_output, htune_heating, htune_bias, htune_delta, htune_cycles, htune_temp_min, htune_temp_max, htune_period_heating, htune_period_cooling, (double)htune_ku, (double)htune_tu, htune_p, htune_i, htune_d );
                 autotune_check_timeout();
             }
             else
-                printf( "Temp %0.2f / %6u, Output %6u, p %6li, i %6li, d %5li, i_int %6li, hdiff %6li, pt %6li, it %6li, dt %6li\n",
-                        (double)heater_temp_c_scaled / HEATER_TEMP_SCALE, HEATER_ADC_FLT_REG,
+                printf( "State %u, Temp %0.2f / %6u, Output %6u, p %6li, i %6li, d %5li, i_int %6li, hdiff %6li, pt %6li, it %6li, dt %6li\n",
+                        hpid_state,
+                        (double)temp_c_scaled / HEATER_TEMP_SCALE, heater_temp_filt,
                         heater_output,
                         hpid_p, hpid_i, hpid_d,
                         hpid_integrated >> HTUNE_KI_SHL, hpid_diff >> HEATER_ADC_SHIFT,
                         constrain_i32( ( hpid_error_prev * hpid_p ) >> HTUNE_KP_SHL, -(int32_t)UINT16_MAX, UINT16_MAX ),
                         hpid_integrated >> HTUNE_KI_SHL,
                         constrain_i32( hpid_diff, -(int32_t)UINT16_MAX, UINT16_MAX ) );
-            
-            if ( htune_log_index > htune_log_index_last )
-            {
-                htune_log_index_last = htune_log_index;
-                
-                autotune_check_cycle();
-            }
+        }
+        
+        /* Set LED output */
+        if ( ( hpid_state == HPID_STATE_RUNNING ) || ( htune_state == HTUNE_STATE_RUNNING ) )
+        {
+            uint16_t led_output = heater_output >> 1;
+            if ( led_output > LED_OUTPUT_CLIP_MAX )
+                led_output = LED_OUTPUT_CLIP_MAX;
+            else if ( led_output < LED_OUTPUT_CLIP_MIN )
+                led_output = LED_OUTPUT_CLIP_MIN;
+            SET_LED_OUTPUT( led_output );
+        }
+        else
+            SET_LED_OUTPUT( LED_OUTPUT_MAX )
+        
+        /* Check autotune progress */
+        if ( htune_run_checks )
+        {
+            htune_run_checks = false;
+            autotune_check_cycle();
         }
         
         comms_rc = spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE );
@@ -1437,6 +1522,21 @@ int main(void)
                 case PACKET_TYPE_AUTOTUNE_GET_STATUS:
                 {
                     rc = parse_packet_autotune_get_status( packet_type, packet_data, packet_data_size );
+                    break;
+                }
+                case PACKET_TYPE_STIR_SET_RUNNING:
+                {
+                    rc = parse_packet_stir_set_running( packet_type, packet_data, packet_data_size );
+                    break;
+                }
+                case PACKET_TYPE_STIR_GET_STATUS:
+                {
+                    rc = parse_packet_stir_get_status( packet_type, packet_data, packet_data_size );
+                    break;
+                }
+                case PACKET_TYPE_STIR_SPEED_GET_ACTUAL:
+                {
+                    rc = parse_packet_stir_speed_get_actual( packet_type, packet_data, packet_data_size );
                     break;
                 }
                 default:
