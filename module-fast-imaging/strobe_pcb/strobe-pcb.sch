@@ -8974,7 +8974,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <label x="15.24" y="93.98" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="SPI_CLOCK" class="0">
+<net name="SPI_CLK" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="26"/>
 <wire x1="2.54" y1="88.9" x2="60.96" y2="88.9" width="0.1524" layer="91"/>
@@ -8984,7 +8984,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <label x="15.24" y="88.9" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="SPI_MCLR" class="0">
+<net name="ICSP_MCLR" class="0">
 <segment>
 <pinref part="IC2" gate="G$1" pin="!MCLR/THV"/>
 <wire x1="-25.4" y1="167.64" x2="-48.26" y2="167.64" width="0.1524" layer="91"/>
@@ -9015,7 +9015,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <wire x1="-45.72" y1="83.82" x2="-12.7" y2="83.82" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="ISCP_PGD" class="0">
+<net name="ICSP_PGD" class="0">
 <segment>
 <pinref part="IC2" gate="G$1" pin="PGD/RB7"/>
 <wire x1="17.78" y1="167.64" x2="50.8" y2="167.64" width="0.1524" layer="91"/>
