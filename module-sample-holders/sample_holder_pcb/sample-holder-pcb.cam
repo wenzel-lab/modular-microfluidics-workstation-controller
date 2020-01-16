@@ -1,7 +1,7 @@
 {
     "author": {
-        "email": "support.eagle@autodesk.com",
-        "name": "Autodesk EAGLE"
+        "email": "christie.nel@gmail.com",
+        "name": "Christie Nel"
     },
     "description": {
         "EN": "EAGLE default 2 layer CAM job."
@@ -174,54 +174,6 @@
                     "name": "Solderpaste Bottom",
                     "polarity": "positive",
                     "type": "gerber_layer"
-                },
-                {
-                    "advanced_options": {
-                        "mirror": false,
-                        "offset_x": 0,
-                        "offset_y": 0,
-                        "rotate": false,
-                        "upside_down": false
-                    },
-                    "board_outline": false,
-                    "config": {
-                        "file_function": "Legend",
-                        "index": 1,
-                        "layer_type": "top"
-                    },
-                    "filename_format": "%PREFIX/silkscreen_top.gbr",
-                    "layers": [
-                        21,
-                        25
-                    ],
-                    "milling": false,
-                    "name": "Silkscreen Top",
-                    "polarity": "positive",
-                    "type": "gerber_layer"
-                },
-                {
-                    "advanced_options": {
-                        "mirror": false,
-                        "offset_x": 0,
-                        "offset_y": 0,
-                        "rotate": false,
-                        "upside_down": false
-                    },
-                    "board_outline": false,
-                    "config": {
-                        "file_function": "Legend",
-                        "index": 1,
-                        "layer_type": "bottom"
-                    },
-                    "filename_format": "%PREFIX/silkscreen_bottom.gbr",
-                    "layers": [
-                        22,
-                        26
-                    ],
-                    "milling": false,
-                    "name": "Silkscreen Bottom",
-                    "polarity": "positive",
-                    "type": "gerber_layer"
                 }
             ],
             "version": "RS274X"
@@ -275,7 +227,7 @@
             ]
         }
     ],
-    "timestamp": "2019-07-17T17:48:33",
+    "timestamp": "2020-01-16T16:20:03",
     "type": "EAGLE CAM job",
     "units": "metric",
     "version": "9.2.0"
