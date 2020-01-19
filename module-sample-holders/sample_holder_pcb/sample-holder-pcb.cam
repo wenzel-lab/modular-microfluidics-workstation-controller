@@ -6,7 +6,7 @@
     "description": {
         "EN": "EAGLE default 2 layer CAM job."
     },
-    "output_type": "zip",
+    "output_type": "directory",
     "outputs": [
         {
             "filename_prefix": "CAMOutputs/GerberFiles",
@@ -227,7 +227,7 @@
             ]
         }
     ],
-    "timestamp": "2020-01-16T16:20:03",
+    "timestamp": "2020-01-18T18:11:10",
     "type": "EAGLE CAM job",
     "units": "metric",
     "version": "9.2.0"
