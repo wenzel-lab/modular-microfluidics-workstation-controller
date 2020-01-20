@@ -8,7 +8,7 @@ uint8_t conversion_reg = ADS1115_REG_CONVERSION;
 
 uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
 {
-    volatile I2C3_MESSAGE_STATUS status;
+    volatile I2C2_MESSAGE_STATUS status;
     uint8_t writeBuffer[3];
     uint16_t time;
     
@@ -16,12 +16,12 @@ uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
     writeBuffer[1] = data >> 8;
     writeBuffer[2] = data & 0xFF;
     
-    I2C3_MasterWrite( writeBuffer, 3, addr, (I2C3_MESSAGE_STATUS *)&status );
+    I2C2_MasterWrite( writeBuffer, 3, addr, (I2C2_MESSAGE_STATUS *)&status );
     
     time = timer_ms;
-    while ( ( status != I2C3_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-    if ( status != I2C3_MESSAGE_COMPLETE )
-        I2C3_Abort();
+    while ( ( status != I2C2_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
+    if ( status != I2C2_MESSAGE_COMPLETE )
+        I2C2_Abort();
     
 	return 0;
 }
@@ -29,18 +29,18 @@ uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
 uint16_t ads1115_read_register(uint8_t addr, uint8_t reg)
 {
     uint8_t buf[2];
-    volatile I2C3_MESSAGE_STATUS status;
-    I2C3_TRANSACTION_REQUEST_BLOCK trBlocks[2];
+    volatile I2C2_MESSAGE_STATUS status;
+    I2C2_TRANSACTION_REQUEST_BLOCK trBlocks[2];
     uint16_t time;
 
-    I2C3_MasterWriteTRBBuild( &trBlocks[0], &reg, 1, addr );
-    I2C3_MasterReadTRBBuild( &trBlocks[1], (void *)buf, 2, addr );
-    I2C3_MasterTRBInsert( 2, (I2C3_TRANSACTION_REQUEST_BLOCK *)&trBlocks, (I2C3_MESSAGE_STATUS *)&status );
+    I2C2_MasterWriteTRBBuild( &trBlocks[0], &reg, 1, addr );
+    I2C2_MasterReadTRBBuild( &trBlocks[1], (void *)buf, 2, addr );
+    I2C2_MasterTRBInsert( 2, (I2C2_TRANSACTION_REQUEST_BLOCK *)&trBlocks, (I2C2_MESSAGE_STATUS *)&status );
     
     time = timer_ms;
-    while ( ( status != I2C3_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-    if ( status != I2C3_MESSAGE_COMPLETE )
-        I2C3_Abort();
+    while ( ( status != I2C2_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
+    if ( status != I2C2_MESSAGE_COMPLETE )
+        I2C2_Abort();
     
     return ( ( (uint16_t)(buf[0]) ) << 8 ) | buf[1];
 }
@@ -65,8 +65,8 @@ void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_cha
     {
         /* Read conversion */
         
-        I2C3_MasterWriteTRBBuild( &task->trBlocks[trb_count++], &conversion_reg, 1, addr );
-        I2C3_MasterReadTRBBuild( &task->trBlocks[trb_count++], task->read_data, 2, addr );
+        I2C2_MasterWriteTRBBuild( &task->trBlocks[trb_count++], &conversion_reg, 1, addr );
+        I2C2_MasterReadTRBBuild( &task->trBlocks[trb_count++], task->read_data, 2, addr );
     }
     
     if ( start_channel >= 0 )
@@ -106,11 +106,11 @@ void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_cha
             task->write_data[1] = adc_config >> 8;
             task->write_data[2] = adc_config & 0xFF;
 
-            I2C3_MasterWriteTRBBuild( &task->trBlocks[trb_count++], task->write_data, 3, addr );
+            I2C2_MasterWriteTRBBuild( &task->trBlocks[trb_count++], task->write_data, 3, addr );
         }
     }
     
-    I2C3_MasterTRBInsert( trb_count, (I2C3_TRANSACTION_REQUEST_BLOCK *)&task->trBlocks, (I2C3_MESSAGE_STATUS *)&task->status );
+    I2C2_MasterTRBInsert( trb_count, (I2C2_TRANSACTION_REQUEST_BLOCK *)&task->trBlocks, (I2C2_MESSAGE_STATUS *)&task->status );
     
     /* Record start time */
     task->start_time = timer_ms;
@@ -126,7 +126,7 @@ int8_t ads1115_read_adc_return( uint16_t *value, int8_t *channel, ads1115_task_t
     
     int8_t rc;
     
-    if ( task->status == I2C3_MESSAGE_COMPLETE )
+    if ( task->status == I2C2_MESSAGE_COMPLETE )
     {
         /* Return conversion */
         *value = ( ( (uint16_t)(task->read_data[0]) ) << 8 ) | task->read_data[1];
@@ -136,7 +136,7 @@ int8_t ads1115_read_adc_return( uint16_t *value, int8_t *channel, ads1115_task_t
     else if ( ( timer_ms - task->start_time ) > I2C_TIMEOUT_MS )
     {
         /* Timeout */
-        I2C3_Abort();
+        I2C2_Abort();
         rc = -1;
     }
     else

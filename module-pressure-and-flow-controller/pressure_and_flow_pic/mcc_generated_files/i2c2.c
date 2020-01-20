@@ -1,18 +1,18 @@
 
 /**
-  I2C3 Generated Driver File
+  I2C2 Generated Driver File
 
   @Company
     Microchip Technology Inc.
 
   @File Name
-    i2c3.c
+    i2c2.c
 
   @Summary
-    This is the generated header file for the i2c3 driver using PIC24 / dsPIC33 / PIC32MM MCUs
+    This is the generated header file for the i2c2 driver using PIC24 / dsPIC33 / PIC32MM MCUs
 
   @Description
-    This header file provides APIs for driver for i2c3.
+    This header file provides APIs for driver for i2c2.
     Generation Information :
         Product Revision  :  PIC24 / dsPIC33 / PIC32MM MCUs - 1.145.0
         Device            :  dsPIC33CK256MP502
@@ -44,7 +44,7 @@
     TERMS.
 */
 
-#include "i2c3.h"
+#include "i2c2.h"
 
 /**
  Section: Data Types
@@ -85,10 +85,10 @@ typedef union
 typedef struct
 {
     uint8_t                         count;          // a count of trb's in the trb list
-    I2C3_TRANSACTION_REQUEST_BLOCK  *ptrb_list;     // pointer to the trb list
-    I2C3_MESSAGE_STATUS             *pTrFlag;       // set with the error of the last trb sent.
+    I2C2_TRANSACTION_REQUEST_BLOCK  *ptrb_list;     // pointer to the trb list
+    I2C2_MESSAGE_STATUS             *pTrFlag;       // set with the error of the last trb sent.
                                                     // if all trb's are sent successfully,
-                                                    // then this is I2C3_MESSAGE_COMPLETE
+                                                    // then this is I2C2_MESSAGE_COMPLETE
 } I2C_TR_QUEUE_ENTRY;
 
 /**
@@ -140,96 +140,96 @@ typedef enum
     S_MASTER_NOACK_STOP,
     S_MASTER_SEND_ADDR_10BIT_LSB,
     S_MASTER_10BIT_RESTART,
-    S_MASTER_STOP_WAIT
+    
 } I2C_MASTER_STATES;
 
 /**
  Section: Macro Definitions
 */
 
-/* defined for I2C3 */
+/* defined for I2C2 */
 
 
-#ifndef I2C3_CONFIG_TR_QUEUE_LENGTH
-        #define I2C3_CONFIG_TR_QUEUE_LENGTH 3
+#ifndef I2C2_CONFIG_TR_QUEUE_LENGTH
+        #define I2C2_CONFIG_TR_QUEUE_LENGTH 1
 #endif
 
-#define I2C3_TRANSMIT_REG                       I2C3TRN			// Defines the transmit register used to send data.
-#define I2C3_RECEIVE_REG                        I2C3RCV	// Defines the receive register used to receive data.
+#define I2C2_TRANSMIT_REG                       I2C2TRN			// Defines the transmit register used to send data.
+#define I2C2_RECEIVE_REG                        I2C2RCV	// Defines the receive register used to receive data.
 
 // The following control bits are used in the I2C state machine to manage
 // the I2C module and determine next states.
-#define I2C3_WRITE_COLLISION_STATUS_BIT         I2C3STATbits.IWCOL	// Defines the write collision status bit.
-#define I2C3_ACKNOWLEDGE_STATUS_BIT             I2C3STATbits.ACKSTAT	// I2C ACK status bit.
+#define I2C2_WRITE_COLLISION_STATUS_BIT         I2C2STATbits.IWCOL	// Defines the write collision status bit.
+#define I2C2_ACKNOWLEDGE_STATUS_BIT             I2C2STATbits.ACKSTAT	// I2C ACK status bit.
 
-#define I2C3_START_CONDITION_ENABLE_BIT         I2C3CONLbits.SEN		// I2C START control bit.
-#define I2C3_REPEAT_START_CONDITION_ENABLE_BIT  I2C3CONLbits.RSEN	// I2C Repeated START control bit.
-#define I2C3_RECEIVE_ENABLE_BIT                 I2C3CONLbits.RCEN	// I2C Receive enable control bit.
-#define I2C3_STOP_CONDITION_ENABLE_BIT          I2C3CONLbits.PEN		// I2C STOP control bit.
-#define I2C3_ACKNOWLEDGE_ENABLE_BIT             I2C3CONLbits.ACKEN 	// I2C ACK start control bit.
-#define I2C3_ACKNOWLEDGE_DATA_BIT               I2C3CONLbits.ACKDT	// I2C ACK data control bit.
+#define I2C2_START_CONDITION_ENABLE_BIT         I2C2CONLbits.SEN		// I2C START control bit.
+#define I2C2_REPEAT_START_CONDITION_ENABLE_BIT  I2C2CONLbits.RSEN	// I2C Repeated START control bit.
+#define I2C2_RECEIVE_ENABLE_BIT                 I2C2CONLbits.RCEN	// I2C Receive enable control bit.
+#define I2C2_STOP_CONDITION_ENABLE_BIT          I2C2CONLbits.PEN		// I2C STOP control bit.
+#define I2C2_ACKNOWLEDGE_ENABLE_BIT             I2C2CONLbits.ACKEN 	// I2C ACK start control bit.
+#define I2C2_ACKNOWLEDGE_DATA_BIT               I2C2CONLbits.ACKDT	// I2C ACK data control bit.
 
 /**
  Section: Local Functions
 */
 
-static void I2C3_FunctionComplete(void);
-//static void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code);
+static void I2C2_FunctionComplete(void);
+//static void I2C2_Stop(I2C2_MESSAGE_STATUS completion_code);
 
 /**
  Section: Local Variables
 */
 
-volatile static I2C_TR_QUEUE_ENTRY            i2c3_tr_queue[I2C3_CONFIG_TR_QUEUE_LENGTH];
-volatile static I2C_OBJECT                    i2c3_object;
-volatile static I2C_MASTER_STATES             i2c3_state = S_MASTER_IDLE;
-volatile static uint8_t                       i2c3_trb_count;
+static I2C_TR_QUEUE_ENTRY            i2c2_tr_queue[I2C2_CONFIG_TR_QUEUE_LENGTH];
+static I2C_OBJECT                    i2c2_object;
+static I2C_MASTER_STATES             i2c2_state = S_MASTER_IDLE;
+static uint8_t                       i2c2_trb_count;
 
-volatile static I2C3_TRANSACTION_REQUEST_BLOCK *p_i2c3_trb_current;
-volatile static I2C_TR_QUEUE_ENTRY            *p_i2c3_current = NULL;
+static I2C2_TRANSACTION_REQUEST_BLOCK *p_i2c2_trb_current;
+static I2C_TR_QUEUE_ENTRY            *p_i2c2_current = NULL;
 
-bool aborted = 0;
+static bool aborted = 0;
 
 /**
   Section: Driver Interface
 */
 
-void I2C3_Initialize(void)
+void I2C2_Initialize(void)
 {
     
-    i2c3_object.pTrHead = i2c3_tr_queue;
-    i2c3_object.pTrTail = i2c3_tr_queue;
-    i2c3_object.trStatus.s.empty = true;
-    i2c3_object.trStatus.s.full = false;
+    i2c2_object.pTrHead = i2c2_tr_queue;
+    i2c2_object.pTrTail = i2c2_tr_queue;
+    i2c2_object.trStatus.s.empty = true;
+    i2c2_object.trStatus.s.full = false;
 
-    i2c3_object.i2cErrors = 0;
+    i2c2_object.i2cErrors = 0;
     
     // initialize the hardware
     // Baud Rate Generator Value: I2CBRG 92;   
-    I2C3BRG = 0x5C;
+    I2C2BRG = 0x5C;
     // ACKEN disabled; STRICT disabled; STREN disabled; GCEN disabled; SMEN disabled; DISSLW enabled; I2CSIDL disabled; ACKDT Sends ACK; SCLREL Holds; RSEN disabled; A10M 7 Bit; PEN disabled; RCEN disabled; SEN disabled; I2CEN enabled; 
-    I2C3CONL = 0x8000;
+    I2C2CONL = 0x8000;
     // BCL disabled; P disabled; S disabled; I2COV disabled; IWCOL disabled; 
-    I2C3STAT = 0x00;
+    I2C2STAT = 0x00;
 
-    /* I2C3 Master Events */
+    /* I2C2 Master Event */
     // clear the master interrupt flag
-    IFS8bits.MI2C3IF = 0;
+    IFS2bits.MI2C2IF = 0;
     // enable the master interrupt
-    IEC8bits.MI2C3IE = 1;
+    IEC2bits.MI2C2IE = 1;
 
 }
 
 
-uint8_t I2C3_ErrorCountGet(void)
+uint8_t I2C2_ErrorCountGet(void)
 {
     uint8_t ret;
 
-    ret = i2c3_object.i2cErrors;
+    ret = i2c2_object.i2cErrors;
     return ret;
 }
 
-void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
+void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C2Interrupt ( void )
 {
   
     static uint8_t  *pi2c_buf_ptr;
@@ -237,61 +237,60 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
     static uint8_t  i2c_bytes_left;
     static uint8_t  i2c_10bit_address_restart = 0;
 
-    IFS8bits.MI2C3IF = 0;
+    IFS2bits.MI2C2IF = 0;
             
     // Check first if there was a collision.
     // If we have a Write Collision, reset and go to idle state */
-    if(I2C3_WRITE_COLLISION_STATUS_BIT)
+    if(I2C2_WRITE_COLLISION_STATUS_BIT)
     {
         // clear the Write colision
-        I2C3_WRITE_COLLISION_STATUS_BIT = 0;
-        i2c3_state = S_MASTER_IDLE;
-        *(p_i2c3_current->pTrFlag) = I2C3_MESSAGE_FAIL;
+        I2C2_WRITE_COLLISION_STATUS_BIT = 0;
+        i2c2_state = S_MASTER_IDLE;
+        *(p_i2c2_current->pTrFlag) = I2C2_MESSAGE_FAIL;
 
         // reset the buffer pointer
-        p_i2c3_current = NULL;
+        p_i2c2_current = NULL;
 
         return;
     }
 
     /* Handle the correct i2c state */
-    switch(i2c3_state)
+    switch(i2c2_state)
     {
         case S_MASTER_IDLE:    /* In reset state, waiting for data to send */
-            if ( I2C3_START_CONDITION_ENABLE_BIT || I2C3_REPEAT_START_CONDITION_ENABLE_BIT || I2C3_STOP_CONDITION_ENABLE_BIT )
-                break;
-            if(i2c3_object.trStatus.s.empty != true)
+
+            if(i2c2_object.trStatus.s.empty != true)
             {
                 // grab the item pointed by the head
-                p_i2c3_current     = i2c3_object.pTrHead;
-                i2c3_trb_count     = i2c3_object.pTrHead->count;
-                p_i2c3_trb_current = i2c3_object.pTrHead->ptrb_list;
+                p_i2c2_current     = i2c2_object.pTrHead;
+                i2c2_trb_count     = i2c2_object.pTrHead->count;
+                p_i2c2_trb_current = i2c2_object.pTrHead->ptrb_list;
 
-                i2c3_object.pTrHead++;
+                i2c2_object.pTrHead++;
 
                 // check if the end of the array is reached
-                if(i2c3_object.pTrHead == (i2c3_tr_queue + I2C3_CONFIG_TR_QUEUE_LENGTH))
+                if(i2c2_object.pTrHead == (i2c2_tr_queue + I2C2_CONFIG_TR_QUEUE_LENGTH))
                 {
                     // adjust to restart at the beginning of the array
-                    i2c3_object.pTrHead = i2c3_tr_queue;
+                    i2c2_object.pTrHead = i2c2_tr_queue;
                 }
 
                 // since we moved one item to be processed, we know
                 // it is not full, so set the full status to false
-                i2c3_object.trStatus.s.full = false;
+                i2c2_object.trStatus.s.full = false;
 
                 // check if the queue is empty
-                if(i2c3_object.pTrHead == i2c3_object.pTrTail)
+                if(i2c2_object.pTrHead == i2c2_object.pTrTail)
                 {
                     // it is empty so set the empty status to true
-                    i2c3_object.trStatus.s.empty = true;
+                    i2c2_object.trStatus.s.empty = true;
                 }
 
                 // send the start condition
-                I2C3_START_CONDITION_ENABLE_BIT = 1;
+                I2C2_START_CONDITION_ENABLE_BIT = 1;
 
                 // start the i2c request
-                i2c3_state = S_MASTER_SEND_ADDR;
+                i2c2_state = S_MASTER_SEND_ADDR;
             }
 
             break;
@@ -301,36 +300,36 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
             /* check for pending i2c Request */
 
             // ... trigger a REPEATED START
-            I2C3_REPEAT_START_CONDITION_ENABLE_BIT = 1;
+            I2C2_REPEAT_START_CONDITION_ENABLE_BIT = 1;
 
             // start the i2c request
-            i2c3_state = S_MASTER_SEND_ADDR;
+            i2c2_state = S_MASTER_SEND_ADDR;
 
             break;
 
         case S_MASTER_SEND_ADDR_10BIT_LSB:
 
-            if(I2C3_ACKNOWLEDGE_STATUS_BIT)
+            if(I2C2_ACKNOWLEDGE_STATUS_BIT)
             {
-                i2c3_object.i2cErrors++;
-                I2C3_Stop(I2C3_MESSAGE_ADDRESS_NO_ACK);
+                i2c2_object.i2cErrors++;
+                I2C2_Stop(I2C2_MESSAGE_ADDRESS_NO_ACK);
             }
             else
             {
                 // Remove bit 0 as R/W is never sent here
-                I2C3_TRANSMIT_REG = (i2c_address >> 1) & 0x00FF;
+                I2C2_TRANSMIT_REG = (i2c_address >> 1) & 0x00FF;
 
                 // determine the next state, check R/W
                 if(i2c_address & 0x01)
                 {
                     // if this is a read we must repeat start
                     // the bus to perform a read
-                    i2c3_state = S_MASTER_10BIT_RESTART;
+                    i2c2_state = S_MASTER_10BIT_RESTART;
                 }
                 else
                 {
                     // this is a write continue writing data
-                    i2c3_state = S_MASTER_SEND_DATA;
+                    i2c2_state = S_MASTER_SEND_DATA;
                 }
             }
 
@@ -338,16 +337,16 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
 
         case S_MASTER_10BIT_RESTART:
 
-            if(I2C3_ACKNOWLEDGE_STATUS_BIT)
+            if(I2C2_ACKNOWLEDGE_STATUS_BIT)
             {
-                i2c3_object.i2cErrors++;
-                I2C3_Stop(I2C3_MESSAGE_ADDRESS_NO_ACK);
+                i2c2_object.i2cErrors++;
+                I2C2_Stop(I2C2_MESSAGE_ADDRESS_NO_ACK);
             }
             else
             {
                 // ACK Status is good
                 // restart the bus
-                I2C3_REPEAT_START_CONDITION_ENABLE_BIT = 1;
+                I2C2_REPEAT_START_CONDITION_ENABLE_BIT = 1;
 
                 // fudge the address so S_MASTER_SEND_ADDR works correctly
                 // we only do this on a 10-bit address resend
@@ -360,7 +359,7 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
                 i2c_10bit_address_restart = 1;
 
                 // Resend the address as a read
-                i2c3_state = S_MASTER_SEND_ADDR;
+                i2c2_state = S_MASTER_SEND_ADDR;
             }
 
             break;
@@ -381,9 +380,9 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
             if(i2c_10bit_address_restart != 1)
             {
                 // extract the information for this message
-                i2c_address    = p_i2c3_trb_current->address;
-                pi2c_buf_ptr   = p_i2c3_trb_current->pbuffer;
-                i2c_bytes_left = p_i2c3_trb_current->length;
+                i2c_address    = p_i2c2_trb_current->address;
+                pi2c_buf_ptr   = p_i2c2_trb_current->pbuffer;
+                i2c_bytes_left = p_i2c2_trb_current->length;
             }
             else
             {
@@ -397,22 +396,22 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
                 // we have a 10 bit address
                 // send bits<9:8>
                 // mask bit 0 as this is always a write
-                I2C3_TRANSMIT_REG = 0xF0 | ((i2c_address >> 8) & 0x0006);
-                i2c3_state = S_MASTER_SEND_ADDR_10BIT_LSB;
+                I2C2_TRANSMIT_REG = 0xF0 | ((i2c_address >> 8) & 0x0006);
+                i2c2_state = S_MASTER_SEND_ADDR_10BIT_LSB;
             }
             else
             {
                 // Transmit the address
-                I2C3_TRANSMIT_REG = i2c_address;
+                I2C2_TRANSMIT_REG = i2c_address;
                 if(i2c_address & 0x01)
                 {
                     // Next state is to wait for address to be acked
-                    i2c3_state = S_MASTER_ACK_ADDR;
+                    i2c2_state = S_MASTER_ACK_ADDR;
                 }
                 else
                 {
                     // Next state is transmit
-                    i2c3_state = S_MASTER_SEND_DATA;
+                    i2c2_state = S_MASTER_SEND_DATA;
                 }
             }
             break;
@@ -420,16 +419,16 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
         case S_MASTER_SEND_DATA:
 
             // Make sure the previous byte was acknowledged
-            if(I2C3_ACKNOWLEDGE_STATUS_BIT)
+            if(I2C2_ACKNOWLEDGE_STATUS_BIT)
             {
                 // Transmission was not acknowledged
-                i2c3_object.i2cErrors++;
+                i2c2_object.i2cErrors++;
 
                 // Reset the Ack flag
-                I2C3_ACKNOWLEDGE_STATUS_BIT = 0;
+                I2C2_ACKNOWLEDGE_STATUS_BIT = 0;
 
                 // Send a stop flag and go back to idle
-                I2C3_Stop(I2C3_DATA_NO_ACK);
+                I2C2_Stop(I2C2_DATA_NO_ACK);
 
             }
             else
@@ -440,32 +439,32 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
                     // yup sent them all!
 
                     // update the trb pointer
-                    p_i2c3_trb_current++;
+                    p_i2c2_trb_current++;
 
                     // are we done with this string of requests?
-                    if(--i2c3_trb_count == 0)
+                    if(--i2c2_trb_count == 0)
                     {
-                        I2C3_Stop(I2C3_MESSAGE_COMPLETE);
+                        I2C2_Stop(I2C2_MESSAGE_COMPLETE);
                     }
                     else
                     {
                         // no!, there are more TRB to be sent.
-                        //I2C3_START_CONDITION_ENABLE_BIT = 1;
+                        //I2C2_START_CONDITION_ENABLE_BIT = 1;
 
                         // In some cases, the slave may require
                         // a restart instead of a start. So use this one
                         // instead.
-                        I2C3_REPEAT_START_CONDITION_ENABLE_BIT = 1;
+                        I2C2_REPEAT_START_CONDITION_ENABLE_BIT = 1;
 
                         // start the i2c request
-                        i2c3_state = S_MASTER_SEND_ADDR;
+                        i2c2_state = S_MASTER_SEND_ADDR;
 
                     }
                 }
                 else
                 {
                     // Grab the next data to transmit
-                    I2C3_TRANSMIT_REG = *pi2c_buf_ptr++;
+                    I2C2_TRANSMIT_REG = *pi2c_buf_ptr++;
                 }
             }
             break;
@@ -473,22 +472,22 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
         case S_MASTER_ACK_ADDR:
 
             /* Make sure the previous byte was acknowledged */
-            if(I2C3_ACKNOWLEDGE_STATUS_BIT)
+            if(I2C2_ACKNOWLEDGE_STATUS_BIT)
             {
 
                 // Transmission was not acknowledged
-                i2c3_object.i2cErrors++;
+                i2c2_object.i2cErrors++;
 
                 // Send a stop flag and go back to idle
-                I2C3_Stop(I2C3_MESSAGE_ADDRESS_NO_ACK);
+                I2C2_Stop(I2C2_MESSAGE_ADDRESS_NO_ACK);
 
                 // Reset the Ack flag
-                I2C3_ACKNOWLEDGE_STATUS_BIT = 0;
+                I2C2_ACKNOWLEDGE_STATUS_BIT = 0;
             }
             else
             {
-                I2C3_RECEIVE_ENABLE_BIT = 1;
-                i2c3_state = S_MASTER_ACK_RCV_DATA;
+                I2C2_RECEIVE_ENABLE_BIT = 1;
+                i2c2_state = S_MASTER_ACK_RCV_DATA;
             }
             break;
 
@@ -497,17 +496,17 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
             /* Acknowledge is completed.  Time for more data */
 
             // Next thing is to ack the data
-            i2c3_state = S_MASTER_ACK_RCV_DATA;
+            i2c2_state = S_MASTER_ACK_RCV_DATA;
 
             // Set up to receive a byte of data
-            I2C3_RECEIVE_ENABLE_BIT = 1;
+            I2C2_RECEIVE_ENABLE_BIT = 1;
 
             break;
 
         case S_MASTER_ACK_RCV_DATA:
 
             // Grab the byte of data received and acknowledge it
-            *pi2c_buf_ptr++ = I2C3_RECEIVE_REG;
+            *pi2c_buf_ptr++ = I2C2_RECEIVE_REG;
 
             // Check if we received them all?
             if(--i2c_bytes_left)
@@ -517,180 +516,175 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _MI2C3Interrupt ( void )
 
                 // No, bit 7 is clear.  Data is ok
                 // Set the flag to acknowledge the data
-                I2C3_ACKNOWLEDGE_DATA_BIT = 0;
+                I2C2_ACKNOWLEDGE_DATA_BIT = 0;
 
                 // Wait for the acknowledge to complete, then get more
-                i2c3_state = S_MASTER_RCV_DATA;
+                i2c2_state = S_MASTER_RCV_DATA;
             }
             else
             {
 
                 // Yes, it's the last byte.  Don't ack it
                 // Flag that we will nak the data
-                I2C3_ACKNOWLEDGE_DATA_BIT = 1;
+                I2C2_ACKNOWLEDGE_DATA_BIT = 1;
 
-                I2C3_FunctionComplete();
+                I2C2_FunctionComplete();
             }
 
             // Initiate the acknowledge
-            I2C3_ACKNOWLEDGE_ENABLE_BIT = 1;
+            I2C2_ACKNOWLEDGE_ENABLE_BIT = 1;
             break;
 
         case S_MASTER_RCV_STOP:                
         case S_MASTER_SEND_STOP:
 
             // Send the stop flag
-            I2C3_Stop(I2C3_MESSAGE_COMPLETE);
-            break;
-
-        case S_MASTER_STOP_WAIT:
-            i2c3_state = S_MASTER_IDLE;
+            I2C2_Stop(I2C2_MESSAGE_COMPLETE);
             break;
 
         default:
 
             // This case should not happen, if it does then
             // terminate the transfer
-            i2c3_object.i2cErrors++;
-            I2C3_Stop(I2C3_LOST_STATE);
+            i2c2_object.i2cErrors++;
+            I2C2_Stop(I2C2_LOST_STATE);
             break;
 
     }
 }
 
-static void I2C3_FunctionComplete(void)
+static void I2C2_FunctionComplete(void)
 {
 
     // update the trb pointer
-    p_i2c3_trb_current++;
+    p_i2c2_trb_current++;
 
     // are we done with this string of requests?
-    if(--i2c3_trb_count == 0)
+    if(--i2c2_trb_count == 0)
     {
-        i2c3_state = S_MASTER_SEND_STOP;
+        i2c2_state = S_MASTER_SEND_STOP;
     }
     else
     {
-        i2c3_state = S_MASTER_RESTART;
+        i2c2_state = S_MASTER_RESTART;
     }
 
 }
 
-extern void I2C3_Stop(I2C3_MESSAGE_STATUS completion_code)
+extern void I2C2_Stop(I2C2_MESSAGE_STATUS completion_code)
 {
     // then send a stop
-    I2C3_STOP_CONDITION_ENABLE_BIT = 1;
+    I2C2_STOP_CONDITION_ENABLE_BIT = 1;
 
     // make sure the flag pointer is not NULL
-    if (p_i2c3_current->pTrFlag != NULL)
+    if (p_i2c2_current->pTrFlag != NULL)
     {
         // update the flag with the completion code
-        *(p_i2c3_current->pTrFlag) = completion_code;
+        *(p_i2c2_current->pTrFlag) = completion_code;
     }
 
     // Done, back to idle
-    i2c3_state = S_MASTER_IDLE;
-//    i2c3_state = S_MASTER_STOP_WAIT;
+    i2c2_state = S_MASTER_IDLE;
     
 }
 
-void I2C3_MasterWrite(
+void I2C2_MasterWrite(
                                 uint8_t *pdata,
                                 uint8_t length,
                                 uint16_t address,
-                                I2C3_MESSAGE_STATUS *pstatus)
+                                I2C2_MESSAGE_STATUS *pstatus)
 {
-    static I2C3_TRANSACTION_REQUEST_BLOCK   trBlock;
+    static I2C2_TRANSACTION_REQUEST_BLOCK   trBlock;
 
     // check if there is space in the queue
-    if (i2c3_object.trStatus.s.full != true)
+    if (i2c2_object.trStatus.s.full != true)
     {
-        I2C3_MasterWriteTRBBuild(&trBlock, pdata, length, address);
-        I2C3_MasterTRBInsert(1, &trBlock, pstatus);
+        I2C2_MasterWriteTRBBuild(&trBlock, pdata, length, address);
+        I2C2_MasterTRBInsert(1, &trBlock, pstatus);
     }
     else
     {
-        *pstatus = I2C3_MESSAGE_FAIL;
+        *pstatus = I2C2_MESSAGE_FAIL;
     }
 
 }                           
 
-void I2C3_MasterRead(
+void I2C2_MasterRead(
                                 uint8_t *pdata,
                                 uint8_t length,
                                 uint16_t address,
-                                I2C3_MESSAGE_STATUS *pstatus)
+                                I2C2_MESSAGE_STATUS *pstatus)
 {
-    static I2C3_TRANSACTION_REQUEST_BLOCK   trBlock;
+    static I2C2_TRANSACTION_REQUEST_BLOCK   trBlock;
 
 
     // check if there is space in the queue
-    if (i2c3_object.trStatus.s.full != true)
+    if (i2c2_object.trStatus.s.full != true)
     {
-        I2C3_MasterReadTRBBuild(&trBlock, pdata, length, address);
-        I2C3_MasterTRBInsert(1, &trBlock, pstatus);
+        I2C2_MasterReadTRBBuild(&trBlock, pdata, length, address);
+        I2C2_MasterTRBInsert(1, &trBlock, pstatus);
     }
     else
     {
-        *pstatus = I2C3_MESSAGE_FAIL;
+        *pstatus = I2C2_MESSAGE_FAIL;
     }
 
 }       
 
-void I2C3_MasterTRBInsert(
+void I2C2_MasterTRBInsert(
                                 uint8_t count,
-                                I2C3_TRANSACTION_REQUEST_BLOCK *ptrb_list,
-                                I2C3_MESSAGE_STATUS *pflag)
+                                I2C2_TRANSACTION_REQUEST_BLOCK *ptrb_list,
+                                I2C2_MESSAGE_STATUS *pflag)
 {
-//    while ( I2C3CONLbits.PEN );
+//    while ( I2C2CONLbits.PEN );
     
     // check if there is space in the queue
-    if (i2c3_object.trStatus.s.full != true)
+    if (i2c2_object.trStatus.s.full != true)
     {
-        *pflag = I2C3_MESSAGE_PENDING;
+        *pflag = I2C2_MESSAGE_PENDING;
 
-        i2c3_object.pTrTail->ptrb_list = ptrb_list;
-        i2c3_object.pTrTail->count     = count;
-        i2c3_object.pTrTail->pTrFlag   = pflag;
-        i2c3_object.pTrTail++;
+        i2c2_object.pTrTail->ptrb_list = ptrb_list;
+        i2c2_object.pTrTail->count     = count;
+        i2c2_object.pTrTail->pTrFlag   = pflag;
+        i2c2_object.pTrTail++;
 
         // check if the end of the array is reached
-        if (i2c3_object.pTrTail == (i2c3_tr_queue + I2C3_CONFIG_TR_QUEUE_LENGTH))
+        if (i2c2_object.pTrTail == (i2c2_tr_queue + I2C2_CONFIG_TR_QUEUE_LENGTH))
         {
             // adjust to restart at the beginning of the array
-            i2c3_object.pTrTail = i2c3_tr_queue;
+            i2c2_object.pTrTail = i2c2_tr_queue;
         }
 
         // since we added one item to be processed, we know
         // it is not empty, so set the empty status to false
-        i2c3_object.trStatus.s.empty = false;
+        i2c2_object.trStatus.s.empty = false;
 
         // check if full
-        if (i2c3_object.pTrHead == i2c3_object.pTrTail)
+        if (i2c2_object.pTrHead == i2c2_object.pTrTail)
         {
             // it is full, set the full status to true
-            i2c3_object.trStatus.s.full = true;
+            i2c2_object.trStatus.s.full = true;
         }
 
         // for interrupt based
-        if(i2c3_state == S_MASTER_IDLE)
+        if(i2c2_state == S_MASTER_IDLE)
         {    
             // force the task to run since we know that the queue has
             // something that needs to be sent
-            if ( !I2C3_STOP_CONDITION_ENABLE_BIT )
-            IFS8bits.MI2C3IF = 1;
+            if ( !I2C2_STOP_CONDITION_ENABLE_BIT )
+            IFS2bits.MI2C2IF = 1;
         }           
         
     }
     else
     {
-        *pflag = I2C3_MESSAGE_FAIL;
+        *pflag = I2C2_MESSAGE_FAIL;
     }
 
 }      
                                 
-void I2C3_MasterReadTRBBuild(
-                                I2C3_TRANSACTION_REQUEST_BLOCK *ptrb,
+void I2C2_MasterReadTRBBuild(
+                                I2C2_TRANSACTION_REQUEST_BLOCK *ptrb,
                                 uint8_t *pdata,
                                 uint8_t length,
                                 uint16_t address)
@@ -702,8 +696,8 @@ void I2C3_MasterReadTRBBuild(
     ptrb->pbuffer  = pdata;
 }
                                 
-void I2C3_MasterWriteTRBBuild(
-                                I2C3_TRANSACTION_REQUEST_BLOCK *ptrb,
+void I2C2_MasterWriteTRBBuild(
+                                I2C2_TRANSACTION_REQUEST_BLOCK *ptrb,
                                 uint8_t *pdata,
                                 uint8_t length,
                                 uint16_t address)
@@ -713,24 +707,24 @@ void I2C3_MasterWriteTRBBuild(
     ptrb->pbuffer = pdata;
 }
 
-bool I2C3_MasterQueueIsEmpty(void)
+bool I2C2_MasterQueueIsEmpty(void)
 {
-    return((bool)i2c3_object.trStatus.s.empty);
+    return((bool)i2c2_object.trStatus.s.empty);
 }
 
-bool I2C3_MasterQueueIsFull(void)
+bool I2C2_MasterQueueIsFull(void)
 {
-    return((bool)i2c3_object.trStatus.s.full);
+    return((bool)i2c2_object.trStatus.s.full);
 }
 
-void I2C3_Abort( void )
+void I2C2_Abort( void )
 {
-    I2C3_Stop( I2C3_MESSAGE_FAIL );
-    I2C3_Initialize();
+    I2C2_Stop( I2C2_MESSAGE_FAIL );
+    I2C2_Initialize();
     aborted = 1;
 }
 
-bool I2C3_Aborted( void )
+bool I2C2_Aborted( void )
 {
     bool aborted_tmp = aborted;
     aborted = 0;

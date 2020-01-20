@@ -136,12 +136,6 @@ void capture_pressures( void )
  */
 }
 
-void retrigger_ADCs( void )
-{
-    if ( ADC1_IsSharedChannelAN9ConversionComplete() )
-        ADC1_SoftwareTriggerEnable();
-}
-
 void set_pressures( void )
 {
     dac_write_ldac( DAC_CHAN_A, pressure_mbar_shl_target[0], 0 );
@@ -307,7 +301,7 @@ int main(void)
     
     while (1)
     {
-        if ( I2C3_Aborted() )
+        if ( I2C2_Aborted() )
         {
             adc_state = ADC_STATE_WAIT;
             adc_i2c_wait = 0;

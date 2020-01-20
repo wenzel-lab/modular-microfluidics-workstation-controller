@@ -55,15 +55,12 @@ void INTERRUPT_Initialize (void)
     //    SPIRXI: SPI1 RX
     //    Priority: 1
         IPC2bits.SPI1RXIP = 1;
-    //    CNBI: Change Notification B
+    //    MICI: I2C2 Master Event
     //    Priority: 1
-        IPC0bits.CNBIP = 1;
-    //    MICI: I2C3 Master Events
+        IPC9bits.MI2C2IP = 1;
+    //    SICI: I2C2 Slave Event
     //    Priority: 1
-        IPC35bits.MI2C3IP = 1;
-    //    SICI: I2C3 Slave Events
-    //    Priority: 1
-        IPC35bits.SI2C3IP = 1;
+        IPC9bits.SI2C2IP = 1;
     //    TI: Timer 1
     //    Priority: 1
         IPC0bits.T1IP = 1;

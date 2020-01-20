@@ -132,11 +132,11 @@ typedef struct
 {
     uint8_t write_data[3];
     volatile uint8_t read_data[2];
-    I2C3_TRANSACTION_REQUEST_BLOCK trBlocks[3];
+    I2C2_TRANSACTION_REQUEST_BLOCK trBlocks[3];
     uint16_t start_time;
     int8_t channel;
 //    bool reading;
-    volatile I2C3_MESSAGE_STATUS status;
+    volatile I2C2_MESSAGE_STATUS status;
 } ads1115_task_t;
 
 /************************************************************************/
