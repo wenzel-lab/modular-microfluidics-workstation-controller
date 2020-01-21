@@ -55,6 +55,18 @@ void INTERRUPT_Initialize (void)
     //    SPIRXI: SPI1 RX
     //    Priority: 1
         IPC2bits.SPI1RXIP = 1;
+    //    UEVTI: UART1 Event
+    //    Priority: 1
+        IPC47bits.U1EVTIP = 1;
+    //    UTXI: UART1 TX
+    //    Priority: 1
+        IPC3bits.U1TXIP = 1;
+    //    UEI: UART1 Error
+    //    Priority: 1
+        IPC12bits.U1EIP = 1;
+    //    URXI: UART1 RX
+    //    Priority: 1
+        IPC2bits.U1RXIP = 1;
     //    MICI: I2C2 Master Event
     //    Priority: 1
         IPC9bits.MI2C2IP = 1;

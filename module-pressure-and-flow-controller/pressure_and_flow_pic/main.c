@@ -1,3 +1,10 @@
+/*
+ * I2C Addresses:
+ *   ADS1115 = 0x48
+ *   PCA... = 0x70
+ *   Sensirion = 0x08
+ */
+
 #include <xc.h>
 #define FCY 75000000UL
 //#define FCY 8000000UL
@@ -10,19 +17,20 @@
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
-#define PRESSURE_SHL                        3
+#define PRESSURE_SHL                        0
 //#define PRESSURE_ADC_REF_MV                 3300
 //#define PRESSURE_ADC_MBAR                   5000
 #define PRESSURE_ADC_REF_MV                 6144
 #define PRESSURE_ADC_BITRES                 15
 #define PRESSURE_CTLR_REF_MV                5000
 #define PRESSURE_CTLR_MBAR                  5000
-#define PRESSURE_ADC_SCALE                  ( (uint32_t)PRESSURE_ADC_REF_MV * PRESSURE_CTLR_MBAR / PRESSURE_CTLR_REF_MV )
+#define PRESSURE_ADC_SCALE                  ( (int32_t)PRESSURE_ADC_REF_MV * PRESSURE_CTLR_MBAR / PRESSURE_CTLR_REF_MV )
 
 /* Flow / Pressure Macros */
 #define ADC_CHAN_MAX                        ( NUM_PRESSURE_CLTRLS - 1 )
 #define ADC_PERIOD_MS                       100
-#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc * PRESSURE_ADC_SCALE ) >> ( PRESSURE_ADC_BITRES - PRESSURE_SHL ) )
+#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (int32_t)( (int16_t)(adc) ) * PRESSURE_ADC_SCALE ) >> ( PRESSURE_ADC_BITRES - PRESSURE_SHL ) )
+//#define PRESSURE_ADC_TO_MBARSHL(adc)        ( (int16_t)(adc) )
 //#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc << PRESSURE_SHL ) * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
 //#define PRESSURE_ADC_TO_MBAR(adc)        ( (uint32_t)adc * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
 
@@ -54,8 +62,8 @@ uint8_t device_id[] = "MICROFLOW";
 volatile uint16_t timer_ms;
 
 /* Flow / Pressure Data */
-volatile uint16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
-uint16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
+volatile int16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
+int16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
 E_ADC_STATE adc_state;
 uint8_t adc_go = 0;
 uint8_t adc_chan;
@@ -272,7 +280,12 @@ int main(void)
     SYSTEM_Initialize();
     init();
     
+    /* Clear / reset terminal */
+    printf( "\033\143" );
+    
     __delay_ms( 100 );
+    
+    printf( "\r\nStarting...\n\n" );
     
     /* Init Timers */
     TMR1_SetInterruptHandler( &timer_isr );
@@ -330,8 +343,17 @@ int main(void)
                     
                     if ( channel >= 0 )
                     {
+//                        printf( "Pressure: %u\n", adc_value );
                         /* Value returned */
                         pressure_mbar_shl_actual[channel] = PRESSURE_ADC_TO_MBARSHL( adc_value );
+                        /**/
+                        printf( "State %u, Channel %hi, Pressures: %i %i %i %i\n",
+                                adc_state, channel,
+                                pressure_mbar_shl_actual[0],
+                                pressure_mbar_shl_actual[1],
+                                pressure_mbar_shl_actual[2],
+                                pressure_mbar_shl_actual[3] );
+                        /**/
                     }
                     
                     break;
@@ -353,6 +375,7 @@ int main(void)
             {
                 adc_chan = 0;
                 ads1115_read_adc_start( adc_i2c_addr, -1, adc_chan, adc_datarate, adc_gain, &adc_task );
+//                __delay_ms( 10 );
                 adc_i2c_wait = 1;
                 adc_state = ADC_STATE_SAMPLE;
                 break;
@@ -377,6 +400,13 @@ int main(void)
                     
                     adc_i2c_wait = 1;
                 }
+                /* ** Put below back in */
+                /*
+                else if ( ( timer_ms - adc_time ) > ADC_PERIOD_MS )
+                {
+                    adc_state = ADC_STATE_START;
+                    adc_time += ADC_PERIOD_MS;
+                }*/
                 
                 break;
             }
@@ -432,8 +462,6 @@ int main(void)
             if ( rc != ERR_OK )
                 spi_packet_write( packet_type, &rc, 1 );
         }
-        
-//        retrigger_ADCs();
     }
     
     return 1; 

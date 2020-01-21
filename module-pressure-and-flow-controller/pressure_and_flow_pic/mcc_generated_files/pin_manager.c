@@ -66,13 +66,13 @@ void PIN_MANAGER_Initialize (void)
      * Setting the Output Latch SFR(s)
      ***************************************************************************/
     LATA = 0x0002;
-    LATB = 0x8400;
+    LATB = 0x8500;
 
     /****************************************************************************
      * Setting the GPIO Direction SFR(s)
      ***************************************************************************/
     TRISA = 0x001F;
-    TRISB = 0x53FC;
+    TRISB = 0x52FC;
 
     /****************************************************************************
      * Setting the Weak Pull Up and Weak Pull Down SFR(s)
@@ -101,18 +101,19 @@ void PIN_MANAGER_Initialize (void)
     __builtin_write_RPCON(0x0000); // unlock PPS
 
     RPOR6bits.RP45R = 0x0009;    //RB13->SPI2:SCK2OUT
-    RPINR21bits.SS1R = 0x0024;    //RB4->SPI1:SS1
-    RPOR5bits.RP43R = 0x0000;    //RB11->SPI3:SCK3OUT
-    RPINR29bits.SDI3R = 0x0027;    //RB7->SPI3:SDI3
-    RPINR22bits.SDI2R = 0x002C;    //RB12->SPI2:SDI2
-    RPINR22bits.SCK2R = 0x002D;    //RB13->SPI2:SCK2OUT
-    RPINR20bits.SDI1R = 0x0022;    //RB2->SPI1:SDI1
-    RPOR0bits.RP33R = 0x0005;    //RB1->SPI1:SDO1
-    RPINR29bits.SCK3R = 0x002B;    //RB11->SPI3:SCK3OUT
-    RPINR20bits.SCK1R = 0x0023;    //RB3->SPI1:SCK1IN
     RPOR5bits.RP42R = 0x000A;    //RB10->SPI2:SS2OUT
-    RPOR0bits.RP32R = 0x000B;    //RB0->SPI3:SDO3
+    RPOR4bits.RP40R = 0x0001;    //RB8->UART1:U1TX
+    RPINR20bits.SCK1R = 0x0023;    //RB3->SPI1:SCK1IN
     RPOR7bits.RP47R = 0x000D;    //RB15->SPI3:SS3OUT
+    RPINR29bits.SCK3R = 0x002B;    //RB11->SPI3:SCK3OUT
+    RPINR22bits.SDI2R = 0x002C;    //RB12->SPI2:SDI2
+    RPINR29bits.SDI3R = 0x0027;    //RB7->SPI3:SDI3
+    RPINR20bits.SDI1R = 0x0022;    //RB2->SPI1:SDI1
+    RPOR5bits.RP43R = 0x0000;    //RB11->SPI3:SCK3OUT
+    RPINR21bits.SS1R = 0x0024;    //RB4->SPI1:SS1
+    RPINR22bits.SCK2R = 0x002D;    //RB13->SPI2:SCK2OUT
+    RPOR0bits.RP32R = 0x000B;    //RB0->SPI3:SDO3
+    RPOR0bits.RP33R = 0x0005;    //RB1->SPI1:SDO1
 
     __builtin_write_RPCON(0x0800); // lock PPS
 

@@ -6,7 +6,7 @@
 
 uint8_t conversion_reg = ADS1115_REG_CONVERSION;
 
-uint8_t ads1115_write_register(uint8_t addr, uint8_t reg, uint16_t data)
+uint8_t ads1115_write_register( uint8_t addr, uint8_t reg, uint16_t data )
 {
     volatile I2C2_MESSAGE_STATUS status;
     uint8_t writeBuffer[3];
@@ -47,8 +47,8 @@ uint16_t ads1115_read_register(uint8_t addr, uint8_t reg)
 
 void ads1115_set_ready_pin( uint8_t addr )
 {
-    ads1115_write_register( addr, ADS1115_REG_HI_THRESH, 0b10000000 );
-    ads1115_write_register( addr, ADS1115_REG_LO_THRESH, 0b00000000 );
+    ads1115_write_register( addr, ADS1115_REG_HI_THRESH, 0b1000000000000000 );
+    ads1115_write_register( addr, ADS1115_REG_LO_THRESH, 0b0000000000000000 );
 }
 
 void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain, ads1115_task_t *task )

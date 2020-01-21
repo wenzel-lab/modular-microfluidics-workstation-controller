@@ -48,6 +48,7 @@
 #include "system_types.h"
 #include "interrupt_manager.h"
 #include "traps.h"
+#include "uart1.h"
 #include "i2c2.h"
 #include "spi3.h"
 #include "spi2.h"
@@ -61,6 +62,7 @@ void SYSTEM_Initialize(void)
     CLOCK_Initialize();
     SPI1_Initialize();
     SPI2_Initialize();
+    UART1_Initialize();
     SPI3_Initialize();
     I2C2_Initialize();
     TMR1_Initialize();

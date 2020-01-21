@@ -54,6 +54,7 @@
 #include <stdbool.h>
 #include "interrupt_manager.h"
 #include "traps.h"
+#include "uart1.h"
 #include "reset.h"
 #include "i2c2.h"
 #include "watchdog.h"
