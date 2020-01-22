@@ -295,12 +295,11 @@ int main(void)
 //    ADC_RDY_SetInterruptHandler( adc_rdy_isr );
 //    ads1115_get_result( adc_i2c_addr );
 //    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
-//    ADC1_SoftwareLevelTriggerEnable();
-//    ADC1_SoftwareTriggerEnable();
     
     /* Init DAC */
     dac_reset();
 //    dac_ref_internal( 1 );
+    pressure_mbar_shl_target[0] = 10000;
     set_pressures();
     
     /* Init SPI */
