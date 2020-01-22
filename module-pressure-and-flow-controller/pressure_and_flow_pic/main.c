@@ -10,10 +10,12 @@
 //#define FCY 8000000UL
 #include <libpic30.h>
 #include <string.h>
+#include <stdio.h>
 #include "mcc_generated_files/mcc.h"
 #include "common.h"
 #include "spi.h"
 #include "ads1115.h"
+#include "eeprom.h"
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
@@ -63,7 +65,7 @@ volatile uint16_t timer_ms;
 
 /* Flow / Pressure Data */
 volatile int16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
-int16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
+uint16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
 E_ADC_STATE adc_state;
 uint8_t adc_go = 0;
 uint8_t adc_chan;
@@ -272,6 +274,25 @@ void __attribute__ ((weak)) timer_isr(void)
     timer_ms++;
 }
 
+void eeprom_test2( void )
+{
+    uint8_t buf[100];
+    uint8_t i;
+    
+    printf( "Status: %hu\n", eeprom_read_status().value );
+    
+//    eeprom_write_byte( 2, 2 );
+    
+    eeprom_read_bytes( 0, 32, buf );
+    
+    printf( "EEPROM Contents: " );
+    for ( i=0; i<32; i++ )
+        printf( " %hu", buf[i] );
+    printf( "\n" );
+    
+    while (1);
+}
+
 int main(void)
 {
     err rc = 0;
@@ -298,8 +319,8 @@ int main(void)
     
     /* Init DAC */
     dac_reset();
-//    dac_ref_internal( 1 );
-    pressure_mbar_shl_target[0] = 10000;
+    dac_ref_internal( 1 );
+    pressure_mbar_shl_target[0] = ( 0xFFFF / 5 );
     set_pressures();
     
     /* Init SPI */

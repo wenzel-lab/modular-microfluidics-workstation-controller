@@ -100,20 +100,20 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     __builtin_write_RPCON(0x0000); // unlock PPS
 
+    RPINR21bits.SS1R = 0x0024;    //RB4->SPI1:SS1
+    RPOR5bits.RP42R = 0x000A;    //RB10->SPI2:SS2OUT
+    RPOR5bits.RP43R = 0x000C;    //RB11->SPI3:SCK3OUT
     RPOR3bits.RP39R = 0x000B;    //RB7->SPI3:SDO3
-    RPOR7bits.RP47R = 0x000D;    //RB15->SPI3:SS3OUT
-    RPOR4bits.RP40R = 0x0001;    //RB8->UART1:U1TX
-    RPINR29bits.SDI3R = 0x0020;    //RB0->SPI3:SDI3
-    RPINR22bits.SCK2R = 0x002D;    //RB13->SPI2:SCK2OUT
-    RPOR6bits.RP44R = 0x0008;    //RB12->SPI2:SDO2
+    RPOR6bits.RP45R = 0x0009;    //RB13->SPI2:SCK2OUT
     RPOR0bits.RP33R = 0x0005;    //RB1->SPI1:SDO1
     RPINR20bits.SCK1R = 0x0023;    //RB3->SPI1:SCK1IN
-    RPINR21bits.SS1R = 0x0024;    //RB4->SPI1:SS1
     RPINR20bits.SDI1R = 0x0022;    //RB2->SPI1:SDI1
-    RPOR5bits.RP42R = 0x000A;    //RB10->SPI2:SS2OUT
+    RPOR7bits.RP47R = 0x000D;    //RB15->SPI3:SS3OUT
     RPINR29bits.SCK3R = 0x002B;    //RB11->SPI3:SCK3OUT
-    RPOR6bits.RP45R = 0x0009;    //RB13->SPI2:SCK2OUT
-    RPOR5bits.RP43R = 0x0000;    //RB11->SPI3:SCK3OUT
+    RPOR4bits.RP40R = 0x0001;    //RB8->UART1:U1TX
+    RPOR6bits.RP44R = 0x0008;    //RB12->SPI2:SDO2
+    RPINR29bits.SDI3R = 0x0020;    //RB0->SPI3:SDI3
+    RPINR22bits.SCK2R = 0x002D;    //RB13->SPI2:SCK2OUT
 
     __builtin_write_RPCON(0x0800); // lock PPS
 
