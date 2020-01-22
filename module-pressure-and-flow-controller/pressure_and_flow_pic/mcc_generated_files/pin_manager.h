@@ -511,11 +511,11 @@
   @Example
     <code>
     // Set RB11 high (1)
-    SPI3_EE_MOSI_SetHigh();
+    SPI3_EE_CLK_SetHigh();
     </code>
 
 */
-#define SPI3_EE_MOSI_SetHigh()          _LATB11 = 1
+#define SPI3_EE_CLK_SetHigh()          _LATB11 = 1
 /**
   @Summary
     Sets the GPIO pin, RB11, low using LATB11.
@@ -535,11 +535,11 @@
   @Example
     <code>
     // Set RB11 low (0)
-    SPI3_EE_MOSI_SetLow();
+    SPI3_EE_CLK_SetLow();
     </code>
 
 */
-#define SPI3_EE_MOSI_SetLow()           _LATB11 = 0
+#define SPI3_EE_CLK_SetLow()           _LATB11 = 0
 /**
   @Summary
     Toggles the GPIO pin, RB11, using LATB11.
@@ -559,11 +559,11 @@
   @Example
     <code>
     // Toggle RB11
-    SPI3_EE_MOSI_Toggle();
+    SPI3_EE_CLK_Toggle();
     </code>
 
 */
-#define SPI3_EE_MOSI_Toggle()           _LATB11 ^= 1
+#define SPI3_EE_CLK_Toggle()           _LATB11 ^= 1
 /**
   @Summary
     Reads the value of the GPIO pin, RB11.
@@ -585,11 +585,11 @@
     uint16_t portValue;
 
     // Read RB11
-    postValue = SPI3_EE_MOSI_GetValue();
+    postValue = SPI3_EE_CLK_GetValue();
     </code>
 
 */
-#define SPI3_EE_MOSI_GetValue()         _RB11
+#define SPI3_EE_CLK_GetValue()         _RB11
 /**
   @Summary
     Configures the GPIO pin, RB11, as an input.
@@ -609,11 +609,11 @@
   @Example
     <code>
     // Sets the RB11 as an input
-    SPI3_EE_MOSI_SetDigitalInput();
+    SPI3_EE_CLK_SetDigitalInput();
     </code>
 
 */
-#define SPI3_EE_MOSI_SetDigitalInput()  _TRISB11 = 1
+#define SPI3_EE_CLK_SetDigitalInput()  _TRISB11 = 1
 /**
   @Summary
     Configures the GPIO pin, RB11, as an output.
@@ -633,11 +633,11 @@
   @Example
     <code>
     // Sets the RB11 as an output
-    SPI3_EE_MOSI_SetDigitalOutput();
+    SPI3_EE_CLK_SetDigitalOutput();
     </code>
 
 */
-#define SPI3_EE_MOSI_SetDigitalOutput() _TRISB11 = 0
+#define SPI3_EE_CLK_SetDigitalOutput() _TRISB11 = 0
 /**
   @Summary
     Sets the GPIO pin, RB12, high using LATB12.

@@ -16,6 +16,7 @@
 #include "spi.h"
 #include "ads1115.h"
 #include "eeprom.h"
+#include "storage.h"
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
@@ -238,7 +239,7 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
 void init( void )
 {
     memset( pressure_mbar_shl_target, 0, sizeof(pressure_mbar_shl_target) );
-    memset( pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
+    memset( (void *)pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
     
     adc_state = ADC_STATE_START;
     adc_chan = 0;
@@ -274,23 +275,25 @@ void __attribute__ ((weak)) timer_isr(void)
     timer_ms++;
 }
 
-void eeprom_test2( void )
+void storage_save_defaults()
 {
-    uint8_t buf[100];
-    uint8_t i;
+    store_save_eeprom_ver( EEPROM_VER );
+}
+
+void storage_startup()
+{
+    uint8_t eeprom_ver;
+
+    store_load_eeprom_ver( &eeprom_ver );
+    printf( "EEPROM Version %hu\n", eeprom_ver );
     
-    printf( "Status: %hu\n", eeprom_read_status().value );
+    if ( eeprom_ver == EEPROM_BLANK_U8 )
+    {
+        /* Blank EEPROM */
+        printf( "Saving Defaults\n" );
+        storage_save_defaults();
+    }
     
-//    eeprom_write_byte( 2, 2 );
-    
-    eeprom_read_bytes( 0, 32, buf );
-    
-    printf( "EEPROM Contents: " );
-    for ( i=0; i<32; i++ )
-        printf( " %hu", buf[i] );
-    printf( "\n" );
-    
-    while (1);
 }
 
 int main(void)
@@ -301,12 +304,13 @@ int main(void)
     SYSTEM_Initialize();
     init();
     
-    /* Clear / reset terminal */
-    printf( "\033\143" );
-    
+    /* Print Header */
+    printf( "\033\143" );  // Clear / reset terminal
     __delay_ms( 100 );
-    
     printf( "\r\nStarting...\n\n" );
+    
+    /* Load Settings from EEPROM */
+    storage_startup();
     
     /* Init Timers */
     TMR1_SetInterruptHandler( &timer_isr );
@@ -314,8 +318,6 @@ int main(void)
     /* Init ADC */
     ads1115_set_ready_pin( adc_i2c_addr );
 //    ADC_RDY_SetInterruptHandler( adc_rdy_isr );
-//    ads1115_get_result( adc_i2c_addr );
-//    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
     
     /* Init DAC */
     dac_reset();

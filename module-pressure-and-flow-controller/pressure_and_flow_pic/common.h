@@ -20,6 +20,14 @@ extern "C" {
 
 #define ERR_PACKET_OVERFLOW         30
 #define ERR_PACKET_INVALID          31
+#define ERR_PACKET_TIMEOUT          32
+    
+#define ERR_HEAT_TARGET_INVALID     40
+#define ERR_HEAT_PID_NOT_READY      41
+
+#define ERR_STIR_PID_NOT_READY      51
+
+#define ERR_EEPROM_VERIFY_FAIL      60
 
 typedef uint8_t err;
 

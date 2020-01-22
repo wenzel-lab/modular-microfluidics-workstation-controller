@@ -66,7 +66,7 @@ void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_cha
         /* Read conversion */
         
         I2C2_MasterWriteTRBBuild( &task->trBlocks[trb_count++], &conversion_reg, 1, addr );
-        I2C2_MasterReadTRBBuild( &task->trBlocks[trb_count++], task->read_data, 2, addr );
+        I2C2_MasterReadTRBBuild( &task->trBlocks[trb_count++], (uint8_t *)task->read_data, 2, addr );
     }
     
     if ( start_channel >= 0 )

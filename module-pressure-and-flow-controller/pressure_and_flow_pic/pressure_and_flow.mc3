@@ -10231,7 +10231,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="Custom Name RB11"/>
-         <value>SPI3_EE_MOSI</value>
+         <value>SPI3_EE_CLK</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="Pin Module" name="Custom Name RB10"/>
@@ -13285,7 +13285,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\pin_manager.h</file>
-         <hash>38791d2896c2f0dafe189739af508e953990af55330f11ff462cee7f947bb630</hash>
+         <hash>d6b90bf7c1dfe22e964ac5f604c62b51983ebf8f0e37e5644e132a15a8c87c9f</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\tmr1.c</file>
@@ -13293,7 +13293,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\pin_manager.c</file>
-         <hash>1e732d2b1ec10e95577feb77409ae0c799e2f4a6395189c6cfc74326708f3fbd</hash>
+         <hash>4f62e830e0518f2799162641689c71ce2b37c7b1df156c226f9acd9dc6344b77</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\traps.c</file>
