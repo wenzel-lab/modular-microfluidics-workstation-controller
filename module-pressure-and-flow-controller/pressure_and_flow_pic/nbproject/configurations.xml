@@ -29,6 +29,7 @@
       <itemPath>ads1115.h</itemPath>
       <itemPath>eeprom.h</itemPath>
       <itemPath>storage.h</itemPath>
+      <itemPath>sensirion.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -59,6 +60,7 @@
       <itemPath>ads1115.c</itemPath>
       <itemPath>eeprom.c</itemPath>
       <itemPath>storage.c</itemPath>
+      <itemPath>sensirion.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

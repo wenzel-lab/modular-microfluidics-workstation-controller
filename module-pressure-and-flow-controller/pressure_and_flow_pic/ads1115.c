@@ -26,7 +26,7 @@ uint8_t ads1115_write_register( uint8_t addr, uint8_t reg, uint16_t data )
 	return 0;
 }
 
-uint16_t ads1115_read_register(uint8_t addr, uint8_t reg)
+uint16_t ads1115_read_register( uint8_t addr, uint8_t reg )
 {
     uint8_t buf[2];
     volatile I2C2_MESSAGE_STATUS status;

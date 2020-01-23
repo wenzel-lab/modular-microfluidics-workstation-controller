@@ -29,6 +29,8 @@ extern "C" {
 
 #define ERR_EEPROM_VERIFY_FAIL      60
 
+#define ERR_SENSIRION_COMMS_FAIL    70
+
 typedef uint8_t err;
 
 extern volatile uint16_t timer_ms;

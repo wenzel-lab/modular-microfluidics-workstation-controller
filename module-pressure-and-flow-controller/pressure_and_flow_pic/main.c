@@ -17,6 +17,7 @@
 #include "ads1115.h"
 #include "eeprom.h"
 #include "storage.h"
+#include "sensirion.h"
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
@@ -74,6 +75,7 @@ uint16_t adc_time;
 ads1115_datarate adc_datarate = DATARATE_128SPS;
 ads1115_fsr_gain adc_gain = FSR_6_144;
 uint8_t adc_i2c_addr = ADS1115_ADDR_GND;
+uint8_t sensirion_i2c_addr = 0x08;
 ads1115_task_t adc_task;
 
 /* Packet Data */
@@ -300,6 +302,8 @@ int main(void)
 {
     err rc = 0;
     bool adc_i2c_wait;
+    uint32_t sensirion_product_num;
+    uint64_t sensirion_serial;
     
     SYSTEM_Initialize();
     init();
@@ -324,6 +328,14 @@ int main(void)
     dac_ref_internal( 1 );
     pressure_mbar_shl_target[0] = ( 0xFFFF / 5 );
     set_pressures();
+    
+    /* Init Sensirion flow sensor */
+    rc = sensirion_read_id( sensirion_i2c_addr, &sensirion_product_num, &sensirion_serial );
+    printf( "Sensirion RC: %hu\n", rc );
+    printf( "Sensirion Product Num: %lx\n", sensirion_product_num );
+    printf( "Sensirion Serial: %llx\n", sensirion_serial );
+    
+    while ( 1 );
     
     /* Init SPI */
     spi_init();
