@@ -1,8 +1,7 @@
+#include "mcc_generated_files/mcc.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <string.h>
-#include <xc.h>
 #include "common.h"
 #include "spi.h"
 #include "mcc_generated_files/spi1.h"

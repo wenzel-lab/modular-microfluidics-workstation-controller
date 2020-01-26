@@ -65,23 +65,23 @@ void PIN_MANAGER_Initialize(void)
     TRISx registers
     */
     TRISA = 0xFF;
-    TRISB = 0xFF;
-    TRISC = 0xDD;
+    TRISB = 0xFE;
+    TRISC = 0x7F;
 
     /**
     ANSELx registers
     */
-    ANSELC = 0x00;
-    ANSELB = 0xFF;
+    ANSELC = 0x1D;
+    ANSELB = 0xF2;
     ANSELA = 0xFF;
 
     /**
     WPUx registers
     */
     WPUE = 0x00;
-    WPUB = 0x00;
+    WPUB = 0x0C;
     WPUA = 0x00;
-    WPUC = 0x80;
+    WPUC = 0x60;
 
     /**
     ODx registers
@@ -114,13 +114,13 @@ void PIN_MANAGER_Initialize(void)
     PIE0bits.IOCIE = 1; 
     
 	
-    T1GPPS = 0x10;   //RC0->TMR1:T1G;    
-    SSP1CLKPPS = 0x13;   //RC3->MSSP1:SCK1;    
-    T2AINPPS = 0x10;   //RC0->TMR2:T2IN;    
-    RC1PPS = 0x15;   //RC1->MSSP1:SDO1;    
-    SSP1SSPPS = 0x12;   //RC2->MSSP1:SS1;    
-    RC5PPS = 0x03;   //RC5->CLC3:CLC3OUT;    
-    SSP1DATPPS = 0x14;   //RC4->MSSP1:SDI1;    
+    T1GPPS = 0x15;   //RC5->TMR1:T1G;    
+    SSP1CLKPPS = 0x0B;   //RB3->MSSP1:SCK1;    
+    T2AINPPS = 0x15;   //RC5->TMR2:T2IN;    
+    RB0PPS = 0x15;   //RB0->MSSP1:SDO1;    
+    SSP1SSPPS = 0x16;   //RC6->MSSP1:SS1;    
+    RC7PPS = 0x03;   //RC7->CLC3:CLC3OUT;    
+    SSP1DATPPS = 0x0A;   //RB2->MSSP1:SDI1;    
 }
   
 void PIN_MANAGER_IOC(void)

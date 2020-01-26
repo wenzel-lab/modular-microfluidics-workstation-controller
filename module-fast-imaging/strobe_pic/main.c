@@ -6,7 +6,6 @@
 #include "mcc_generated_files/mcc.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <string.h>
 #include <pic16f18857.h>
 #include "common.h"

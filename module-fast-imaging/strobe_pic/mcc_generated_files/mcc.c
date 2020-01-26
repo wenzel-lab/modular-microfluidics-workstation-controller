@@ -55,8 +55,8 @@ void SYSTEM_Initialize(void)
     SPI1_Initialize();
     CLC1_Initialize();
     CLC3_Initialize();
-    CLC2_Initialize();
     TMR4_Initialize();
+    CLC2_Initialize();
     TMR2_Initialize();
     TMR1_Initialize();
 }
