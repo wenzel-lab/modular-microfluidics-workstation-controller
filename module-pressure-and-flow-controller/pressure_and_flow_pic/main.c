@@ -18,6 +18,7 @@
 #include "eeprom.h"
 #include "storage.h"
 #include "sensirion.h"
+#include "pca9544a.h"
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
@@ -76,6 +77,7 @@ ads1115_datarate adc_datarate = DATARATE_128SPS;
 ads1115_fsr_gain adc_gain = FSR_6_144;
 uint8_t adc_i2c_addr = ADS1115_ADDR_GND;
 uint8_t sensirion_i2c_addr = 0x08;
+uint8_t pca9544a_i2c_addr = 0b1110000;
 ads1115_task_t adc_task;
 
 /* Packet Data */
@@ -304,6 +306,7 @@ int main(void)
     bool adc_i2c_wait;
     uint32_t sensirion_product_num;
     uint64_t sensirion_serial;
+    uint8_t ints, enabled, channel;
     
     SYSTEM_Initialize();
     init();
@@ -328,6 +331,13 @@ int main(void)
     dac_ref_internal( 1 );
     pressure_mbar_shl_target[0] = ( 0xFFFF / 5 );
     set_pressures();
+    
+    /* Init I2C MUX */
+    rc = pca9544a_write( pca9544a_i2c_addr, 1, 0 );
+    printf( "I2C Mux Write RC: %hu\n", rc );
+    rc = pca9544a_read( pca9544a_i2c_addr, &ints, &enabled, &channel );
+    printf( "I2C Mux Read RC: %hu\n", rc );
+    printf( "I2C Mux ints %hu, enabled %hu, channel %hu\n", ints, enabled, channel );
     
     /* Init Sensirion flow sensor */
     rc = sensirion_read_id( sensirion_i2c_addr, &sensirion_product_num, &sensirion_serial );

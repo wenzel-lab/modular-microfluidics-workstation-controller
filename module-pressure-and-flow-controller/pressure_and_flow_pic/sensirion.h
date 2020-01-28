@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-extern uint8_t sensirion_write_register( uint8_t addr, uint8_t reg, uint16_t data );
+extern err sensirion_write_register( uint8_t addr, uint8_t reg, uint16_t data );
 extern err sensirion_read_id( uint8_t addr, uint32_t *product_num, uint64_t *serial );
 
 #ifdef	__cplusplus

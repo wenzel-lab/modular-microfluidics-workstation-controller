@@ -30,6 +30,7 @@
       <itemPath>eeprom.h</itemPath>
       <itemPath>storage.h</itemPath>
       <itemPath>sensirion.h</itemPath>
+      <itemPath>pca9544a.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -61,6 +62,7 @@
       <itemPath>eeprom.c</itemPath>
       <itemPath>storage.c</itemPath>
       <itemPath>sensirion.c</itemPath>
+      <itemPath>pca9544a.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

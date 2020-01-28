@@ -4,8 +4,9 @@
 
 #define I2C_TIMEOUT_MS      2
 
-extern uint8_t sensirion_write_cmd( uint8_t addr, uint16_t cmd )
+extern err sensirion_write_cmd( uint8_t addr, uint16_t cmd )
 {
+    err rc = ERR_OK;
     volatile I2C2_MESSAGE_STATUS status;
     uint8_t writeBuffer[2];
     uint16_t time;
@@ -18,12 +19,15 @@ extern uint8_t sensirion_write_cmd( uint8_t addr, uint16_t cmd )
     time = timer_ms;
     while ( ( status != I2C2_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
     if ( status != I2C2_MESSAGE_COMPLETE )
+    {
+        rc = ERR_SENSIRION_COMMS_FAIL;
         I2C2_Abort();
+    }
     
 	return 0;
 }
 
-err sensirion_read_id( uint8_t addr, uint32_t *product_num, uint64_t *serial )
+extern err sensirion_read_id( uint8_t addr, uint32_t *product_num, uint64_t *serial )
 {
     err rc = ERR_OK;
     volatile I2C2_MESSAGE_STATUS status;

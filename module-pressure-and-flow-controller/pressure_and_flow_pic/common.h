@@ -31,6 +31,8 @@ extern "C" {
 
 #define ERR_SENSIRION_COMMS_FAIL    70
 
+#define ERR_PCA9544A_COMMS_FAIL     80
+
 typedef uint8_t err;
 
 extern volatile uint16_t timer_ms;
