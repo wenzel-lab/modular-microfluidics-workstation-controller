@@ -185,6 +185,8 @@ void main(void)
 //    set_strobe_timing( 2000000, 2000000 );
 //    set_strobe_enable( 1 );
     
+//    while ( 1 );
+    
     while ( 1 )
     {
         if ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK )
@@ -259,6 +261,7 @@ void main(void)
             }
         }
         
+#if 1
         if ( T1GCONbits.T1GGO == 0 )
         {
             /* Strobe input "read back time" measured using Timer 1 */
@@ -267,5 +270,6 @@ void main(void)
             TMR1_WriteTimer( 0 );
             TMR1_StartSinglePulseAcquisition();
         }
+#endif
     }
 }

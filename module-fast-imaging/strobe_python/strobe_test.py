@@ -26,9 +26,10 @@ def spi_init( bus, device, mode, speed_hz ):
   #spi.cshigh = False
   return spi
 
-spi = spi_init( 0, 0, 2, 500000 )
-strobe = pistrobe.PiStrobe( spi )
-strobe.set_timing( 2000000, 2000000 )
+spi = spi_init( 0, 0, 2, 125000 )
+strobe = pistrobe.PiStrobe( spi, 0.1 )
+result = strobe.set_timing( 2000000, 2000000 )
+print( result )
 strobe.set_hold( True )
 time.sleep( 1 )
 strobe.set_hold( False )

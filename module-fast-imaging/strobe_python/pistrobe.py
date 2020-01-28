@@ -50,7 +50,7 @@ class PiStrobe:
     valid, data = self.packet_read()
     actual_wait_ns = int.from_bytes( data[1:5], byteorder='little', signed=False )
     actual_period_ns = int.from_bytes( data[5:9], byteorder='little', signed=False )
-#    print( "data={}, wait={}, period={}, wait_bytes={}".format( data, actual_wait_ns, actual_period_ns, data[1:5] ) )
+    print( "data={}, wait={}, period={}, wait_bytes={}".format( data, actual_wait_ns, actual_period_ns, data[1:5] ) )
     return ( ( valid and ( data[0] == 0 ) ), actual_wait_ns, actual_period_ns )
 
   def set_hold( self, hold ):
