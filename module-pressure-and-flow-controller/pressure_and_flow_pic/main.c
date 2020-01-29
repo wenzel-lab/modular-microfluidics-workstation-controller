@@ -23,8 +23,6 @@
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
 #define PRESSURE_SHL                        0
-//#define PRESSURE_ADC_REF_MV                 3300
-//#define PRESSURE_ADC_MBAR                   5000
 #define PRESSURE_ADC_REF_MV                 6144
 #define PRESSURE_ADC_BITRES                 15
 #define PRESSURE_CTLR_REF_MV                5000
@@ -35,9 +33,6 @@
 #define ADC_CHAN_MAX                        ( NUM_PRESSURE_CLTRLS - 1 )
 #define ADC_PERIOD_MS                       100
 #define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (int32_t)( (int16_t)(adc) ) * PRESSURE_ADC_SCALE ) >> ( PRESSURE_ADC_BITRES - PRESSURE_SHL ) )
-//#define PRESSURE_ADC_TO_MBARSHL(adc)        ( (int16_t)(adc) )
-//#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (uint32_t)adc << PRESSURE_SHL ) * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
-//#define PRESSURE_ADC_TO_MBAR(adc)        ( (uint32_t)adc * PRESSURE_ADC_MBAR / PRESSURE_ADC_REF_MV )
 
 /* Comms Constants */
 #define PACKET_TYPE_GET_ID                  1
@@ -76,7 +71,6 @@ uint16_t adc_time;
 ads1115_datarate adc_datarate = DATARATE_128SPS;
 ads1115_fsr_gain adc_gain = FSR_6_144;
 uint8_t adc_i2c_addr = ADS1115_ADDR_GND;
-uint8_t sensirion_i2c_addr = 0x08;
 uint8_t pca9544a_i2c_addr = 0b1110000;
 ads1115_task_t adc_task;
 
@@ -124,31 +118,6 @@ void dac_write_and_update( E_DAC_CHAN dac_chan, uint16_t value )
 void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 {
     dac_cmd( update_all ? 0b010 : 0b000, dac_chan, value );
-}
-
-void capture_pressures( void )
-{
-//    uint8_t i;
-    
-    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
-    __delay_ms( 8 );
-    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_get_result( adc_i2c_addr ) );
-    
-//    for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
-//        pressure_mbar_shl_actual[i] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( adc_i2c_addr, i, DATARATE_128SPS, FSR_6_144 ) );
-//    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ads1115_readADC_SingleEnded( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 ) );
-    
-/*    
-//    while ( !ADC1_IsSharedChannelAN2ConversionComplete() );
-    pressure_mbar_shl_actual[0] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN2ConversionResultGet() );
-//    while ( !ADC1_IsSharedChannelAN3ConversionComplete() );
-    pressure_mbar_shl_actual[1] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN3ConversionResultGet() );
-//    while ( !ADC1_IsSharedChannelAN4ConversionComplete() );
-    pressure_mbar_shl_actual[2] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN4ConversionResultGet() );
-//    while ( !ADC1_IsSharedChannelAN9ConversionComplete() );
-    pressure_mbar_shl_actual[3] = PRESSURE_ADC_TO_MBARSHL( ADC1_SharedChannelAN9ConversionResultGet() );
-//    ADC1_SoftwareTriggerEnable();
- */
 }
 
 void set_pressures( void )
@@ -216,7 +185,7 @@ err parse_packet_set_pressure_target( uint8_t packet_type, uint8_t *packet_data,
 
 err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
-    /* Return: [err U8]4x[Pressure mbar U16>>3] */
+    /* Return: [err U8]4x[Pressure mbar U16>>PRESSURE_SHL] */
     
     err rc = ERR_OK;
     uint8_t i;
@@ -225,9 +194,6 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     
     return_buf_ptr = return_buf;
     *return_buf_ptr++ = ERR_OK;
-    
-//    capture_pressures();
-//    ads1115_start_single( adc_i2c_addr, 0, DATARATE_128SPS, FSR_6_144 );
     
     for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
     {
@@ -307,6 +273,8 @@ int main(void)
     uint32_t sensirion_product_num;
     uint64_t sensirion_serial;
     uint8_t ints, enabled, channel;
+    int16_t flow, temp;
+    sensirion_flags_t flags;
     
     SYSTEM_Initialize();
     init();
@@ -340,10 +308,17 @@ int main(void)
     printf( "I2C Mux ints %hu, enabled %hu, channel %hu\n", ints, enabled, channel );
     
     /* Init Sensirion flow sensor */
-    rc = sensirion_read_id( sensirion_i2c_addr, &sensirion_product_num, &sensirion_serial );
-    printf( "Sensirion RC: %hu\n", rc );
+    rc = sensirion_read_id( &sensirion_product_num, &sensirion_serial );
+    printf( "Sensirion Read ID RC: %hu\n", rc );
     printf( "Sensirion Product Num: %lx\n", sensirion_product_num );
     printf( "Sensirion Serial: %llx\n", sensirion_serial );
+    rc = sensirion_measurement_start();
+    printf( "Sensirion Measurement Start RC: %hu\n", rc );
+    __delay_ms( 100 );
+    rc = sensirion_measurement_read( &flow, &temp, &flags );
+    printf( "Sensirion Measurement Read RC: %hu\n", rc );
+    rc = sensirion_measurement_stop();
+    printf( "Sensirion Measurement Stop RC: %hu\n", rc );
     
     while ( 1 );
     
