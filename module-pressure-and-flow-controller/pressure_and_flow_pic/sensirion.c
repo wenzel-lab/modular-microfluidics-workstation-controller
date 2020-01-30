@@ -93,7 +93,7 @@ extern err sensirion_measurement_read( int16_t *flow, int16_t *temp, sensirion_f
     {
         *flow = 0;
         *temp = 0;
-//        *flags = 0;
+        *(uint16_t*)flags = 0;
     }
     else
     {
@@ -105,12 +105,14 @@ extern err sensirion_measurement_read( int16_t *flow, int16_t *temp, sensirion_f
         ((uint8_t *)flags)[1] = buf[6];
     }
     
+    /*
     printf( "Flow %i\n", *flow );
     printf( "Temp %0.2f\n", (float)*temp / SENSIRION_TEMP_SCALE_DEGC );
     printf( "Flags %u\n", *flags );
     printf( "Air In Line %hu\n", flags->air_in_line );
     printf( "High Flow %hu\n", flags->high_flow );
     printf( "Exp Smoothing Active %hu\n", flags->exp_smoothing_active );
+    */
     
     return rc;
 }

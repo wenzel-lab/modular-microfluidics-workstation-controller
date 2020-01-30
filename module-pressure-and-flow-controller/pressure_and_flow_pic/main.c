@@ -22,17 +22,22 @@
 
 /* Flow / Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
-#define PRESSURE_SHL                        0
+#define PRESSURE_SHL                        3
 #define PRESSURE_ADC_REF_MV                 6144
 #define PRESSURE_ADC_BITRES                 15
+#define PRESSURE_ADC_MAX                    ( ( (uint16_t)1 << PRESSURE_ADC_BITRES ) - 1 )
 #define PRESSURE_CTLR_REF_MV                5000
+#define PRESSURE_CTLR_ZERO_MV               1000
+#define PRESSURE_CTLR_RANGE_MV              ( PRESSURE_CTLR_REF_MV - PRESSURE_CTLR_ZERO_MV )
 #define PRESSURE_CTLR_MBAR                  5000
-#define PRESSURE_ADC_SCALE                  ( (int32_t)PRESSURE_ADC_REF_MV * PRESSURE_CTLR_MBAR / PRESSURE_CTLR_REF_MV )
+#define PRESSURE_ADC_SCALE                  ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_RANGE_MV / PRESSURE_ADC_REF_MV )
+#define PRESSURE_ADC_ZERO                   ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_ZERO_MV / PRESSURE_ADC_REF_MV )
 
 /* Flow / Pressure Macros */
 #define ADC_CHAN_MAX                        ( NUM_PRESSURE_CLTRLS - 1 )
 #define ADC_PERIOD_MS                       100
-#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( (int32_t)( (int16_t)(adc) ) * PRESSURE_ADC_SCALE ) >> ( PRESSURE_ADC_BITRES - PRESSURE_SHL ) )
+#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( ( ( ( (int32_t)( (int16_t)(adc) ) ) - PRESSURE_ADC_ZERO ) << PRESSURE_SHL ) * PRESSURE_CTLR_MBAR / PRESSURE_ADC_SCALE ) )
+//#define PRESSURE_ADC_TO_MBARSHL(adc)        ( ( ( ( ( (int32_t)( (int16_t)(adc) ) ) - PRESSURE_ADC_ZERO ) << PRESSURE_SHL ) * 1000 / PRESSURE_ADC_SCALE ) )
 
 /* Comms Constants */
 #define PACKET_TYPE_GET_ID                  1
@@ -122,7 +127,7 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 
 void set_pressures( void )
 {
-    dac_write_ldac( DAC_CHAN_A, pressure_mbar_shl_target[0], 0 );
+    dac_write_ldac( DAC_CHAN_A, ( ( (int32_t)pressure_mbar_shl_target[0] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 0 );
     dac_write_ldac( DAC_CHAN_B, pressure_mbar_shl_target[1], 0 );
     dac_write_ldac( DAC_CHAN_C, pressure_mbar_shl_target[2], 0 );
     dac_write_ldac( DAC_CHAN_D, pressure_mbar_shl_target[3], 1 );
@@ -266,15 +271,50 @@ void storage_startup()
     
 }
 
+void read_flows( void )
+{
+    err rc = ERR_OK;
+    uint8_t chan;
+    int16_t flow, temp;
+    sensirion_flags_t flags;
+    float pressure_actual;
+    float pressure_target;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        /* Set Sensirion I2C MUX channel */
+        rc = pca9544a_write( pca9544a_i2c_addr, 1, chan );
+
+        /* Read Sensirion flow rate */
+//        if ( rc == ERR_OK )
+            rc = sensirion_measurement_read( &flow, &temp, &flags );
+        
+//        if ( rc == ERR_OK )
+//          pressure_mbar_shl_target[0] = ;
+        
+        pressure_actual = (float)pressure_mbar_shl_actual[chan] / ( 1 << PRESSURE_SHL );
+        pressure_target = (float)pressure_mbar_shl_target[chan] / ( 1 << PRESSURE_SHL );
+//        printf( "Chan %hu, Pressure %4i / %4i, Flow %0.2f\n", chan+1, pressure_mbar_shl_actual[chan] >> PRESSURE_SHL, pressure_mbar_shl_target[chan] >> PRESSURE_SHL, (double)flow/SENSIRION_FLOW_SCALE_ML_MIN );
+        printf( "Chan %hu, Pressure %4.2f / %4.2f, Flow %0.2f\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow/SENSIRION_FLOW_SCALE_ML_MIN );
+    }
+    
+    printf( "\n" );
+}
+
+void update_outputs( void )
+{
+    set_pressures();
+}
+
 int main(void)
 {
     err rc = 0;
     bool adc_i2c_wait;
     uint32_t sensirion_product_num;
     uint64_t sensirion_serial;
-    uint8_t ints, enabled, channel;
-    int16_t flow, temp;
-    sensirion_flags_t flags;
+//    uint8_t ints, enabled, channel;
+//    int16_t flow, temp;
+//    sensirion_flags_t flags;
     
     SYSTEM_Initialize();
     init();
@@ -297,15 +337,18 @@ int main(void)
     /* Init DAC */
     dac_reset();
     dac_ref_internal( 1 );
-    pressure_mbar_shl_target[0] = ( 0xFFFF / 5 );
+    pressure_mbar_shl_target[0] = ( (int32_t)( 0xFFFF / 5 ) << PRESSURE_SHL ) * PRESSURE_CTLR_MBAR / 0xFFFF;
     set_pressures();
     
     /* Init I2C MUX */
+    rc = pca9544a_write( pca9544a_i2c_addr, 0, 0 );
+    /*
     rc = pca9544a_write( pca9544a_i2c_addr, 1, 0 );
     printf( "I2C Mux Write RC: %hu\n", rc );
     rc = pca9544a_read( pca9544a_i2c_addr, &ints, &enabled, &channel );
     printf( "I2C Mux Read RC: %hu\n", rc );
     printf( "I2C Mux ints %hu, enabled %hu, channel %hu\n", ints, enabled, channel );
+    */
     
     /* Init Sensirion flow sensor */
     rc = sensirion_read_id( &sensirion_product_num, &sensirion_serial );
@@ -314,13 +357,15 @@ int main(void)
     printf( "Sensirion Serial: %llx\n", sensirion_serial );
     rc = sensirion_measurement_start();
     printf( "Sensirion Measurement Start RC: %hu\n", rc );
+    /*
     __delay_ms( 100 );
     rc = sensirion_measurement_read( &flow, &temp, &flags );
     printf( "Sensirion Measurement Read RC: %hu\n", rc );
     rc = sensirion_measurement_stop();
     printf( "Sensirion Measurement Stop RC: %hu\n", rc );
+    */
     
-    while ( 1 );
+//    while ( 1 );
     
     /* Init SPI */
     spi_init();
@@ -365,7 +410,7 @@ int main(void)
 //                        printf( "Pressure: %u\n", adc_value );
                         /* Value returned */
                         pressure_mbar_shl_actual[channel] = PRESSURE_ADC_TO_MBARSHL( adc_value );
-                        /**/
+                        /*
                         printf( "State %u, Channel %hi, Pressures: %i %i %i %i\n",
                                 adc_state, channel,
                                 pressure_mbar_shl_actual[0],
@@ -387,6 +432,13 @@ int main(void)
                 default:
                     ;
             }
+            
+            /* When we have read all ADCs (or error), update outputs */
+            if ( ( adc_state == ADC_STATE_WAIT ) && ( adc_rc != 0 ) )
+            {
+                read_flows();
+                update_outputs();
+            }
         }
         else switch ( adc_state )
         {
@@ -403,16 +455,18 @@ int main(void)
             {
                 if ( !ADC_RDY_GetValue() )
                 {
-                    if ( adc_chan >= ADC_CHAN_MAX )
+                    uint8_t read_chan = adc_chan;
+                    
+                    /* Read back ADC and start next channel */
+                    if ( read_chan >= ADC_CHAN_MAX )
                     {
                         /* Read last channel */
-                        ads1115_read_adc_start( adc_i2c_addr, adc_chan, -1, adc_datarate, adc_gain, &adc_task );
+                        ads1115_read_adc_start( adc_i2c_addr, read_chan, -1, adc_datarate, adc_gain, &adc_task );
                         adc_state = ADC_STATE_WAIT;
                     }
                     else
                     {
                         /* Read and start next */
-                        uint8_t read_chan = adc_chan;
                         adc_chan++;
                         ads1115_read_adc_start( adc_i2c_addr, read_chan, adc_chan, adc_datarate, adc_gain, &adc_task );
                     }
