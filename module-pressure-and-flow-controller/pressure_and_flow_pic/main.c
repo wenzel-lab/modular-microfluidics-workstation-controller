@@ -20,7 +20,7 @@
 #include "sensirion.h"
 #include "pca9544a.h"
 
-/* Flow / Pressure Constants */
+/* Pressure Constants */
 #define NUM_PRESSURE_CLTRLS                 4
 #define PRESSURE_SHL                        3
 #define PRESSURE_ADC_REF_MV                 6144
@@ -32,6 +32,10 @@
 #define PRESSURE_CTLR_MBAR                  5000
 #define PRESSURE_ADC_SCALE                  ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_RANGE_MV / PRESSURE_ADC_REF_MV )
 #define PRESSURE_ADC_ZERO                   ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_ZERO_MV / PRESSURE_ADC_REF_MV )
+
+/* Flow Constants */
+#define FPID_DIFF_FILT_SHIFT              4
+#define FPID_DIFF_FILT_MUL                ( ( 1 << FPID_DIFF_FILT_SHIFT ) - 1 )
 
 /* Flow / Pressure Macros */
 #define ADC_CHAN_MAX                        ( NUM_PRESSURE_CLTRLS - 1 )
@@ -62,12 +66,30 @@ typedef enum
     ADC_STATE_WAIT,
 } E_ADC_STATE;
 
+typedef enum
+{
+    PRESSURE_CTRL_STATE_UNCONFIGURED,
+    PRESSURE_CTRL_STATE_READY,
+    PRESSURE_CTRL_STATE_RUNNING,
+    PRESSURE_CTRL_STATE_ERROR
+} E_PRESSURE_CTRL_STATE;
+
+typedef enum
+{
+    FLOW_CTRL_STATE_UNCONFIGURED,
+    FLOW_CTRL_STATE_READY,
+    FLOW_CTRL_STATE_RUNNING,
+    FLOW_CTRL_STATE_ERROR
+} E_FLOW_CTRL_STATE;
+
 /* System Data */
 uint8_t device_id[] = "MICROFLOW";
 volatile uint16_t timer_ms;
 
-/* Flow / Pressure Data */
+/* Pressure Data */
+E_PRESSURE_CTRL_STATE pressure_ctrl_state;
 volatile int16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
+volatile uint16_t pressure_mbar_shl_output[NUM_PRESSURE_CLTRLS];
 uint16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
 E_ADC_STATE adc_state;
 uint8_t adc_go = 0;
@@ -76,14 +98,35 @@ uint16_t adc_time;
 ads1115_datarate adc_datarate = DATARATE_128SPS;
 ads1115_fsr_gain adc_gain = FSR_6_144;
 uint8_t adc_i2c_addr = ADS1115_ADDR_GND;
-uint8_t pca9544a_i2c_addr = 0b1110000;
 ads1115_task_t adc_task;
+
+/* Flow Data */
+E_FLOW_CTRL_STATE flow_ctrl_state[NUM_PRESSURE_CLTRLS];
+volatile int16_t flow_raw_actual[NUM_PRESSURE_CLTRLS];
+volatile int16_t flow_raw_target[NUM_PRESSURE_CLTRLS];
+uint8_t pca9544a_i2c_addr = 0b1110000;
+volatile int32_t fpid_integrated[NUM_PRESSURE_CLTRLS];
+int32_t fpid_windup_limit = UINT16_MAX;
+uint16_t fpid_p[NUM_PRESSURE_CLTRLS] = {200};
+uint16_t fpid_i[NUM_PRESSURE_CLTRLS] = {2};
+uint16_t fpid_d[NUM_PRESSURE_CLTRLS] = {20000};
+volatile int32_t fpid_diff[NUM_PRESSURE_CLTRLS];
+volatile int32_t fpid_error_prev[NUM_PRESSURE_CLTRLS];
 
 /* Packet Data */
 spi_packet_buf_t spi_packet;
 uint8_t packet_type;
 uint8_t packet_data[SPI_PACKET_BUF_SIZE];
 uint8_t packet_data_size;
+
+inline int32_t constrain_i32( int32_t value, int32_t min, int32_t max )
+{
+    if ( value < min )
+        return min;
+    else if ( value > max )
+        return max;
+    else return value;
+}
 
 void dac_cmd( uint8_t cmd, E_DAC_CHAN chan, uint16_t value )
 {
@@ -127,10 +170,10 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 
 void set_pressures( void )
 {
-    dac_write_ldac( DAC_CHAN_A, ( ( (int32_t)pressure_mbar_shl_target[0] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 0 );
-    dac_write_ldac( DAC_CHAN_B, pressure_mbar_shl_target[1], 0 );
-    dac_write_ldac( DAC_CHAN_C, pressure_mbar_shl_target[2], 0 );
-    dac_write_ldac( DAC_CHAN_D, pressure_mbar_shl_target[3], 1 );
+    dac_write_ldac( DAC_CHAN_A, ( ( (int32_t)pressure_mbar_shl_output[0] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 0 );
+    dac_write_ldac( DAC_CHAN_B, pressure_mbar_shl_output[1], 0 );
+    dac_write_ldac( DAC_CHAN_C, pressure_mbar_shl_output[2], 0 );
+    dac_write_ldac( DAC_CHAN_D, pressure_mbar_shl_output[3], 1 );
 }
 
 err parse_packet_get_id( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
@@ -180,7 +223,7 @@ err parse_packet_set_pressure_target( uint8_t packet_type, uint8_t *packet_data,
         rc = ERR_PACKET_INVALID;
     else
     {
-        memcpy( pressure_mbar_shl_target, pressures_mbar, sizeof(pressures_mbar) );
+        memcpy( (void *)pressure_mbar_shl_output, pressures_mbar, sizeof(pressures_mbar) );
         set_pressures();
         spi_packet_write( packet_type, &rc, 1 );
     }
@@ -211,15 +254,54 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     return rc;
 }
 
+err flow_ctrl_start( uint8_t chan, int16_t flow_rate_raw )
+{
+    err rc = ERR_OK;
+    
+    if ( ( flow_ctrl_state[chan] != FLOW_CTRL_STATE_READY ) &&
+         ( flow_ctrl_state[chan] != FLOW_CTRL_STATE_RUNNING ) )
+        rc = ERR_ERROR;
+    else
+    {
+        /** Disable interrupt */
+        flow_raw_target[chan] = flow_rate_raw;
+        flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
+        /** Enable interrupt */
+    }
+    
+    return rc;
+}
+
 void init( void )
 {
-    memset( pressure_mbar_shl_target, 0, sizeof(pressure_mbar_shl_target) );
-    memset( (void *)pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
+    uint8_t chan;
     
+    /* ADC Init */
     adc_state = ADC_STATE_START;
     adc_chan = 0;
     adc_time = 0;
     timer_ms = 0;
+    
+    /* Pressure Control Init */
+    pressure_ctrl_state = PRESSURE_CTRL_STATE_UNCONFIGURED;
+    memset( (void *)pressure_mbar_shl_output, 0, sizeof(pressure_mbar_shl_output) );
+    memset( (void *)pressure_mbar_shl_target, 0, sizeof(pressure_mbar_shl_target) );
+    memset( (void *)pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
+    pressure_ctrl_state = PRESSURE_CTRL_STATE_READY;
+    
+    /* Flow Control Init */
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+        flow_ctrl_state[chan] = FLOW_CTRL_STATE_UNCONFIGURED;
+    memset( (void *)flow_raw_target, 0, sizeof(flow_raw_target) );
+    memset( (void *)flow_raw_actual, 0, sizeof(flow_raw_actual) );
+    memset( (void *)fpid_integrated, 0, sizeof(fpid_integrated) );
+    memset( (void *)fpid_diff, 0, sizeof(fpid_diff) );
+    memset( (void *)fpid_error_prev, 0, sizeof(fpid_error_prev) );
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+        flow_ctrl_state[chan] = FLOW_CTRL_STATE_READY;
+    
+    /* Test Code */
+    flow_ctrl_start( 0, (int16_t)( 0.1 * SENSIRION_FLOW_SCALE_ML_MIN ) );
 }
 
 void adc_rdy_isr( void )
@@ -275,27 +357,36 @@ void read_flows( void )
 {
     err rc = ERR_OK;
     uint8_t chan;
-    int16_t flow, temp;
+    int16_t flow;
+    int16_t temp;
     sensirion_flags_t flags;
     float pressure_actual;
     float pressure_target;
+//    uint16_t elapsed;
+    
+    /* 672us to set MUX and read one channel = 16us * 42 ticks at 400kHz I2C */
     
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
     {
+//        if ( chan == 0 )
+//            elapsed = TMR1;
         /* Set Sensirion I2C MUX channel */
         rc = pca9544a_write( pca9544a_i2c_addr, 1, chan );
 
         /* Read Sensirion flow rate */
-//        if ( rc == ERR_OK )
+        if ( rc == ERR_OK )
             rc = sensirion_measurement_read( &flow, &temp, &flags );
+//        if ( chan == 0 )
+//            elapsed = TMR1 - elapsed;
         
-//        if ( rc == ERR_OK )
-//          pressure_mbar_shl_target[0] = ;
+        if ( rc == ERR_OK )
+        {
+            flow_raw_actual[chan] = flow;
+        }
         
         pressure_actual = (float)pressure_mbar_shl_actual[chan] / ( 1 << PRESSURE_SHL );
-        pressure_target = (float)pressure_mbar_shl_target[chan] / ( 1 << PRESSURE_SHL );
-//        printf( "Chan %hu, Pressure %4i / %4i, Flow %0.2f\n", chan+1, pressure_mbar_shl_actual[chan] >> PRESSURE_SHL, pressure_mbar_shl_target[chan] >> PRESSURE_SHL, (double)flow/SENSIRION_FLOW_SCALE_ML_MIN );
-        printf( "Chan %hu, Pressure %4.2f / %4.2f, Flow %0.2f\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow/SENSIRION_FLOW_SCALE_ML_MIN );
+        pressure_target = (float)pressure_mbar_shl_output[chan] / ( 1 << PRESSURE_SHL );
+        printf( "Chan %hu, Pressure %8.2f / %7.2f, Flow %8.3f rc=%3hu\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow/SENSIRION_FLOW_SCALE_ML_MIN, rc );
     }
     
     printf( "\n" );
@@ -303,6 +394,34 @@ void read_flows( void )
 
 void update_outputs( void )
 {
+    uint8_t chan;
+    int32_t diff;
+    
+    for ( chan=0; chan<4; chan++ )
+    {
+        if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING )
+        {
+            int32_t error;
+            int32_t output;
+            
+            error = flow_raw_target[chan] - flow_raw_actual[chan];
+            fpid_integrated[chan] += constrain_i32( error * fpid_i[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
+            fpid_integrated[chan] = constrain_i32( fpid_integrated[chan], 0, fpid_windup_limit );
+            diff = ( constrain_i32( error - fpid_error_prev[chan], INT16_MIN, INT16_MAX ) * fpid_d[chan] );
+            fpid_diff[chan] = ( ( fpid_diff[chan] * FPID_DIFF_FILT_MUL ) + diff ) >> FPID_DIFF_FILT_SHIFT;
+            fpid_error_prev[chan] = error;
+            
+            output = constrain_i32( ( error * fpid_p[chan] ), -(int32_t)UINT16_MAX, UINT16_MAX ) +
+                                    ( fpid_integrated[chan] ) +
+                                    constrain_i32( fpid_diff[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
+            output = constrain_i32( output >> 4, 0, 2000 );
+            
+            pressure_mbar_shl_output[chan] = (uint16_t)output;
+            
+            printf( "Chan %hu, error %li, output %li, %li, %li, %li\n", chan, error, output, error * fpid_p[chan], fpid_integrated[chan], fpid_diff[chan] );
+        }
+    }
+        
     set_pressures();
 }
 
@@ -337,7 +456,7 @@ int main(void)
     /* Init DAC */
     dac_reset();
     dac_ref_internal( 1 );
-    pressure_mbar_shl_target[0] = ( (int32_t)( 0xFFFF / 5 ) << PRESSURE_SHL ) * PRESSURE_CTLR_MBAR / 0xFFFF;
+//    pressure_mbar_shl_output[0] = ( (int32_t)( 0xFFFF / 10 ) << PRESSURE_SHL ) * PRESSURE_CTLR_MBAR / 0xFFFF;
     set_pressures();
     
     /* Init I2C MUX */
@@ -351,6 +470,7 @@ int main(void)
     */
     
     /* Init Sensirion flow sensor */
+    rc = pca9544a_write( pca9544a_i2c_addr, 1, 0 );
     rc = sensirion_read_id( &sensirion_product_num, &sensirion_serial );
     printf( "Sensirion Read ID RC: %hu\n", rc );
     printf( "Sensirion Product Num: %lx\n", sensirion_product_num );
