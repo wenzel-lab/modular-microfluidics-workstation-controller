@@ -191,7 +191,8 @@
                     },
                     "filename_format": "%PREFIX/silkscreen_top.gbr",
                     "layers": [
-                        21
+                        21,
+                        100
                     ],
                     "milling": false,
                     "name": "Silkscreen Top",
@@ -214,8 +215,7 @@
                     },
                     "filename_format": "%PREFIX/silkscreen_bottom.gbr",
                     "layers": [
-                        22,
-                        26
+                        22
                     ],
                     "milling": false,
                     "name": "Silkscreen Bottom",
