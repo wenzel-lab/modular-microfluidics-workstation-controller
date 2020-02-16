@@ -1,22 +1,17 @@
 import time
 import spidev
+import picommon
 import piholder
+import RPi.GPIO as GPIO
 
-def spi_init( bus, device, mode, speed_hz ):
-  spi = spidev.SpiDev()
-  spi.open( bus, device )
-  spi.mode = mode
-  spi.max_speed_hz = speed_hz
-  #spi.no_cs = False
-  #spi.cshigh = False
-  return spi
+picommon.spi_init( 0, 2, 30000 )
 
-spi = spi_init( 0, 1, 2, 30000 )
-holder = piholder.PiHolder( spi, 0.2 )
+holder = piholder.PiHolder( picommon.PORT_HEATER1, 0.2 )
 # Read pause must be less than PIC timeout
 
 valid = False
 while not valid:
+  print( "Reading ID..." )
   valid, id, id_valid = holder.get_id()
   time.sleep( 0.5 )
 print( valid, id, id_valid )
@@ -54,4 +49,5 @@ while autotuning:
   
   time.sleep( 0.5 )
 
-spi.close()
+PiCommon.spi_close()
+GPIO.cleanup()

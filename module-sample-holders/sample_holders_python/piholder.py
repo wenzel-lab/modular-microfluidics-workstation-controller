@@ -1,5 +1,6 @@
 import time
 import spidev
+import picommon
 
 class PiHolder:
   DEVICE_ID                         = 'SAMPLE_HOLDER'
@@ -19,18 +20,19 @@ class PiHolder:
   PACKET_TYPE_AUTOTUNE_GET_RUNNING  = 10
   PACKET_TYPE_AUTOTUNE_GET_STATUS   = 11
   
-  def __init__( self, spi, reply_pause_s ):
-    self.spi = spi
+  def __init__( self, device_port, reply_pause_s ):
+    self.device_port = device_port
     self.reply_pause_s = reply_pause_s
   
   def read_bytes( self, bytes ):
     data = []
     for x in range( bytes ):
-      data.extend( self.spi.xfer2( [0] ) )
+      data.extend( picommon.spi.xfer2( [0] ) )
     return data
   
   def packet_read( self ):
     valid = False
+    picommon.spi_select_device( self.device_port )
     data = self.read_bytes( 1 )
     if ( data[0] == self.STX ):
       data.extend( self.read_bytes( 2 ) )
@@ -43,13 +45,16 @@ class PiHolder:
         valid = True
     if not valid:
       data = []
+    picommon.spi_deselect_current()
     return valid, type, data
   
   def packet_write( self, type, data ):
     msg = [2, len(data)+4, type] + data
     checksum = ( -( sum( msg ) & 0xFF ) ) & 0xFF
     msg.append( checksum )
-    self.spi.xfer2( msg )
+    picommon.spi_select_device( self.device_port )
+    picommon.spi.xfer2( msg )
+    picommon.spi_deselect_current()
     
   def packet_query( self, type, data ):
     self.packet_write( type, data )
