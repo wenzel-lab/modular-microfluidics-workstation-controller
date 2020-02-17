@@ -26,6 +26,45 @@
 
 static void eeprom_print_write( uint16_t addr, uint8_t num, uint8_t *data );
 
+extern bool eeprom_comms_check( void )
+{
+    /* Check comms by clearing, setting and clearing write enable latch */
+    
+    bool okay = true;
+    ee_status_t status;
+    
+    /* Clear WREN */
+    eeprom_set_wren( false );
+    status = eeprom_read_status();
+    
+    /* Check WREN is cleared */
+    if ( status.WEL )
+        okay = false;
+    else
+    {
+        /* Set WREN */
+        eeprom_set_wren( true );
+        status = eeprom_read_status();
+    }
+    
+    /* Check WREN is set */
+    if ( ( okay == true ) && ( !status.WEL ) )
+        okay = false;
+    
+    if ( okay )
+    {
+        /* Clear WREN */
+        eeprom_set_wren( false );
+        status = eeprom_read_status();
+    }
+        
+    /* Check WREN is cleared */
+    if ( status.WEL )
+        okay = false;
+    
+    return okay;
+}
+
 extern ee_status_t eeprom_read_status( void )
 {
     uint8_t buf[2];
@@ -127,6 +166,17 @@ extern uint8_t eeprom_verify_bytes( uint16_t addr, uint8_t num, uint8_t *data )
     EE_SS2OUT_SetHigh();
     
     return rc;
+}
+
+extern void eeprom_set_wren( bool wren )
+{
+    uint8_t buf[1];
+    
+    /* Write Enable / Disable */
+    buf[0] = wren ? EE_CMD_WREN : EE_CMD_WRDI;
+    EE_SS2OUT_SetLow();
+    SPI2_Exchange8bitBuffer( buf, 1, NULL );
+    EE_SS2OUT_SetHigh();
 }
 
 extern void eeprom_write_byte( uint16_t addr, uint8_t byte )

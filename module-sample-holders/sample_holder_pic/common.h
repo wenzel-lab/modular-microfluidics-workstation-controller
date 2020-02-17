@@ -14,9 +14,12 @@ extern "C" {
 #define ERR_PACKET_OVERFLOW         30
 #define ERR_PACKET_INVALID          31
 #define ERR_PACKET_TIMEOUT          32
+#define ERR_PACKET_PID_INVALID      33
     
 #define ERR_HEAT_TARGET_INVALID     40
 #define ERR_HEAT_PID_NOT_READY      41
+#define ERR_HEAT_AUTOTUNE_ACTIVE    42
+#define ERR_HEAT_MAX_POWER_INVALID  43
 
 #define ERR_STIR_PID_NOT_READY      51
 

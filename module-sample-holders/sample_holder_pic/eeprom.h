@@ -27,10 +27,12 @@ typedef union
     uint8_t value;
 } ee_status_t;
 
+extern bool eeprom_comms_check( void );
 extern ee_status_t eeprom_read_status( void );
 extern uint8_t eeprom_read_byte( uint16_t addr );
 extern void eeprom_read_bytes( uint16_t addr, uint8_t num, uint8_t *data );
 extern uint8_t eeprom_verify_bytes( uint16_t addr, uint8_t num, uint8_t *data );
+extern void eeprom_set_wren( bool wren );
 extern void eeprom_write_byte( uint16_t addr, uint8_t byte );
 extern void eeprom_write_bytes( uint16_t addr, uint8_t num, uint8_t *data );
 extern void eeprom_read_write_bytes( uint16_t addr, uint8_t num, uint8_t *data );

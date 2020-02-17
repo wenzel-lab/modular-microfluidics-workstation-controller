@@ -20,7 +20,14 @@ typedef struct __attribute__((packed))
     int16_t hpid_temp_c_scaled;
     int16_t htune_temp_c_scaled;
     uint8_t run_on_start;
+    uint8_t heat_power_limit_pc;
 } store_t;
+
+/* Static Function Prototypes */
+
+static err store_save_data( uint16_t offset, uint8_t data_len, uint8_t *data );
+
+/* Extern Functions */
 
 extern err store_save_eeprom_ver( uint8_t eeprom_ver )
 {
@@ -94,6 +101,11 @@ extern err store_save_run_on_start( uint8_t run_on_start )
     return rc;
 }
 
+extern err store_save_heat_power_limit_pc( uint8_t heat_power_limit_pc )
+{
+    return store_save_data( GET_STORE_OFFSET(heat_power_limit_pc), sizeof(heat_power_limit_pc), &heat_power_limit_pc );
+}
+
 extern err store_load_eeprom_ver( uint8_t *eeprom_ver_p )
 {
     err rc = ERR_OK;
@@ -156,3 +168,22 @@ extern err store_load_run_on_start( uint8_t *run_on_start_p )
     return rc;
 }
 
+extern void store_load_heat_power_limit_pc( uint8_t *heat_power_limit_pc )
+{
+    eeprom_read_bytes( GET_STORE_OFFSET(heat_power_limit_pc), sizeof(heat_power_limit_pc), (uint8_t *)heat_power_limit_pc );
+}
+
+/* Static Functions */
+
+static err store_save_data( uint16_t offset, uint8_t data_len, uint8_t *data )
+{
+    err rc = ERR_OK;
+    uint8_t verify_rc;
+    
+    eeprom_write_bytes( offset, data_len, data );
+    verify_rc = eeprom_verify_bytes( offset, data_len, data );
+    
+    rc = ( verify_rc == 0 ) ? ERR_OK : ERR_EEPROM_VERIFY_FAIL;
+    
+    return rc;
+}
