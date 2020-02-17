@@ -45,7 +45,6 @@ class PiHolder:
         valid = True
     if not valid:
       data = []
-    picommon.spi_deselect_current()
     return valid, type, data
   
   def packet_write( self, type, data ):
@@ -54,7 +53,6 @@ class PiHolder:
     msg.append( checksum )
     picommon.spi_select_device( self.device_port )
     picommon.spi.xfer2( msg )
-    picommon.spi_deselect_current()
     
   def packet_query( self, type, data ):
     self.packet_write( type, data )
@@ -67,6 +65,7 @@ class PiHolder:
         valid, type_read, data_read = self.packet_read()
     except:
       valid = False
+    picommon.spi_deselect_current()
     return valid, data_read
     
   def get_id( self ):
@@ -78,12 +77,17 @@ class PiHolder:
         checksum_okay = data[0] == 0
       except:
         checksum_okay = False
+    else:
+      id = 0
+      id_valid = False
     return ( valid and checksum_okay, id, id_valid )
 
   def get_temp_target( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_TEMP_GET_TARGET, [] )
     if valid:
       temp_c = int.from_bytes( data[1:3], byteorder='big', signed=True ) / self.TEMP_SCALE
+    else:
+      temp_c = 0
     return ( valid and ( data[0] == 0 ), temp_c )
 
   def set_pid_coeffs( self, pid_p, pid_i, pid_d ):
