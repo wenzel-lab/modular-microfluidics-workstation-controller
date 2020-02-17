@@ -70,24 +70,20 @@ class PiHolder:
     return valid, data_read
     
   def get_id( self ):
-#    self.packet_write( self.PACKET_TYPE_GET_ID, [] )
-#    time.sleep( self.reply_pause_s )
-#    valid, data = self.packet_read()
     valid, data = self.packet_query( self.PACKET_TYPE_GET_ID, [] )
-    id = bytes(data[1:-1]).decode("ascii")
-    id_valid = ( id == self.DEVICE_ID )
-    try:
-      checksum_okay = data[0] == 0
-    except:
-      checksum_okay = False
+    if valid:
+      id = bytes(data[1:-1]).decode("ascii")
+      id_valid = ( id == self.DEVICE_ID )
+      try:
+        checksum_okay = data[0] == 0
+      except:
+        checksum_okay = False
     return ( valid and checksum_okay, id, id_valid )
 
   def get_temp_target( self ):
-#    self.packet_write( self.PACKET_TYPE_TEMP_GET_TARGET, [] )
-#    time.sleep( self.reply_pause_s )
-#    valid, data = self.packet_read()
     valid, data = self.packet_query( self.PACKET_TYPE_TEMP_GET_TARGET, [] )
-    temp_c = int.from_bytes( data[1:3], byteorder='big', signed=True ) / self.TEMP_SCALE
+    if valid:
+      temp_c = int.from_bytes( data[1:3], byteorder='big', signed=True ) / self.TEMP_SCALE
     return ( valid and ( data[0] == 0 ), temp_c )
 
   def set_pid_coeffs( self, pid_p, pid_i, pid_d ):
@@ -99,9 +95,14 @@ class PiHolder:
 
   def get_pid_coeffs( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_PID_GET_COEFFS, [] )
-    pid_p = int.from_bytes( data[1:3], byteorder='big', signed=False )
-    pid_i = int.from_bytes( data[3:5], byteorder='big', signed=False )
-    pid_d = int.from_bytes( data[5:7], byteorder='big', signed=False )
+    if valid:
+      pid_p = int.from_bytes( data[1:3], byteorder='big', signed=False )
+      pid_i = int.from_bytes( data[3:5], byteorder='big', signed=False )
+      pid_d = int.from_bytes( data[5:7], byteorder='big', signed=False )
+    else:
+      pid_p = 0
+      pid_i = 0
+      pid_d = 0
     return ( valid and ( data[0] == 0 ), pid_p, pid_i, pid_d )
 
   def set_pid_running( self, running, temp_c ):
@@ -113,15 +114,20 @@ class PiHolder:
 
   def get_pid_status( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_PID_GET_STATUS, [] )
-    pid_status = data[1]
-    return ( valid and ( data[0] == 0 ), pid_status )
+    if valid:
+      pid_status = data[1]
+      pid_error = data[2]
+    else:
+      pid_status = 0
+      pid_error = 0
+    return ( valid and ( data[0] == 0 ), pid_status, pid_error )
 
   def get_temp_actual( self ):
-#    self.packet_write( self.PACKET_TYPE_TEMP_GET_ACTUAL, [] )
-#    time.sleep( self.reply_pause_s )
-#    valid, data = self.packet_read()
     valid, data = self.packet_query( self.PACKET_TYPE_TEMP_GET_ACTUAL, [] )
-    temp_c = int.from_bytes( data[1:3], byteorder='big', signed=True ) / self.TEMP_SCALE
+    if valid:
+      temp_c = int.from_bytes( data[1:3], byteorder='big', signed=True ) / self.TEMP_SCALE
+    else:
+      temp_c = 0
     return ( valid and ( data[0] == 0 ), temp_c )
 
   def set_autotune_running( self, running, temp_c ):
@@ -132,18 +138,19 @@ class PiHolder:
     return ( ( valid and ( data[0] == 0 ) ) )
 
   def get_autotune_running( self ):
-#    self.packet_write( self.PACKET_TYPE_AUTOTUNE_GET_RUNNING, [] )
-#    time.sleep( self.reply_pause_s )
-#    valid, data = self.packet_read()
     valid, data = self.packet_query( self.PACKET_TYPE_AUTOTUNE_GET_RUNNING, [] )
-    autotune_running = data[1]
+    if valid:
+      autotune_running = data[1]
+    else:
+      autotune_running = 0
     return ( valid and ( data[0] == 0 ), autotune_running )
   
   def get_autotune_status( self ):
-#    self.packet_write( self.PACKET_TYPE_AUTOTUNE_GET_STATUS, [] )
-#    time.sleep( self.reply_pause_s )
-#    valid, data = self.packet_read()
     valid, data = self.packet_query( self.PACKET_TYPE_AUTOTUNE_GET_STATUS, [] )
-    autotune_status = data[1]
-    autotune_fail = data[2]
+    if valid:
+      autotune_status = data[1]
+      autotune_fail = data[2]
+    else:
+      autotune_status = 0
+      autotune_fail = 0
     return ( valid and ( data[0] == 0 ), autotune_status, autotune_fail )

@@ -29,7 +29,7 @@ while autotuning:
   try:
     valid, temp_c = holder.get_temp_actual()
     if valid:
-      valid, pid_status = holder.get_pid_status()
+      valid, pid_status, pid_error = holder.get_pid_status()
     if valid:
       valid, temp_c_target = holder.get_temp_target()
     if valid:
