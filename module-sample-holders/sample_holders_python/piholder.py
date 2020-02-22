@@ -116,6 +116,12 @@ class PiHolder:
     valid, data = self.packet_query( self.PACKET_TYPE_PID_SET_RUNNING, send_bytes )
     return ( ( valid and ( data[0] == 0 ) ) )
 
+  def set_pid_temp( self, temp_c ):
+    temp_c_scaled = round( temp_c * 100 )
+    send_bytes = list( temp_c_scaled.to_bytes( 2, 'little', signed=True ) )
+    valid, data = self.packet_query( self.PACKET_TYPE_TEMP_SET_TARGET, send_bytes )
+    return ( ( valid and ( data[0] == 0 ) ) )
+
   def get_pid_status( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_PID_GET_STATUS, [] )
     if valid:
