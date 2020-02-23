@@ -34,7 +34,7 @@ extern err store_save_eeprom_ver( uint8_t eeprom_ver )
     err rc = ERR_OK;
     uint8_t verify_rc;
     
-    eeprom_write_bytes( GET_STORE_OFFSET(eeprom_ver), sizeof(eeprom_ver), &eeprom_ver );
+    eeprom_read_write_bytes( GET_STORE_OFFSET(eeprom_ver), sizeof(eeprom_ver), &eeprom_ver );
     verify_rc = eeprom_verify_bytes( GET_STORE_OFFSET(eeprom_ver), sizeof(eeprom_ver), &eeprom_ver );
     
     rc = ( verify_rc == 0 ) ? ERR_OK : ERR_EEPROM_VERIFY_FAIL;
@@ -67,7 +67,7 @@ extern err store_save_hpid_temp( int16_t hpid_temp_c_scaled )
     err rc = ERR_OK;
     uint8_t verify_rc;
     
-    eeprom_write_bytes( GET_STORE_OFFSET(hpid_temp_c_scaled), sizeof(hpid_temp_c_scaled), (uint8_t *)&hpid_temp_c_scaled );
+    eeprom_read_write_bytes( GET_STORE_OFFSET(hpid_temp_c_scaled), sizeof(hpid_temp_c_scaled), (uint8_t *)&hpid_temp_c_scaled );
     verify_rc = eeprom_verify_bytes( GET_STORE_OFFSET(hpid_temp_c_scaled), sizeof(hpid_temp_c_scaled), (uint8_t *)&hpid_temp_c_scaled );
     
     rc = ( verify_rc == 0 ) ? ERR_OK : ERR_EEPROM_VERIFY_FAIL;
@@ -80,7 +80,7 @@ extern err store_save_htune_temp( int16_t htune_temp_c_scaled )
     err rc = ERR_OK;
     uint8_t verify_rc;
     
-    eeprom_write_bytes( GET_STORE_OFFSET(htune_temp_c_scaled), sizeof(htune_temp_c_scaled), (uint8_t *)&htune_temp_c_scaled );
+    eeprom_read_write_bytes( GET_STORE_OFFSET(htune_temp_c_scaled), sizeof(htune_temp_c_scaled), (uint8_t *)&htune_temp_c_scaled );
     verify_rc = eeprom_verify_bytes( GET_STORE_OFFSET(htune_temp_c_scaled), sizeof(htune_temp_c_scaled), (uint8_t *)&htune_temp_c_scaled );
     
     rc = ( verify_rc == 0 ) ? ERR_OK : ERR_EEPROM_VERIFY_FAIL;
@@ -93,7 +93,7 @@ extern err store_save_run_on_start( uint8_t run_on_start )
     err rc = ERR_OK;
     uint8_t verify_rc;
     
-    eeprom_write_bytes( GET_STORE_OFFSET(run_on_start), sizeof(run_on_start), &run_on_start );
+    eeprom_read_write_bytes( GET_STORE_OFFSET(run_on_start), sizeof(run_on_start), &run_on_start );
     verify_rc = eeprom_verify_bytes( GET_STORE_OFFSET(run_on_start), sizeof(run_on_start), &run_on_start );
     
     rc = ( verify_rc == 0 ) ? ERR_OK : ERR_EEPROM_VERIFY_FAIL;
@@ -180,7 +180,7 @@ static err store_save_data( uint16_t offset, uint8_t data_len, uint8_t *data )
     err rc = ERR_OK;
     uint8_t verify_rc;
     
-    eeprom_write_bytes( offset, data_len, data );
+    eeprom_read_write_bytes( offset, data_len, data );
     verify_rc = eeprom_verify_bytes( offset, data_len, data );
     
     rc = ( verify_rc == 0 ) ? ERR_OK : ERR_EEPROM_VERIFY_FAIL;
