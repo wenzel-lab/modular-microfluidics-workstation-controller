@@ -69,6 +69,7 @@
 
 /* Heater Autotune Constants */
 #define HTUNE_POWER_MAX                     ( heater_output_max >> 0 )
+#define HTUNE_NO_OVERSHOOT
 #define HTUNE_TRANS_TEMP_HYST               ( HEATER_TEMP_SCALE / 10 )
 //#define HTUNE_TRANS_TEMP_HYST               ( HEATER_TEMP_SCALE / 10 )
 #define HTUNE_TRANS_TIME_MIN_S              5
@@ -106,7 +107,7 @@
 #define PACKET_TYPE_HEAT_POWER_LIMIT_SET    15
 
 /* Stirrer Constants*/
-#define STIR_DEBUG
+//#define STIR_DEBUG
 //#define STIR_DEBUG_EXTRA
 #define STIR_POWER_MAX                      0xFF
 #define STIR_POWER_MAX_SCALED               ( (int16_t)STIR_POWER_MAX << STIR_LOOP_I_SHIFT )
@@ -117,7 +118,7 @@
 #define STIR_TMRH_STOP_THRESHOLD            50
 #define STIR_LOOP_I_SHIFT                   2
 #define STIR_LOOP_P_SHIFT                   2
-#define STIR_LOOP_I_SHIFT_BOOST             20
+#define STIR_LOOP_I_SHIFT_BOOST             10
 #define STIR_SPEED_RPS_DEFAULT              10
 
 /* String Constants */
@@ -367,12 +368,15 @@ void autotune_calculate_pid( float htune_ku, float htune_tu,
                              float *htune_kp, float *htune_ki, float *htune_kd,
                              int32_t *hpid_p, int32_t *hpid_i, int32_t *hpid_d )
 {
+#ifndef HTUNE_NO_OVERSHOOT
     *htune_kp = 0.6f * htune_ku;
     *htune_ki = 2.0f * *htune_kp / htune_tu;
     *htune_kd = *htune_kp * htune_tu * 0.125f;
-//    htune_kp = 0.2f * htune_ku;
-//    htune_ki = 2.0f * htune_kp / htune_tu;
-//    htune_kd = htune_kp * htune_tu * 0.3333f;
+#else    
+    *htune_kp = 0.2f * htune_ku;
+    *htune_ki = 2.0f * *htune_kp / htune_tu;
+    *htune_kd = *htune_kp * htune_tu * 0.3333f;
+#endif
 
     *hpid_p = constrain_i32( *htune_kp * ( 1 << HTUNE_KP_SHL ), 0, UINT16_MAX );
     *hpid_i = constrain_i32( *htune_ki * ( 1 << HTUNE_KI_SHL ) * HEATER_PERIOD_MS / 1000, 0, UINT16_MAX );
@@ -763,6 +767,7 @@ err parse_packet_temp_set_target( uint8_t packet_type, uint8_t *packet_data, uin
         if ( rc == ERR_OK )
         {
             hpid_target = temp_target;
+            store_save_hpid_temp( hpid_target );
             spi_packet_write( packet_type, &rc, 1 );
         }
     }
@@ -898,6 +903,7 @@ err parse_packet_pid_set_running( uint8_t packet_type, uint8_t *packet_data, uin
                     if ( rc == ERR_OK )
                     {
                         hpid_target = temp_target;
+                        store_save_hpid_temp( hpid_target );
                         heater_pid_start();
                     }
                     break;
@@ -905,7 +911,10 @@ err parse_packet_pid_set_running( uint8_t packet_type, uint8_t *packet_data, uin
                 case HPID_STATE_RUNNING:
                     rc = temp_valid( temp_target );
                     if ( rc == ERR_OK )
+                    {
                         hpid_target = temp_target;
+                        store_save_hpid_temp( hpid_target );
+                    }
                     break;
                 default:
                     rc = ERR_ERROR;
@@ -951,7 +960,8 @@ err parse_packet_autotune_set_running( uint8_t packet_type, uint8_t *packet_data
                 temp_target = (int16_t)PTR_TO_16BIT( &packet_data[1] );
             else
                 temp_target = htune_target;
-
+            
+            store_save_htune_temp( temp_target );
             autotune_start( temp_target );
         } else if ( htune_active )
         {
@@ -1086,6 +1096,7 @@ err parse_packet_heat_power_limit_pc_set( uint8_t packet_type, uint8_t *packet_d
         {
             HPID_INTERRUPT_OFF();
             set_heat_power_limit_pc( heat_power_limit_pc );
+            store_save_heat_power_limit_pc( heat_power_limit_pc );
             HPID_INTERRUPT_ON();
         }
     }
@@ -1457,9 +1468,10 @@ int main(void)
     stir_target = 20;
     stir_state = STIR_STATE_READY;
     
+//    store_save_heat_power_limit_pc( (uint8_t)( 100.0 * 2.5 / ( ( 12.0 / 3.3 ) * 2 ) ) );    // Current limit for sample holder
 //    stir_pid_start();
-    hpid_target = 4000;
-    heater_pid_start();
+//    hpid_target = 4000;
+//    heater_pid_start();
 //    autotune_start( 4000 );
     
     while (1)
@@ -1544,7 +1556,7 @@ int main(void)
         {
             rc = ERR_OK;
             
-            printf( "Packet received: Cmd %hu\n", packet_type );
+//            printf( "Packet received: Cmd %hu\n", packet_type );
             spi_clear_write();
             
             switch ( packet_type )
