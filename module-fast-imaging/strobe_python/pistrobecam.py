@@ -4,9 +4,10 @@ from picamera import PiCamera
 class PiStrobeCam:
     strobe_wait_ns = 0
     strobe_period_ns = 0
+    framerate_set = 0
     
-    def __init__( self, spi, reply_pause_s ):
-        self.strobe = PiStrobe( spi, reply_pause_s )
+    def __init__( self, port, reply_pause_s ):
+        self.strobe = PiStrobe( port, reply_pause_s )
         self.camera = PiCamera(
             #resolution=()
             #framerate=Fraction(1, 1),
@@ -36,10 +37,12 @@ class PiStrobeCam:
         # How long the strobe is set to wait before triggering
         pre_padding_ns = pre_padding_ns + ( 1000 * strobe_pre_wait_us )
         
-        print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( pre_padding_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
+#        print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( pre_padding_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
         
         valid, self.strobe_wait_ns, self.strobe_period_ns = self.strobe.set_timing( pre_padding_ns, strobe_period_ns )
         self.strobe.set_enable( True )
+        
+        self.framerate_set = framerate
         
     def close( self ):
         self.strobe.set_enable( False )

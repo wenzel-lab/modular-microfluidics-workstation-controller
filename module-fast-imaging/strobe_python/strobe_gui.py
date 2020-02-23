@@ -1,69 +1,21 @@
-import spidev
-#from pistrobe import PiStrobe
-#from picamera import PiCamera
-from pistrobecam import PiStrobeCam
 from time import sleep
-from guizero import App, Text, Slider, PushButton, MenuBar, TextBox
+from guizero import App, Text, Slider, PushButton, MenuBar, TextBox, Box, Window
+import spidev
+import picommon
+import piholder
+from pistrobecam import PiStrobeCam
 
 WINDOW_X = 1024
-WINDOW_Y = 768
-PREVIEW_X = 500
-PREVIEW_Y = 375
+WINDOW_Y = 600
+PREVIEW_X = 470
+PREVIEW_Y = 275
 
+col_lightgray1 = "#A0A0A0"
+col_lightgray2 = "#C0C0C0"
+
+global running
 running = True
-strobe_period_ns = 10000000
 
-def spi_init( bus, device, mode, speed_hz ):
-  spi = spidev.SpiDev()
-  spi.open( bus, device )
-  spi.mode = mode
-  spi.max_speed_hz = speed_hz
-  #spi.no_cs = False
-  #spi.cshigh = False
-  return spi
-
-def update_strobe():
-  global strobe_period_ns
-  global strobe_cam
-  strobe_time_slider.value = strobe_period_ns / 1000
-  strobe_time_box.value = strobe_time_slider.value
-#  strobe_cam.set_timing( 32, strobe_period_ns, 24000000 )
-  
-  get_cam_read_time_us = 10000
-  get_cam_read_time_us_prev = 0
-  strobe_post_padding_ns = 1000000
-  while ( abs( get_cam_read_time_us - get_cam_read_time_us_prev ) > 1000 ):
-    get_cam_read_time_us_prev = get_cam_read_time_us
-    strobe_cam.set_timing( 32, strobe_period_ns, strobe_post_padding_ns )
-    print( "strobe wait={}ns, strobe period={}ns, strobe padding={}ns".format( strobe_cam.strobe_wait_ns, strobe_cam.strobe_period_ns, strobe_post_padding_ns ) )
-    valid, get_cam_read_time_us = strobe_cam.strobe.get_cam_read_time();
-    print( "get_cam_read_time_us={}".format( get_cam_read_time_us ) )
-    strobe_post_padding_ns = ( get_cam_read_time_us + 100 ) * 1000
-
-def strobe_time_slider_cmd( value ):
-  # Writes slider value to strobe
-  global strobe_period_ns
-  global strobe_time_slider
-  strobe_period_ns = int( value ) * 1000
-#  strobe_time_box.value = strobe_time_slider.value
-  try:
-    update_strobe()
-  except:
-    pass
-
-def strobe_time_box_cmd( key ):
-  global strobe_period_ns
-  try:
-    strobe_period_ns = int( strobe_time_box.value ) * 1000
-    update_strobe()
-  except:
-    strobe_time_box.value = int( strobe_period_ns / 1000 )
-
-def exit():
-  global running
-  running = False
-
-# GUIZERO
 app = App( title="Microfluidics Station", width=WINDOW_X, height=WINDOW_Y, layout="grid", visible=False, bg="white" )
 menubar = MenuBar( app,
                    toplevel=["File"],
@@ -71,43 +23,120 @@ menubar = MenuBar( app,
                        [ ["Exit", exit] ],
                    ])
 
-#exit_btn = PushButton( app, command=exit, text="Exit", grid=[3,0], align="left" )
-Text( app, text="Strobe Period (us)", grid=[0, 1], align="left" )
-strobe_time_box = TextBox( app, grid=[0, 2], align="left", command=strobe_time_box_cmd )
-#strobe_time_box = TextBox( app, grid=[0, 2], align="left" )
-#strobe_time_box.after( 1000, strobe_time_box_cmd )
-strobe_time_slider = Slider( app, grid=[0, 3], align="left", command=strobe_time_slider_cmd, start=1, end=16000 )
-strobe_time_slider.value=strobe_period_ns / 1000
+def update_gui():
+  strobe_module.update()
 
-#app.set_full_screen('')
+def exit():
+  global running
+  running = False
+
+class strobe_gui:
+  set_timing_done = False
+
+  def __init__( self, port, locx, locy ):
+    self.screen_width = app.tk.winfo_screenwidth()
+    self.screen_height = app.tk.winfo_screenheight()
+#    print( "Width {}, Height {}".format( self.screen_width, self.screen_height ) )
+    
+    self.locx = locx
+    self.locy = locy
+    self.strobe_cam = PiStrobeCam( port, 0.2 )
+    
+    valid = self.strobe_cam.strobe.set_enable( False )
+    self.enabled = valid
+    
+    box=Box( app, layout="grid", grid=[locx, locy] )
+    box.set_border( 1, "black" )
+    box.bg = col_lightgray1 if ( ( locx + locy ) % 2 == 0 ) else col_lightgray2
+    
+    Text( box, grid=[0, 0], text="Strobe", align="left" )
+    Box( box, grid=[1, 0], width=120, height=1 )
+    Box( box, grid=[2, 0], width=80, height=1 )
+    Box( box, grid=[3, 0], width=80, height=1 )
+
+    Text( box, grid=[0, 1], text="Status:", align="left" )
+    self.strobe_status_text = Text( box, grid=[1, 1], align="left" )
+    
+    Text( box, grid=[0, 2], text="Period:", align="left" )
+    self.strobe_time_text = Text( box, grid=[1, 2], align="left" )
+    self.strobe_time_text.value = "N/A"
+    self.strobe_time_box = TextBox( box, grid=[2, 2], align="left" )
+    self.strobe_time_box.value = "1000"
+    self.set_timing_btn = PushButton( box, command=self.set_timing, text="Set", grid=[3, 2], width=12, align="left", pady=1 )
+    
+    Text( box, grid=[0, 3], text="Framerate:", align="left" )
+    self.strobe_framerate_text = Text( box, grid=[1, 3], align="left" )
+    self.optimize_fps_btn = PushButton( box, command=self.optimize_fps, text="Optimize", grid=[3, 3], width=12, align="left", pady=1, visible=False )
+    
+    self.snapshot_btn = PushButton( box, command=self.save_snapshot, text="Snapshot", grid=[3, 4], width=12, align="left", pady=1 )
+    
+#    Text( box, grid=[0, 4], text="Red Back Time:", align="left" )
+#    self.strobe_readtime_text = Text( box, grid=[1, 4], align="left" )
+    
+#    Box( box, grid=[4, 4], width=10, height=10 )
+#    Box( box, grid=[0, 4], width=80, height=1 )
+    
+    self.strobe_cam.camera.start_preview( fullscreen=False, window=(self.screen_width-PREVIEW_X+1,self.screen_height-PREVIEW_Y,PREVIEW_X,PREVIEW_Y) )
+    
+  def update( self ):
+    if not self.enabled:
+      self.strobe_status_text.value = "Offline"
+    else:
+      self.strobe_status_text.value = "Online"
+    
+    self.strobe_framerate_text.value = "{} fps".format( int( self.strobe_cam.camera.framerate ) )
+#    self.strobe_framerate_text.value = "{} fps".format( int( self.strobe_cam.framerate_set ) )
+  
+  def set_timing( self ):
+    try:
+      self.strobe_period_ns = int( round( float( self.strobe_time_box.value ) * 1000, 0 ) )
+      self.strobe_period_ns = min( self.strobe_period_ns, 16000000 )
+      self.strobe_cam.set_timing( 32, self.strobe_period_ns, 20000000 )
+      self.strobe_time_text.value = "{} us".format( round( float( self.strobe_cam.strobe_period_ns ) / 1000, 3 ) )
+      self.set_timing_done = True
+      self.optimize_fps_btn.visible = True
+    except:
+      pass
+  
+  def optimize_fps( self ):
+    get_cam_read_time_us = 10000
+    get_cam_read_time_us_prev = 0
+    strobe_post_padding_ns = 1000000
+    while ( abs( get_cam_read_time_us - get_cam_read_time_us_prev ) > 1000 ):
+      self.strobe_cam.camera.stop_preview()
+      get_cam_read_time_us_prev = get_cam_read_time_us
+      self.strobe_cam.set_timing( 32, self.strobe_period_ns, strobe_post_padding_ns )
+#      print( "strobe wait={}ns, strobe period={}ns, strobe padding={}ns".format( self.strobe_cam.strobe_wait_ns, self.strobe_cam.strobe_period_ns, strobe_post_padding_ns ) )
+      valid, get_cam_read_time_us = self.strobe_cam.strobe.get_cam_read_time();
+#      print( "get_cam_read_time_us={}".format( get_cam_read_time_us ) )
+      strobe_post_padding_ns = ( get_cam_read_time_us + 100 ) * 1000
+      self.strobe_cam.camera.start_preview( fullscreen=False, window=(self.screen_width-PREVIEW_X+1,self.screen_height-PREVIEW_Y,PREVIEW_X,PREVIEW_Y) )
+  
+  def save_snapshot( self ):
+    self.strobe_cam.camera.capture( "snapshot.jpg" )
+
+picommon.spi_init( 0, 2, 30000 )
+
+strobe_module = strobe_gui( picommon.PORT_STROBE, 0, 0 )
+
 app.full_screen = True
+app.when_closed = exit
 app.show()
 app.update()
 
-spi = spi_init( 0, 0, 2, 125000 )
-
-strobe_cam = PiStrobeCam( spi, 0.1 )
-#strobe_cam.camera.resolution = ( 640, 400 )
-#strobe_cam.camera.resolution = ( 320, 200 )
-#strobe_cam.camera.sensor_mode = 4
-#print( 'Resolution: {}'.format( strobe_cam.camera.resolution ) )
-update_strobe()
-
-#strobe_cam.camera.zoom = ( 0.4, 0.4, 0.6, 0.6 )
-strobe_cam.camera.start_preview( fullscreen=False, window=(WINDOW_X-PREVIEW_X+1,WINDOW_Y-PREVIEW_Y,PREVIEW_X,PREVIEW_Y) )
-
 while running:
-  app.update()
+  try:
+    update_gui()
+    app.update()
+  except:
+    running = False
+    pass
 
-#input()
-#camera.capture('capture.jpg')
-#camera.start_recording('')
-strobe_cam.camera.stop_preview()
-#strobe_cam.close()
-#sleep(2)
-
-strobe_cam.strobe.set_enable( False )
-strobe_cam.close()
-spi.close()
-app.hide()
-
+try:
+  strobe_module.strobe_cam.camera.stop_preview()
+  strobe_module.strobe_cam.strobe.set_enable( False )
+  strobe_module.strobe_cam.close()
+  picommon.spi_close()
+  app.destroy()
+except:
+  pass
