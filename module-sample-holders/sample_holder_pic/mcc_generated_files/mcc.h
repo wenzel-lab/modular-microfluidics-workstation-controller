@@ -52,21 +52,21 @@
 #include "pin_manager.h"
 #include <stdint.h>
 #include <stdbool.h>
-#include "sccp4_tmr.h"
-#include "sccp3_capture.h"
 #include "sccp2_compare.h"
-#include "sccp1_compare.h"
-#include "spi1.h"
-#include "sccp6_compare.h"
-#include "adc1.h"
+#include "sccp3_capture.h"
+#include "sccp4_tmr.h"
 #include "sccp5_compare.h"
+#include "uart1.h"
+#include "sccp6_compare.h"
+#include "tmr1.h"
+#include "sccp1_compare.h"
+#include "spi2.h"
+#include "spi1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
 #include "reset.h"
-#include "tmr1.h"
-#include "uart1.h"
+#include "adc1.h"
 #include "watchdog.h"
-#include "spi2.h"
 
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ  8000000UL

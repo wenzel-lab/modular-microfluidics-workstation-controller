@@ -1468,7 +1468,7 @@ int main(void)
     stir_target = 20;
     stir_state = STIR_STATE_READY;
     
-//    store_save_heat_power_limit_pc( (uint8_t)( 100.0 * 2.5 / ( ( 12.0 / 3.3 ) * 2 ) ) );    // Current limit for sample holder
+//    store_save_heat_power_limit_pc( (uint8_t)( 100.0 * 2.0 / ( ( 12.0 / 25.6 ) * 1 ) ) );    // Current limit for sample holder
 //    stir_pid_start();
 //    hpid_target = 4000;
 //    heater_pid_start();
