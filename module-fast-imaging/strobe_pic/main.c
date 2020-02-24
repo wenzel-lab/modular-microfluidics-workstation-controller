@@ -1,6 +1,6 @@
 /*
  * To do:
- * - Report if detected frame rate is slower than configured strobe strobe pulse
+ * - Report if detected frame rate is slower than configured strobe pulse
  */
 
 #include "mcc_generated_files/mcc.h"
