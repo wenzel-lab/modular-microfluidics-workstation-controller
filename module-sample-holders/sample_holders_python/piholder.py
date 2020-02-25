@@ -109,10 +109,11 @@ class PiHolder:
       pid_d = 0
     return ( valid and ( data[0] == 0 ), pid_p, pid_i, pid_d )
 
-  def set_pid_running( self, running, temp_c ):
-    temp_c_scaled = round( temp_c * 100 )
+  def set_pid_running( self, running, temp_c=[] ):
     send_bytes = list( running.to_bytes( 1, 'little', signed=False ) )
-    send_bytes.extend( list( temp_c_scaled.to_bytes( 2, 'little', signed=True ) ) )
+    if ( temp_c != [] ):
+      temp_c_scaled = round( temp_c * 100 )
+      send_bytes.extend( list( temp_c_scaled.to_bytes( 2, 'little', signed=True ) ) )
     valid, data = self.packet_query( self.PACKET_TYPE_PID_SET_RUNNING, send_bytes )
     return ( ( valid and ( data[0] == 0 ) ) )
 

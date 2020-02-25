@@ -27,7 +27,7 @@ def exit():
   global running
   running = False
 
-picommon.spi_init( 0, 2, 30000 )
+picommon.spi_init( 0, 2, 50000 )
 
 heater1 = heater_box( app, 1, picommon.PORT_HEATER1, 0, 0 )
 heater2 = heater_box( app, 2, picommon.PORT_HEATER2, 0, 5 )

@@ -37,12 +37,14 @@ class PiStrobeCam:
         # How long the strobe is set to wait before triggering
         pre_padding_ns = pre_padding_ns + ( 1000 * strobe_pre_wait_us )
         
-#        print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( pre_padding_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
+        #print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( pre_padding_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
         
         valid, self.strobe_wait_ns, self.strobe_period_ns = self.strobe.set_timing( pre_padding_ns, strobe_period_ns )
         self.strobe.set_enable( True )
         
         self.framerate_set = framerate
+        
+        return valid
         
     def close( self ):
         self.strobe.set_enable( False )

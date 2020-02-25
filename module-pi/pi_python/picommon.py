@@ -1,4 +1,5 @@
 import spidev
+import time
 import RPi.GPIO as GPIO
 
 PORT_NONE         = 0
@@ -9,8 +10,8 @@ PORT_HEATER4      = 36
 PORT_STROBE       = 24
 PORT_FLOW         = 26
 
-col_lightgray1 = "#A0A0A0"
-col_lightgray2 = "#C0C0C0"
+col_lightgray1 = "#C0C0C0"
+col_lightgray2 = "#E0E0E0"
 
 global current_device
 global spi
@@ -46,18 +47,23 @@ def spi_close():
 def spi_select_device( device ):
   global current_device
   
-  if current_device != PORT_NONE and device != current_device:
+  if ( current_device != PORT_NONE  ) and ( device != current_device ) :
     GPIO.output( current_device, GPIO.HIGH )
+    #print( "Dropped {}".format( current_device ) )
+    current_device = PORT_NONE
+    #time.sleep(0.1)
   
-  if ( device != PORT_NONE ):
+  if ( device != PORT_NONE ) and ( device != current_device ) :
     GPIO.output( device, GPIO.LOW )
     current_device = device
-#    print( "Selected {}".format( current_device ) )
+    #print( "Selected {}".format( current_device ) )
 
 def spi_deselect_current():
   global current_device
   
-  if ( current_device != PORT_NONE ):
+  if ( current_device != PORT_NONE ) :
     GPIO.output( current_device, GPIO.HIGH )
-#    print( "Deselected {}".format( current_device ) )
+    #print( "Deselected {}".format( current_device ) )
+    current_device = PORT_NONE
+    #time.sleep(0.1)
     
