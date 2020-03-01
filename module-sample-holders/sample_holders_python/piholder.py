@@ -19,6 +19,10 @@ class PiHolder:
   PACKET_TYPE_AUTOTUNE_SET_RUNNING  = 9
   PACKET_TYPE_AUTOTUNE_GET_RUNNING  = 10
   PACKET_TYPE_AUTOTUNE_GET_STATUS   = 11
+  PACKET_TYPE_STIR_SET_RUNNING      = 12
+  PACKET_TYPE_STIR_GET_STATUS       = 13
+  PACKET_TYPE_STIR_SPEED_GET_ACTUAL = 14
+  PACKET_TYPE_HEAT_POWER_LIMIT_SET  = 15
   
   def __init__( self, device_port, reply_pause_s ):
     self.device_port = device_port
@@ -165,3 +169,25 @@ class PiHolder:
       autotune_status = 0
       autotune_fail = 0
     return ( valid and ( data[0] == 0 ), autotune_status, autotune_fail )
+  
+  def get_stir_speed_actual( self ):
+    valid, data = self.packet_query( self.PACKET_TYPE_STIR_SPEED_GET_ACTUAL, [] )
+    if valid:
+      stir_speed_rps = int.from_bytes( data[1:3], byteorder='big', signed=False )
+    else:
+      stir_speed_rps = 0
+    return ( valid and ( data[0] == 0 ), stir_speed_rps )
+  
+  def get_stir_status( self ):
+    valid, data = self.packet_query( self.PACKET_TYPE_STIR_GET_STATUS, [] )
+    if valid:
+      stir_status = data[1]
+    else:
+      stir_status = 0
+    return ( valid and ( data[0] == 0 ), stir_status )
+  
+  def set_stir_running( self, running, stir_speed_rps ):
+    send_bytes = list( running.to_bytes( 1, 'little', signed=False ) )
+    send_bytes.extend( list( stir_speed_rps.to_bytes( 2, 'little', signed=False ) ) )
+    valid, data = self.packet_query( self.PACKET_TYPE_STIR_SET_RUNNING, send_bytes )
+    return ( ( valid and ( data[0] == 0 ) ) )

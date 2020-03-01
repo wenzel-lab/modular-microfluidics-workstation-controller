@@ -1556,7 +1556,7 @@ int main(void)
         {
             rc = ERR_OK;
             
-            printf( "Packet received: Cmd %hu\n", packet_type );
+//            printf( "Packet received: Cmd %hu\n", packet_type );
             spi_clear_write();
             
             switch ( packet_type )
