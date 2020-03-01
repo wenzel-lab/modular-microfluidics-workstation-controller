@@ -14677,7 +14677,7 @@ Source: www.kingbright.com</description>
 <label x="17.78" y="162.56" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="SPI1" class="0">
+<net name="SPI_SS" class="0">
 <segment>
 <pinref part="IC2" gate="G$1" pin="RB0"/>
 <wire x1="-17.78" y1="147.32" x2="-30.48" y2="147.32" width="0.1524" layer="91"/>
@@ -14689,7 +14689,7 @@ Source: www.kingbright.com</description>
 <label x="48.26" y="160.02" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="SPI2" class="0">
+<net name="SPI_MISO" class="0">
 <segment>
 <pinref part="IC2" gate="G$1" pin="RB3"/>
 <wire x1="-17.78" y1="139.7" x2="-30.48" y2="139.7" width="0.1524" layer="91"/>
@@ -14701,7 +14701,7 @@ Source: www.kingbright.com</description>
 <label x="48.26" y="165.1" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="SPI3" class="0">
+<net name="SPI_MOSI" class="0">
 <segment>
 <pinref part="IC2" gate="G$1" pin="RB4"/>
 <wire x1="-17.78" y1="137.16" x2="-30.48" y2="137.16" width="0.1524" layer="91"/>
@@ -14713,7 +14713,7 @@ Source: www.kingbright.com</description>
 <label x="48.26" y="162.56" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="SPI4" class="0">
+<net name="SPI_CLK" class="0">
 <segment>
 <pinref part="IC2" gate="G$1" pin="RB5"/>
 <wire x1="-17.78" y1="134.62" x2="-30.48" y2="134.62" width="0.1524" layer="91"/>
