@@ -1398,6 +1398,9 @@ void stir_pid()
     stir_output_scaled = constrain_i32( stir_output_scaled, 0, STIR_POWER_MAX_SCALED );
     stir_output = stir_output_scaled >> STIR_LOOP_I_SHIFT;
     
+    /* Some power is required in order to generate feedback */
+//    stir_output = constrain_i32( stir_output, 1, STIR_POWER_MAX );
+    
     SET_STIR_OUTPUT( stir_output );
 
 #ifdef STIR_DEBUG
@@ -1407,18 +1410,6 @@ void stir_pid()
     #endif
     printf( "\n" );
 #endif
-}
-
-void stir_test()
-{
-    stir_target = 20;
-    stir_state = STIR_STATE_READY;
-    
-    stir_pid_start();
-    
-    TMR1_SetInterruptHandler( timer1_isr );
-    
-    while (1);
 }
 
 void startup_test( void )
@@ -1437,6 +1428,7 @@ void startup_test( void )
     if ( !all_okay )
     {
         printf( "Shutting down\n" );
+        SET_LED_OUTPUT( LED_OUTPUT_MAX );
         while (1);
     }
 }
@@ -1457,7 +1449,6 @@ int main(void)
     init();
     
     storage_startup();
-//    stir_test();
     
     /* Init SPI */
     spi_init();
@@ -1470,9 +1461,16 @@ int main(void)
     
 //    store_save_heat_power_limit_pc( (uint8_t)( 100.0 * 2.0 / ( ( 12.0 / 25.6 ) * 1 ) ) );    // Current limit for sample holder
 //    stir_pid_start();
-//    hpid_target = 4000;
-//    heater_pid_start();
-//    autotune_start( 4000 );
+    
+#if 0
+    if ( status_pid_valid )
+    {
+        hpid_target = 4000;
+        heater_pid_start();
+    }
+    else
+        autotune_start( 4000 );
+#endif
     
     while (1)
     {
@@ -1484,6 +1482,7 @@ int main(void)
             temp_c_scaled = heater_temp_c_scaled;
             HPID_INTERRUPT_ON();
             
+#if 1
             if ( htune_active )
             {
                 printf( "Temp %0.2f (%5u), Output %5u, heating %1d, bias %5u, delta %5u, cycles %2u, min %3d, max %3d, heattime %6d, cooltime %6d, ku %0.1f, tu %0.3f, PID %5li %5li %5li\n",
@@ -1510,6 +1509,7 @@ int main(void)
                         constrain_i32( ( hpid_error_prev * hpid_p ) >> HTUNE_KP_SHL, -(int32_t)UINT16_MAX, UINT16_MAX ),
                         hpid_integrated >> HTUNE_KI_SHL,
                         constrain_i32( hpid_diff, -(int32_t)UINT16_MAX, UINT16_MAX ) );
+#endif
         }
         
         /* Set LED output */
@@ -1556,7 +1556,7 @@ int main(void)
         {
             rc = ERR_OK;
             
-//            printf( "Packet received: Cmd %hu\n", packet_type );
+            printf( "Packet received: Cmd %hu\n", packet_type );
             spi_clear_write();
             
             switch ( packet_type )
