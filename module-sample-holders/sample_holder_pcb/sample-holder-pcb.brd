@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.5.2">
+<eagle version="9.5.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -1894,7 +1894,7 @@ design rules under a new name.</description>
 <attribute name="POPULARITY" value="15" x="48.5" y="26.75" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="48.5" y="27.35" size="0.0254" layer="27"/>
 </element>
-<element name="R6" library="rcl" library_urn="urn:adsk.eagle:library:334" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="1k" x="47.25" y="24.5" smashed="yes" rot="R90">
+<element name="R6" library="rcl" library_urn="urn:adsk.eagle:library:334" package="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="510R" x="47.25" y="24.5" smashed="yes" rot="R90">
 <attribute name="NAME" x="46.615" y="23.865" size="1.27" layer="25" rot="R90"/>
 <attribute name="SPICEPREFIX" value="R" x="47.25" y="24.5" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="49.155" y="23.865" size="1.27" layer="27" rot="R90"/>
