@@ -58,24 +58,26 @@ The connector on the right is the secondary connector that connects to the exter
 
 A power FET is mounted on the bottom of the PCB and drives the heaters.  It is intended to touch the metal the PCB is mounted on, with thermal paste between FET and metal.
 
-### BOM
+### BOM and Placement
 
-|Qty|Component|Description|
-|-|-|-|
-|1|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
-|1|25AA128-I/ST TSSOP8|SPI EEPROM|
-|1|TO229P239X654X978-3P|MOSFET|
-|2|MMBT3904LT1 SOT23|NPN Transistor|
-|2|MMBT3906LT1 SOT23|PNP Transistor|
-|1|LTST-S270KGKT 0603|Green Side View LED|
-|2|10 Pin 2 Row Angled Header||
-|1|3.3k Resistor|Temperature Sensor Reference|
-|6|1k Resistor 0603||
-|1|10k Resistor 0603|PIC MCLR Pull Up|
-|1|120R Resistor 0603|LED Resistor|
-|4|100nf Capacitor 0603|Decoupling Capacitors|
-|1|1nf Capacitor 0603|Motor Drive Capacitor|
-|1|10uf Capacitor 1206|Bulk Capacitor|
+<img src="images/sample_holder_pcb_placement_top.jpg" width=50%><img src="images/sample_holder_pcb_placement_bottom.jpg" width=50%>
+
+|Qty|Name|Component|Description|
+|-|-|-|-|
+|1|IC2|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
+|1|IC1|25AA128-I/ST TSSOP8|SPI EEPROM|
+|1|Q1|TO229P239X654X978-3P|MOSFET|
+|2|T1,T3|MMBT3904LT1 SOT23|NPN Transistor|
+|2|T2,T4|MMBT3906LT1 SOT23|PNP Transistor|
+|1|LED1|LTST-S270KGKT 0603|Green Side View LED|
+|2|J1,J2|10 Pin 2 Row Angled Header||
+|1|R7|3.3k Resistor|Temperature Sensor Reference|
+|6|R1-R6|1k Resistor 0603||
+|1|R9|10k Resistor 0603|PIC MCLR Pull Up|
+|1|R8|120R Resistor 0603|LED Resistor|
+|4|C1,C2,C4,C6|100nf Capacitor 0603|Decoupling Capacitors|
+|1|C3|1nf Capacitor 0603|Motor Drive Capacitor|
+|1|C5|10uf Capacitor 1206|Bulk Capacitor|
 
 ## Tobey's text
 
