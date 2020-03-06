@@ -4,7 +4,9 @@
 
 <img src="images/sample_holder_pcb_top.jpg" width=50%><img src="images/sample_holder_pcb_bottom.jpg" width=50%>
 
-The Sample Holder PCB has been designed for dual use.  It can be mounted in a sample holder, with heaters, temperature sensor and stir motor wires soldered to the PCB.  Alternatively, it can also be used with external heater and temperature sensor attached via the secondary connector as shown below.
+The Sample Holder PCB is the heart of the sample holder and contains a PIC microprocessor that reads the temperature sensor, controls the heaters and stirrer motor and offers an SPI interface to a host.
+
+The PCB has been designed for dual use.  It can be mounted in a sample holder with heaters, temperature sensor and stir motor wires soldered to the PCB.  Alternatively, it can also be used with external heater and temperature sensor attached via the secondary connector as shown below.
 
 <img src="images/sample_holder_pcb_wired.jpg" width=50%>
 
@@ -55,6 +57,19 @@ The connector on the right is the secondary connector that connects to the exter
 <img src="images/sample_holder_pcb_side.jpg" width=50%>
 
 A power FET is mounted on the bottom of the PCB and drives the heaters.  It is intended to touch the metal the PCB is mounted on, with thermal paste between FET and metal.
+
+### BOM
+
+|Qty|Component|Description|
+|-|-|-|
+|1|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
+|1|25AA128-I/ST TSSOP8|EEPROM|
+|1|TO229P239X654X978-3P|MOSFET|
+|1|MMBT3904LT1 SOT23|NPN Transistor|
+|1|MMBT3906LT1 SOT23|PNP Transistor|
+|1|LTST-S270KGKT 0603|Green Side View LED|
+|2||10 Pin 2 Row Header|
+|1|||
 
 ## Tobey's text
 
