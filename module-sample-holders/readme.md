@@ -63,13 +63,19 @@ A power FET is mounted on the bottom of the PCB and drives the heaters.  It is i
 |Qty|Component|Description|
 |-|-|-|
 |1|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
-|1|25AA128-I/ST TSSOP8|EEPROM|
+|1|25AA128-I/ST TSSOP8|SPI EEPROM|
 |1|TO229P239X654X978-3P|MOSFET|
-|1|MMBT3904LT1 SOT23|NPN Transistor|
-|1|MMBT3906LT1 SOT23|PNP Transistor|
+|2|MMBT3904LT1 SOT23|NPN Transistor|
+|2|MMBT3906LT1 SOT23|PNP Transistor|
 |1|LTST-S270KGKT 0603|Green Side View LED|
-|2||10 Pin 2 Row Header|
-|1|||
+|2|10 Pin 2 Row Angled Header||
+|1|3.3k Resistor|Temperature Sensor Reference|
+|6|1k Resistor 0603||
+|1|10k Resistor 0603|PIC MCLR Pull Up|
+|1|120R Resistor 0603|LED Resistor|
+|4|100nf Capacitor 0603|Decoupling Capacitors|
+|1|1nf Capacitor 0603|Motor Drive Capacitor|
+|1|10uf Capacitor 1206|Bulk Capacitor|
 
 ## Tobey's text
 
