@@ -2,13 +2,15 @@
 
 <img src="images/sample_holder_with_insert.jpg" width=50%>
 
-The Sample Holder Module comprises a PCB, two cartridge heaters, temperature sensor (NTC thermister) and stirring motor and magnets, all integrated into an aluminium shell.  Aluminium inserts that slot into the top can be machined to accommodate sample bottles of various shapes and sizes.  The Sample Holder connects to a Raspberry Pi via SPI, from which the sample holder temperature and stir speed are set and monitored.
+The sample holder module comprises a PCB, two cartridge heaters, temperature sensor and stirring motor and magnets, all integrated into an aluminium shell.  Aluminium inserts that slot into the top can be machined to accommodate sample bottles of various shapes and sizes.  The sample holder connects to a Raspberry Pi via SPI, from which the sample holder temperature and stir speed are set and monitored.
+
+The sample holder has been tested to 100 degrees Celcius and provides a stable (but uncalibrated) readout to 0.01 degrees Celcius.
 
 ## PCB
 
 <img src="images/sample_holder_pcb_top.jpg" width=50%><img src="images/sample_holder_pcb_bottom.jpg" width=50%>
 
-The Sample Holder PCB is the heart of the sample holder and contains a PIC microprocessor that reads the temperature sensor, controls the heaters and stirrer motor and offers an SPI interface to a host.
+The sample holder PCB is the heart of the sample holder and contains a PIC microprocessor that reads the temperature sensor, controls the heaters and stirrer motor and offers an SPI interface to a host.
 
 The PCB has been designed for dual use.  It can be mounted in a sample holder with heaters, temperature sensor and stir motor wires soldered to the PCB.  Alternatively, it can also be used with external heater and temperature sensor attached via the secondary connector as shown below.
 
@@ -82,6 +84,24 @@ A power FET is mounted on the bottom of the PCB and drives the heaters.  It is i
 |4|C1,C2,C4,C6|100nf Capacitor 0603|Decoupling Capacitors|
 |1|C3|1nf Capacitor 0603|Motor Drive Capacitor|
 |1|C5|10uf Capacitor 1206|Bulk Capacitor|
+
+## Heaters and Sensors
+
+<img src="images/sample_holder_heaters_and_sensors.jpg" width=50%>
+
+The heaters are 3.3 Ohm (rated 12V, 40W) stainless steel cartridges that insert into holes drilled into the top section of the sample holder.  A temperature sensor is inserted into a hole drilled into the same section.  The temperature sensor is a negative coefficient thermister (NTC).  These heaters and temperature sensors are commonly used in 3D printers and can be found on eBay or Amazon.
+
+## Stirrer Motor and Magnets
+
+The stirrer motor rotates two attached magnets, which in turn rotate an optional stirrer magnet in the sample bottle inserted into the top of the sample holder.
+
+The stirrer motor is a standard 40mm x 40mm x 10mm, three wire fan.  The rotating side points upward and has two 6mm diameter x 2mm thick Neodymium magnets mounted flat next to each other (opposing poles same side) in the centre of the fan.  The magnets have to be raised off the fan such that their fields do not interfere with the operation of the fan, be close enough to the stirrer magnet, while not touching the opposing surface.  We find that raising it 3-4mm with layers of double sided tape is sufficient and provides enough strength to spin the stirrer magnet.  The fan wire colours are typically black=ground, red=12V, yellow=sense/tachometer.
+
+## Power Considerations
+
+The heaters can draw quite a lot of power, so an adequate 12V power supply must be provided.  At full power with two 3.3 Ohm heaters, the required current can be calculated as:
+I = ( 12V / 3.3 Ohm ) * 2 heaters = 7.3A
+The maximum power can be limited by storing a power limit percentage to the sample holder via SPI.  Alternatively, these 40W heater cartridges are also made for 24V, which have around 4x the resistance (P=V^2/R, 40=24^2/R, R=14.4 Ohm) and will thus consume 1/4 as much power, but heat more slowly.
 
 ## Tobey's text
 
