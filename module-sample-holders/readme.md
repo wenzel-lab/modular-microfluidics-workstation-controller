@@ -20,7 +20,7 @@ The connector on the left is the primary connector and provides 12V power for th
 
 The connector on the right is the secondary connector that connects to the external heater (black wires) and temperature sensor (white wires).  The polarity of heater and temperature sensor does not matter.  The connector also provides debug serial output and ICSP interface for reprogramming the PIC microprocessor.
 
-### Primary Connector : Power and SPI Interface
+### PCB Primary Connector : Power and SPI Interface
 
 <img src="images/sample_holder_pcb_connector.jpg" width=10%>
 
@@ -39,7 +39,7 @@ The connector on the right is the secondary connector that connects to the exter
 
 **Note:** Vss(GND) must be connected with Heater 0V, and in a way that prevents ground loops.
 
-### Secondary Connector : External Heater, Temperature Sensor, Debug Serial and Programming Interface (ICSP)
+### PCB Secondary Connector : External Heater, Temperature Sensor, Debug Serial and Programming Interface (ICSP)
 
 <img src="images/sample_holder_pcb_connector.jpg" width=10%>
 
@@ -58,13 +58,13 @@ The connector on the right is the secondary connector that connects to the exter
 
 **Note:** Do not supply ICSP 3.3V while also supplying Vdd 3.3V as they are connected.
 
-### FET Mounting
+### PCB FET Mounting
 
 <img src="images/sample_holder_pcb_side.jpg" width=50%>
 
 A power FET is mounted on the bottom of the PCB and drives the heaters.  It is intended to touch the metal the PCB is mounted on, with thermal paste between FET and metal.
 
-### BOM and Placement
+### PCB Components
 
 <img src="images/sample_holder_pcb_placement_top.jpg" width=50%><img src="images/sample_holder_pcb_placement_bottom.jpg" width=50%>
 
