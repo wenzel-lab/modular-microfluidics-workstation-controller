@@ -1,5 +1,9 @@
 # Sample Holder Module
 
+<img src="images/sample_holder_with_insert.jpg" width=50%>
+
+The Sample Holder Module comprises a PCB, two cartridge heaters, temperature sensor (NTC thermister) and stirring motor and magnets, all integrated into an aluminium shell.  Aluminium inserts that slot into the top can be machined to accommodate sample bottles of various shapes and sizes.  The Sample Holder connects to a Raspberry Pi via SPI, from which the sample holder temperature and stir speed are set and monitored.
+
 ## PCB
 
 <img src="images/sample_holder_pcb_top.jpg" width=50%><img src="images/sample_holder_pcb_bottom.jpg" width=50%>
