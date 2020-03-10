@@ -18,7 +18,7 @@
 #include "ads1115.h"
 #include "eeprom.h"
 #include "storage.h"
-#include "sensirion.h"
+#include "sensirion_lg16.h"
 #include "pca9544a.h"
 
 /* Pressure Constants */
@@ -368,8 +368,6 @@ void read_flows( void )
     err rc = ERR_OK;
     uint8_t chan;
     int16_t flow;
-    int16_t temp;
-    sensirion_flags_t flags;
     float pressure_actual;
     float pressure_target;
 //    uint16_t elapsed;
@@ -385,7 +383,7 @@ void read_flows( void )
 
         /* Read Sensirion flow rate */
         if ( rc == ERR_OK )
-            rc = sensirion_measurement_read( &flow, &temp, &flags );
+            rc = sensirion_measurement_read( &flow );
 //        if ( chan == 0 )
 //            elapsed = TMR1 - elapsed;
         
@@ -459,11 +457,11 @@ int main(void)
 {
     err rc = 0;
     bool adc_i2c_wait;
-    uint32_t sensirion_product_num;
-    uint64_t sensirion_serial;
+    char sensirion_part_num[SENSIRION_PART_NAME_STR_LEN];
+    uint16_t adv_user_reg;
 //    uint8_t ints, enabled, channel;
-//    int16_t flow, temp;
-//    sensirion_flags_t flags;
+    int16_t flow;
+    uint16_t flow_scale;
     
     SYSTEM_Initialize();
     init();
@@ -502,20 +500,30 @@ int main(void)
     */
     
     /* Init Sensirion flow sensor */
-    rc = pca9544a_write( pca9544a_i2c_addr, 1, 0 );
-    rc = sensirion_read_id( &sensirion_product_num, &sensirion_serial );
+    rc = pca9544a_write( pca9544a_i2c_addr, 1, 1 );
+    rc = sensirion_read_part_name( sensirion_part_num );
     printf( "Sensirion Read ID RC: %hu\n", rc );
-    printf( "Sensirion Product Num: %lx\n", sensirion_product_num );
-    printf( "Sensirion Serial: %llx\n", sensirion_serial );
+    printf( "Sensirion Part Name: %s\n", sensirion_part_num );
+    rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
+    printf( "Sensirion Read Adv User Reg RC: %u\n", rc );
+    printf( "Sensirion Adv User Reg: %u\n", adv_user_reg );
+    adv_user_reg &= ~0x02;          // Disable hold-master
+    rc = sensirion_write_reg( SENSIRION_REG_ADV_USER_WRITE, adv_user_reg );
+    printf( "Sensirion Write Adv User Reg RC: %u, %u\n", rc, adv_user_reg );
+    rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
+    printf( "Sensirion Read Adv User Reg RC: %u\n", rc );
+    printf( "Sensirion Adv User Reg: %u\n", adv_user_reg );
+    
+    rc = sensirion_read_scale( SENSIRION_EEPROM_ADDR_SCALE0, &flow_scale );
+    printf( "Sensirion Read Scale RC: %u\n", rc );
+    printf( "Sensirion Scale: %u\n", flow_scale );
+    
     rc = sensirion_measurement_start();
     printf( "Sensirion Measurement Start RC: %hu\n", rc );
-    /*
     __delay_ms( 100 );
-    rc = sensirion_measurement_read( &flow, &temp, &flags );
+    rc = sensirion_measurement_read( &flow );
     printf( "Sensirion Measurement Read RC: %hu\n", rc );
-    rc = sensirion_measurement_stop();
-    printf( "Sensirion Measurement Stop RC: %hu\n", rc );
-    */
+    printf( "Sensirion Measurement Flow: %i\n", flow );
     
     while ( 1 );
     
