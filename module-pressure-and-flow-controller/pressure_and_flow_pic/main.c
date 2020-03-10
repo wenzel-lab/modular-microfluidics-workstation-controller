@@ -3,6 +3,7 @@
  *   ADS1115 = 0x48
  *   PCA... = 0x70
  *   Sensirion = 0x08
+ *   Sensirion LG16 = 0x40
  */
 
 #include <xc.h>
@@ -82,8 +83,13 @@ typedef enum
     FLOW_CTRL_STATE_ERROR
 } E_FLOW_CTRL_STATE;
 
+/* String Constants */
+const char *OK_STR = "OK";
+const char *FAIL_STR = "FAIL";
+
 /* System Data */
 uint8_t device_id[] = "MICROFLOW";
+bool eeprom_okay;
 volatile uint16_t timer_ms;
 
 /* Pressure Data */
@@ -334,7 +340,11 @@ void __attribute__ ((weak)) timer_isr(void)
 
 void storage_save_defaults()
 {
-    store_save_eeprom_ver( EEPROM_VER );
+    err rc;
+    
+    rc = store_save_eeprom_ver( EEPROM_VER );
+    
+    printf( "Save Defaults %s\n", (rc==ERR_OK) ? "OK" : "FAIL" );
 }
 
 void storage_startup()
@@ -425,6 +435,26 @@ void update_outputs( void )
     set_pressures();
 }
 
+void startup_test( void )
+{
+    bool all_okay = true;
+    
+    eeprom_okay = eeprom_comms_check();
+    all_okay &= eeprom_okay;
+    
+    printf( "EEPROM %s\n", eeprom_okay ? OK_STR : FAIL_STR );
+    
+    printf( "Startup test %s\n", all_okay ? OK_STR : FAIL_STR );
+    printf( "\n" );
+    
+    /* If something fails, shut down */
+    if ( !all_okay )
+    {
+        printf( "Shutting down\n" );
+        while (1);
+    }
+}
+
 int main(void)
 {
     err rc = 0;
@@ -442,6 +472,8 @@ int main(void)
     printf( "\033\143" );  // Clear / reset terminal
     __delay_ms( 100 );
     printf( "\r\nStarting...\n\n" );
+    
+    startup_test();
     
     /* Load Settings from EEPROM */
     storage_startup();
@@ -485,7 +517,7 @@ int main(void)
     printf( "Sensirion Measurement Stop RC: %hu\n", rc );
     */
     
-//    while ( 1 );
+    while ( 1 );
     
     /* Init SPI */
     spi_init();

@@ -56,6 +56,152 @@
 */
 /**
   @Summary
+    Sets the GPIO pin, RA1, high using LATA1.
+
+  @Description
+    Sets the GPIO pin, RA1, high using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA1 high (1)
+    SPI3_EE_SS_SetHigh();
+    </code>
+
+*/
+#define SPI3_EE_SS_SetHigh()          _LATA1 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RA1, low using LATA1.
+
+  @Description
+    Sets the GPIO pin, RA1, low using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA1 low (0)
+    SPI3_EE_SS_SetLow();
+    </code>
+
+*/
+#define SPI3_EE_SS_SetLow()           _LATA1 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RA1, using LATA1.
+
+  @Description
+    Toggles the GPIO pin, RA1, using LATA1.
+
+  @Preconditions
+    The RA1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RA1
+    SPI3_EE_SS_Toggle();
+    </code>
+
+*/
+#define SPI3_EE_SS_Toggle()           _LATA1 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RA1.
+
+  @Description
+    Reads the value of the GPIO pin, RA1.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RA1
+    postValue = SPI3_EE_SS_GetValue();
+    </code>
+
+*/
+#define SPI3_EE_SS_GetValue()         _RA1
+/**
+  @Summary
+    Configures the GPIO pin, RA1, as an input.
+
+  @Description
+    Configures the GPIO pin, RA1, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA1 as an input
+    SPI3_EE_SS_SetDigitalInput();
+    </code>
+
+*/
+#define SPI3_EE_SS_SetDigitalInput()  _TRISA1 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RA1, as an output.
+
+  @Description
+    Configures the GPIO pin, RA1, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA1 as an output
+    SPI3_EE_SS_SetDigitalOutput();
+    </code>
+
+*/
+#define SPI3_EE_SS_SetDigitalOutput() _TRISA1 = 0
+/**
+  @Summary
     Sets the GPIO pin, RB0, high using LATB0.
 
   @Description
@@ -1076,152 +1222,6 @@
 
 */
 #define ADC_RDY_SetDigitalOutput() _TRISB14 = 0
-/**
-  @Summary
-    Sets the GPIO pin, RB15, high using LATB15.
-
-  @Description
-    Sets the GPIO pin, RB15, high using LATB15.
-
-  @Preconditions
-    The RB15 must be set to an output.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Set RB15 high (1)
-    SPI3_EE_SS_SetHigh();
-    </code>
-
-*/
-#define SPI3_EE_SS_SetHigh()          _LATB15 = 1
-/**
-  @Summary
-    Sets the GPIO pin, RB15, low using LATB15.
-
-  @Description
-    Sets the GPIO pin, RB15, low using LATB15.
-
-  @Preconditions
-    The RB15 must be set to an output.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Set RB15 low (0)
-    SPI3_EE_SS_SetLow();
-    </code>
-
-*/
-#define SPI3_EE_SS_SetLow()           _LATB15 = 0
-/**
-  @Summary
-    Toggles the GPIO pin, RB15, using LATB15.
-
-  @Description
-    Toggles the GPIO pin, RB15, using LATB15.
-
-  @Preconditions
-    The RB15 must be set to an output.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Toggle RB15
-    SPI3_EE_SS_Toggle();
-    </code>
-
-*/
-#define SPI3_EE_SS_Toggle()           _LATB15 ^= 1
-/**
-  @Summary
-    Reads the value of the GPIO pin, RB15.
-
-  @Description
-    Reads the value of the GPIO pin, RB15.
-
-  @Preconditions
-    None.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    uint16_t portValue;
-
-    // Read RB15
-    postValue = SPI3_EE_SS_GetValue();
-    </code>
-
-*/
-#define SPI3_EE_SS_GetValue()         _RB15
-/**
-  @Summary
-    Configures the GPIO pin, RB15, as an input.
-
-  @Description
-    Configures the GPIO pin, RB15, as an input.
-
-  @Preconditions
-    None.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Sets the RB15 as an input
-    SPI3_EE_SS_SetDigitalInput();
-    </code>
-
-*/
-#define SPI3_EE_SS_SetDigitalInput()  _TRISB15 = 1
-/**
-  @Summary
-    Configures the GPIO pin, RB15, as an output.
-
-  @Description
-    Configures the GPIO pin, RB15, as an output.
-
-  @Preconditions
-    None.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Sets the RB15 as an output
-    SPI3_EE_SS_SetDigitalOutput();
-    </code>
-
-*/
-#define SPI3_EE_SS_SetDigitalOutput() _TRISB15 = 0
 /**
   @Summary
     Sets the GPIO pin, RB2, high using LATB2.

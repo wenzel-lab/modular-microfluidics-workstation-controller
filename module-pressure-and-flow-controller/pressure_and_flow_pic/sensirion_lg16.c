@@ -3,7 +3,7 @@
 #include "common.h"
 #include "sensirion.h"
 
-#define I2C_ADDR            8
+#define I2C_ADDR            0x40
 #define I2C_TIMEOUT_MS      2
 
 /* Static Prototypes */
