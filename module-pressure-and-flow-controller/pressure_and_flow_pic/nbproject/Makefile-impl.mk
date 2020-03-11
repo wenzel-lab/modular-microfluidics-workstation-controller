@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=pressure_and_flow_pic
 
 # Active Configuration
-DEFAULTCONF=default
+DEFAULTCONF=Snap
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=default 
+ALLCONFS=Unpowered 3_3V Snap 
 
 
 # build
@@ -45,13 +45,17 @@ ALLCONFS=default
 
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3V clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap clean
 
 
 
 # all
 .all-impl: .all-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3V build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap build
 
 
 

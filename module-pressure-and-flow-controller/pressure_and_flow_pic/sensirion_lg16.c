@@ -8,8 +8,9 @@
 */
 
 #include "mcc_generated_files/mcc.h"
-#include <stdio.h>
 #include "common.h"
+#include <libpic30.h>
+#include <stdio.h>
 #include "sensirion_lg16.h"
 
 #define I2C_ADDR            0x40
@@ -19,7 +20,7 @@
 #define COPY_16BIT_TO_PTR_REV(ptr,val)  {*ptr=*((uint8_t *)&val+1); *(ptr+1)=*(uint8_t *)&val;}
 
 /* Static Prototypes */
-static err i2c_wait_for_reply( volatile I2C2_MESSAGE_STATUS *status, uint8_t timeout_ms );
+static err i2c_wait_for_reply( volatile I2C2_MESSAGE_STATUS *status, uint16_t timeout_ms );
 
 /* Extern Functions */
 
@@ -82,6 +83,21 @@ extern err sensirion_write_reg( uint8_t reg, uint16_t reg_data )
     return rc;
 }
 
+extern err sensirion_reset( bool wait )
+{
+    err rc = ERR_OK;
+    volatile I2C2_MESSAGE_STATUS status;
+    uint8_t cmd = 0xFE;
+    
+    I2C2_MasterWrite( &cmd, 1, I2C_ADDR, (I2C2_MESSAGE_STATUS *)&status );
+    rc = i2c_wait_for_reply( &status, I2C_TIMEOUT_MS );
+    
+    if ( ( rc == ERR_OK ) && wait )
+        __delay_ms( 3 );    // Boot time to comms
+    
+    return rc;
+}
+
 extern err sensirion_read_part_name( char *part_name )
 {
     err rc;
@@ -129,9 +145,10 @@ extern err sensirion_measurement_start( void )
     volatile I2C2_MESSAGE_STATUS status;
     I2C2_TRANSACTION_REQUEST_BLOCK trBlocks[2];
     uint8_t cmd = 0xF1;
+    uint8_t dummy;
     
     I2C2_MasterWriteTRBBuild( &trBlocks[0], (void *)&cmd, 1, I2C_ADDR );
-    I2C2_MasterReadTRBBuild( &trBlocks[1], NULL, 0, I2C_ADDR );
+    I2C2_MasterReadTRBBuild( &trBlocks[1], &dummy, 1, I2C_ADDR );
     I2C2_MasterTRBInsert( 2, (I2C2_TRANSACTION_REQUEST_BLOCK *)&trBlocks, (I2C2_MESSAGE_STATUS *)&status );
     rc = i2c_wait_for_reply( &status, I2C_TIMEOUT_MS );
     
@@ -163,7 +180,7 @@ extern err sensirion_measurement_read( int16_t *flow )
 
 /* Static Functions */
 
-static err i2c_wait_for_reply( volatile I2C2_MESSAGE_STATUS *status, uint8_t timeout_ms )
+static err i2c_wait_for_reply( volatile I2C2_MESSAGE_STATUS *status, uint16_t timeout_ms )
 {
     err rc = ERR_OK;
     uint16_t time;

@@ -31,6 +31,7 @@ extern err sensirion_read_eeprom( uint16_t addr, uint8_t bytes, uint8_t *reg_dat
 extern err sensirion_read_reg( uint8_t reg, uint16_t *reg_data );
 extern err sensirion_write_reg( uint8_t reg, uint16_t reg_data );
 
+extern err sensirion_reset( bool wait );
 extern err sensirion_read_part_name( char *part_name );
 extern err sensirion_read_scale( uint16_t addr, uint16_t *scale );
 extern err sensirion_measurement_start( void );

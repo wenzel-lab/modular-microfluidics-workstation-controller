@@ -12,6 +12,9 @@
 extern "C" {
 #endif
 
+/* For __delay_ms */
+#define FCY 75000000UL
+
 /* Errors */
 #define ERR_OK                      0
 #define ERR_ERROR                   1

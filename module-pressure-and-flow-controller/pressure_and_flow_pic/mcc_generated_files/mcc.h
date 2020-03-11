@@ -53,14 +53,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "tmr1.h"
-#include "interrupt_manager.h"
-#include "traps.h"
-#include "uart1.h"
-#include "i2c2.h"
-#include "spi1.h"
-#include "reset.h"
 #include "spi3.h"
 #include "spi2.h"
+#include "spi1.h"
+#include "interrupt_manager.h"
+#include "traps.h"
+#include "reset.h"
+#include "uart1.h"
+#include "i2c2.h"
 #include "watchdog.h"
 
 #ifndef _XTAL_FREQ

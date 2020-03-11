@@ -2,18 +2,16 @@
  * I2C Addresses:
  *   ADS1115 = 0x48
  *   PCA... = 0x70
- *   Sensirion = 0x08
+ *   Sensirion SLF3S = 0x08
  *   Sensirion LG16 = 0x40
  */
 
 #include <xc.h>
-#define FCY 75000000UL
-//#define FCY 8000000UL
+#include "common.h"
 #include <libpic30.h>
 #include <string.h>
 #include <stdio.h>
 #include "mcc_generated_files/mcc.h"
-#include "common.h"
 #include "spi.h"
 #include "ads1115.h"
 #include "eeprom.h"
@@ -35,7 +33,7 @@
 #define PRESSURE_ADC_ZERO                   ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_ZERO_MV / PRESSURE_ADC_REF_MV )
 
 /* Flow Constants */
-#define FPID_DIFF_FILT_SHIFT              4
+#define FPID_DIFF_FILT_SHIFT              3
 #define FPID_DIFF_FILT_MUL                ( ( 1 << FPID_DIFF_FILT_SHIFT ) - 1 )
 
 /* Flow / Pressure Macros */
@@ -60,12 +58,16 @@ typedef enum
     DAC_CHAN_ALL    = 0b111,
 } E_DAC_CHAN;
 
+/* ADC Constants */
 typedef enum
 {
     ADC_STATE_START,
     ADC_STATE_SAMPLE,
     ADC_STATE_WAIT,
 } E_ADC_STATE;
+
+const uint8_t adc_map[NUM_PRESSURE_CLTRLS] = {3, 2, 0, 1};
+//uint8_t adc_map[NUM_PRESSURE_CLTRLS] = {2, 3, 1, 0};
 
 typedef enum
 {
@@ -74,6 +76,11 @@ typedef enum
     PRESSURE_CTRL_STATE_RUNNING,
     PRESSURE_CTRL_STATE_ERROR
 } E_PRESSURE_CTRL_STATE;
+
+/* Flow Constants */
+const uint8_t flow_map[NUM_PRESSURE_CLTRLS] = {1, 0, 2, 3};
+uint16_t flow_scales[NUM_PRESSURE_CLTRLS];
+bool flow_present[NUM_PRESSURE_CLTRLS];
 
 typedef enum
 {
@@ -113,9 +120,9 @@ volatile int16_t flow_raw_target[NUM_PRESSURE_CLTRLS];
 uint8_t pca9544a_i2c_addr = 0b1110000;
 volatile int32_t fpid_integrated[NUM_PRESSURE_CLTRLS];
 int32_t fpid_windup_limit = UINT16_MAX;
-uint16_t fpid_p[NUM_PRESSURE_CLTRLS] = {200};
-uint16_t fpid_i[NUM_PRESSURE_CLTRLS] = {2};
-uint16_t fpid_d[NUM_PRESSURE_CLTRLS] = {20000};
+uint16_t fpid_p[NUM_PRESSURE_CLTRLS] = {200, 500, 10000, 200};
+uint16_t fpid_i[NUM_PRESSURE_CLTRLS] = {20, 10, 20, 20};
+uint16_t fpid_d[NUM_PRESSURE_CLTRLS] = {20000, 10000, 40000, 20000};
 volatile int32_t fpid_diff[NUM_PRESSURE_CLTRLS];
 volatile int32_t fpid_error_prev[NUM_PRESSURE_CLTRLS];
 
@@ -177,9 +184,14 @@ void dac_write_ldac( E_DAC_CHAN dac_chan, uint16_t value, uint8_t update_all )
 void set_pressures( void )
 {
     dac_write_ldac( DAC_CHAN_A, ( ( (int32_t)pressure_mbar_shl_output[0] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 0 );
+    dac_write_ldac( DAC_CHAN_B, ( ( (int32_t)pressure_mbar_shl_output[1] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 0 );
+    dac_write_ldac( DAC_CHAN_C, ( ( (int32_t)pressure_mbar_shl_output[2] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 0 );
+    dac_write_ldac( DAC_CHAN_D, ( ( (int32_t)pressure_mbar_shl_output[3] * 0xFFFF ) >> PRESSURE_SHL ) / PRESSURE_CTLR_MBAR, 1 );
+    /*
     dac_write_ldac( DAC_CHAN_B, pressure_mbar_shl_output[1], 0 );
     dac_write_ldac( DAC_CHAN_C, pressure_mbar_shl_output[2], 0 );
     dac_write_ldac( DAC_CHAN_D, pressure_mbar_shl_output[3], 1 );
+    */
 }
 
 err parse_packet_get_id( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
@@ -243,7 +255,7 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     
     err rc = ERR_OK;
     uint8_t i;
-    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*sizeof(uint16_t)) ];
+    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*sizeof(int16_t)) ];
     uint8_t *return_buf_ptr;
     
     return_buf_ptr = return_buf;
@@ -251,8 +263,8 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     
     for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
     {
-        *(uint16_t *)return_buf_ptr = pressure_mbar_shl_actual[i];
-        return_buf_ptr += sizeof(uint16_t);
+        *(int16_t *)return_buf_ptr = pressure_mbar_shl_actual[i];
+        return_buf_ptr += sizeof(int16_t);
     }
     
     spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
@@ -271,6 +283,7 @@ err flow_ctrl_start( uint8_t chan, int16_t flow_rate_raw )
     {
         /** Disable interrupt */
         flow_raw_target[chan] = flow_rate_raw;
+        fpid_error_prev[chan] = flow_raw_target[chan] - flow_raw_actual[chan];
         flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
         /** Enable interrupt */
     }
@@ -305,9 +318,6 @@ void init( void )
     memset( (void *)fpid_error_prev, 0, sizeof(fpid_error_prev) );
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
         flow_ctrl_state[chan] = FLOW_CTRL_STATE_READY;
-    
-    /* Test Code */
-    flow_ctrl_start( 0, (int16_t)( 0.1 * SENSIRION_FLOW_SCALE_ML_MIN ) );
 }
 
 void adc_rdy_isr( void )
@@ -360,7 +370,6 @@ void storage_startup()
         printf( "Saving Defaults\n" );
         storage_save_defaults();
     }
-    
 }
 
 void read_flows( void )
@@ -378,23 +387,31 @@ void read_flows( void )
     {
 //        if ( chan == 0 )
 //            elapsed = TMR1;
-        /* Set Sensirion I2C MUX channel */
-        rc = pca9544a_write( pca9544a_i2c_addr, 1, chan );
+        
+        if ( flow_present[chan] )
+        {
+            /* Set Sensirion I2C MUX channel */
+            rc = pca9544a_write( pca9544a_i2c_addr, 1, flow_map[chan] );
 
-        /* Read Sensirion flow rate */
-        if ( rc == ERR_OK )
-            rc = sensirion_measurement_read( &flow );
+            /* Read Sensirion flow rate */
+            if ( rc == ERR_OK )
+            {
+                rc = sensirion_measurement_read( &flow );
+                sensirion_measurement_start();
+            }
+        
+            if ( rc == ERR_OK )
+                flow_raw_actual[chan] = flow;
+        }
+        else
+            flow = 0;
+        
 //        if ( chan == 0 )
 //            elapsed = TMR1 - elapsed;
         
-        if ( rc == ERR_OK )
-        {
-            flow_raw_actual[chan] = flow;
-        }
-        
         pressure_actual = (float)pressure_mbar_shl_actual[chan] / ( 1 << PRESSURE_SHL );
         pressure_target = (float)pressure_mbar_shl_output[chan] / ( 1 << PRESSURE_SHL );
-        printf( "Chan %hu, Pressure %8.2f / %7.2f, Flow %8.3f rc=%3hu\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow/SENSIRION_FLOW_SCALE_ML_MIN, rc );
+        printf( "Chan %hu, Pressure %8.2f / %7.2f, Flow %8.3f rc=%3hu\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow/flow_scales[chan], rc );
     }
     
     printf( "\n" );
@@ -405,9 +422,9 @@ void update_outputs( void )
     uint8_t chan;
     int32_t diff;
     
-    for ( chan=0; chan<4; chan++ )
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
     {
-        if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING )
+        if ( ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING ) && flow_present[chan] )
         {
             int32_t error;
             int32_t output;
@@ -422,11 +439,11 @@ void update_outputs( void )
             output = constrain_i32( ( error * fpid_p[chan] ), -(int32_t)UINT16_MAX, UINT16_MAX ) +
                                     ( fpid_integrated[chan] ) +
                                     constrain_i32( fpid_diff[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
-            output = constrain_i32( output >> 4, 0, 2000 );
+            output = constrain_i32( output >> 3, 0, 20000 );
             
             pressure_mbar_shl_output[chan] = (uint16_t)output;
             
-            printf( "Chan %hu, error %li, output %li, %li, %li, %li\n", chan, error, output, error * fpid_p[chan], fpid_integrated[chan], fpid_diff[chan] );
+//            printf( "Chan %hu, error %li, output %li, %li, %li, %li\n", chan, error, output, error * fpid_p[chan], fpid_integrated[chan], fpid_diff[chan] );
         }
     }
         
@@ -453,15 +470,78 @@ void startup_test( void )
     }
 }
 
+void init_sensirion_lg16( void )
+{
+    err rc;
+    uint8_t chan;
+//    char sensirion_part_num[SENSIRION_PART_NAME_STR_LEN];
+    uint16_t adv_user_reg;
+    int16_t flow;
+    uint16_t flow_scale;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        rc = pca9544a_write( pca9544a_i2c_addr, 1, flow_map[chan] );
+        
+        if ( rc == ERR_OK )
+            sensirion_measurement_read( &flow );   // In case we got stuck in a read
+        if ( rc == ERR_OK )
+            rc = sensirion_reset( true );
+        if ( rc == ERR_OK )
+            rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
+        if ( rc == ERR_OK )
+            adv_user_reg &= ~0x02;  // Disable hold-master
+        if ( rc == ERR_OK )
+            rc = sensirion_write_reg( SENSIRION_REG_ADV_USER_WRITE, adv_user_reg );
+        if ( rc == ERR_OK )
+            rc = sensirion_read_scale( SENSIRION_EEPROM_ADDR_SCALE0, &flow_scale );
+        else
+            flow_scale = 1;
+        if ( rc == ERR_OK )
+            sensirion_measurement_start();
+        
+        flow_scales[chan] = flow_scale;
+        flow_present[chan] = ( rc == ERR_OK ) ? true : false;
+        
+        printf( "Sensirion LG16 channel %hu %s, scale %u\n", chan+1, (rc==ERR_OK)?OK_STR:FAIL_STR, flow_scale );
+    }
+    
+    /* Allow enough time for first measurements. */
+    __delay_ms( 100 );
+    
+    /*
+    rc = pca9544a_write( pca9544a_i2c_addr, 1, flow_map[0] );
+    rc = sensirion_read_part_name( sensirion_part_num );
+    printf( "Sensirion Read ID RC: %hu\n", rc );
+    printf( "Sensirion Part Name: %s\n", sensirion_part_num );
+    rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
+    printf( "Sensirion Read Adv User Reg RC: %u\n", rc );
+    printf( "Sensirion Adv User Reg: %u\n", adv_user_reg );
+    adv_user_reg &= ~0x02;          // Disable hold-master
+    rc = sensirion_write_reg( SENSIRION_REG_ADV_USER_WRITE, adv_user_reg );
+    printf( "Sensirion Write Adv User Reg RC: %u, %u\n", rc, adv_user_reg );
+    rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
+    printf( "Sensirion Read Adv User Reg RC: %u\n", rc );
+    printf( "Sensirion Adv User Reg: %u\n", adv_user_reg );
+    
+    rc = sensirion_read_scale( SENSIRION_EEPROM_ADDR_SCALE0, &flow_scale );
+    printf( "Sensirion Read Scale RC: %u\n", rc );
+    printf( "Sensirion Scale: %u\n", flow_scale );
+    
+    rc = sensirion_measurement_start();
+    printf( "Sensirion Measurement Start RC: %hu\n", rc );
+    __delay_ms( 100 );
+    rc = sensirion_measurement_read( &flow );
+    printf( "Sensirion Measurement Read RC: %hu\n", rc );
+	printf( "Sensirion Measurement Flow: %i\n", flow );
+    */
+}
+
 int main(void)
 {
     err rc = 0;
     bool adc_i2c_wait;
-    char sensirion_part_num[SENSIRION_PART_NAME_STR_LEN];
-    uint16_t adv_user_reg;
 //    uint8_t ints, enabled, channel;
-    int16_t flow;
-    uint16_t flow_scale;
     
     SYSTEM_Initialize();
     init();
@@ -486,13 +566,12 @@ int main(void)
     /* Init DAC */
     dac_reset();
     dac_ref_internal( 1 );
-//    pressure_mbar_shl_output[0] = ( (int32_t)( 0xFFFF / 10 ) << PRESSURE_SHL ) * PRESSURE_CTLR_MBAR / 0xFFFF;
     set_pressures();
     
     /* Init I2C MUX */
-    rc = pca9544a_write( pca9544a_i2c_addr, 0, 0 );
+    rc = pca9544a_write( pca9544a_i2c_addr, 0, flow_map[0] );
     /*
-    rc = pca9544a_write( pca9544a_i2c_addr, 1, 0 );
+    rc = pca9544a_write( pca9544a_i2c_addr, 1, flow_map[0] );
     printf( "I2C Mux Write RC: %hu\n", rc );
     rc = pca9544a_read( pca9544a_i2c_addr, &ints, &enabled, &channel );
     printf( "I2C Mux Read RC: %hu\n", rc );
@@ -500,32 +579,13 @@ int main(void)
     */
     
     /* Init Sensirion flow sensor */
-    rc = pca9544a_write( pca9544a_i2c_addr, 1, 1 );
-    rc = sensirion_read_part_name( sensirion_part_num );
-    printf( "Sensirion Read ID RC: %hu\n", rc );
-    printf( "Sensirion Part Name: %s\n", sensirion_part_num );
-    rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
-    printf( "Sensirion Read Adv User Reg RC: %u\n", rc );
-    printf( "Sensirion Adv User Reg: %u\n", adv_user_reg );
-    adv_user_reg &= ~0x02;          // Disable hold-master
-    rc = sensirion_write_reg( SENSIRION_REG_ADV_USER_WRITE, adv_user_reg );
-    printf( "Sensirion Write Adv User Reg RC: %u, %u\n", rc, adv_user_reg );
-    rc = sensirion_read_reg( SENSIRION_REG_ADV_USER_READ, &adv_user_reg );
-    printf( "Sensirion Read Adv User Reg RC: %u\n", rc );
-    printf( "Sensirion Adv User Reg: %u\n", adv_user_reg );
+    init_sensirion_lg16();
     
-    rc = sensirion_read_scale( SENSIRION_EEPROM_ADDR_SCALE0, &flow_scale );
-    printf( "Sensirion Read Scale RC: %u\n", rc );
-    printf( "Sensirion Scale: %u\n", flow_scale );
+    /* Test Code */
+    read_flows();
+    flow_ctrl_start( 1, (int16_t)( 0.1 * flow_scales[1] ) );
     
-    rc = sensirion_measurement_start();
-    printf( "Sensirion Measurement Start RC: %hu\n", rc );
-    __delay_ms( 100 );
-    rc = sensirion_measurement_read( &flow );
-    printf( "Sensirion Measurement Read RC: %hu\n", rc );
-    printf( "Sensirion Measurement Flow: %i\n", flow );
-    
-    while ( 1 );
+//    while ( 1 );
     
     /* Init SPI */
     spi_init();
@@ -569,7 +629,7 @@ int main(void)
                     {
 //                        printf( "Pressure: %u\n", adc_value );
                         /* Value returned */
-                        pressure_mbar_shl_actual[channel] = PRESSURE_ADC_TO_MBARSHL( adc_value );
+                        pressure_mbar_shl_actual[adc_map[channel]] = PRESSURE_ADC_TO_MBARSHL( adc_value );
                         /*
                         printf( "State %u, Channel %hi, Pressures: %i %i %i %i\n",
                                 adc_state, channel,
@@ -593,6 +653,7 @@ int main(void)
                     ;
             }
             
+//            printf( "adc_state=%hu, adc_rc=%hi\n", (uint8_t)adc_state, adc_rc );
             /* When we have read all ADCs (or error), update outputs */
             if ( ( adc_state == ADC_STATE_WAIT ) && ( adc_rc != 0 ) )
             {
@@ -645,6 +706,8 @@ int main(void)
             }
             case ADC_STATE_WAIT:
             {
+//                printf( "State: %hu, time=%u, on=%hu\n", (uint8_t)adc_state, TMR1, T1CONbits.TON );
+        
                 while ( ( timer_ms - adc_time ) > ADC_PERIOD_MS )
                 {
                     adc_state = ADC_STATE_START;
@@ -655,7 +718,7 @@ int main(void)
             default:
                 adc_state = ADC_STATE_START;
         }
-
+        
         if ( ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK ) &&
              ( packet_type != 0 ) )
         {
