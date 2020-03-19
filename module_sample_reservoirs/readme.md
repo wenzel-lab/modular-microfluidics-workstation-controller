@@ -3,5 +3,12 @@
 For 4ml autosampler vial sample reservoirs, 3D designs and drawings openly accessible on OnShape:
 Onshape link: https://cad.onshape.com/documents/7c16a4f893c59727774109a0/w/9516d6a2785e29d4604fe688/e/f9cb2954096b3515ac6188b6
 
+
+
+![4-cap manifold with menu in Onshape](4-cap-manifold.png) ![4-cap manifold showing hidden edges](4-cap-mainfold_w_hidden_edges.png)
+
+![Parametric design can be extended e.g. to 9 caps](9-cap-manifold.png)
+
+
 For 100ml high-pressure Duran glass bottles
 ...coming soon
