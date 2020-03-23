@@ -102,10 +102,3 @@ The stirrer motor is a standard 40mm x 40mm x 10mm, three wire fan.  The rotatin
 The heaters can draw quite a lot of power, so an adequate 12V power supply must be provided.  At full power with two 3.3 Ohm heaters, the required current can be calculated as:
 I = ( 12V / 3.3 Ohm ) * 2 heaters = 7.3A
 The maximum power can be limited by storing a power limit percentage to the sample holder via SPI.  Alternatively, these 40W heater cartridges are also made for 24V, which have around 4x the resistance (P=V^2/R, 40=24^2/R, R=14.4 Ohm) and will thus consume 1/4 as much power, but heat more slowly.
-
-## Tobey's text
-
-This is an important, but less high-tech part of the workstation and needs to be particularly adaptable to accomodate using a variety of samples.
-The sample holder module attaches to the pressure control module and clamps the sample tubes into place, so that pressure inlets and thin sample outlet tubing can be attached securely, before pressures up to several bar can be applied to the sample tubes (e.g. eppendorf tubes, falcon tubes, glass bottles).
-
-Nanoport connections for PTFE tubing...
