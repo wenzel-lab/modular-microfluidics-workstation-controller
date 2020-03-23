@@ -102,3 +102,25 @@ The stirrer motor is a standard 40mm x 40mm x 10mm, three wire fan.  The rotatin
 The heaters can draw quite a lot of power, so an adequate 12V power supply must be provided.  At full power with two 3.3 Ohm heaters, the required current can be calculated as:
 I = ( 12V / 3.3 Ohm ) * 2 heaters = 7.3A
 The maximum power can be limited by storing a power limit percentage to the sample holder via SPI.  Alternatively, these 40W heater cartridges are also made for 24V, which have around 4x the resistance (P=V^2/R, 40=24^2/R, R=14.4 Ohm) and will thus consume 1/4 as much power, but heat more slowly.
+
+## Mechanical Design
+
+<img src="images/sample_holder_3d.jpg" width=40%><img src="images/sample_holder_3d_parts.jpg" width=15%>
+
+The sample holder is constructed from layers of machined 54mm diameter aluminium rod as listed in the table below.  The overall dimensions and screw locations are determined by the 40mm fan used as a stir motor.
+
+|Section|Description|
+|---|---|
+|Top|The top section houses the two heater cartridges and temperature sensor and is the part that gets hot.  It also houses an insert that is shaped to fit a particular sample vessel.|
+|Insulation|A layer of FR4 material that insulates the heated top from the rest of the module.|
+|Magnet Space|A cavity above the motor/fan where the stir magnets rotate.|
+|Motor|The stir motor that rotates the stir magnets.|
+|PCB Mount|The plate that the PCB is mounted on with standoffs.  This plate also used as a heatsink for the FET that protrudes from the PCB.|
+|PCB Spacer|The cavity for the PCB and wires.|
+|Bottom|The bottom plate that closes up the PCB cavity and also holds the screw heads.|
+
+<img src="images/sample_holder_side_section.jpg">
+
+<img src="images/sample_holder_stop_section.jpg">
+
+
