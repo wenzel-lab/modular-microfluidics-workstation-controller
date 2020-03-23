@@ -2,6 +2,8 @@
 
 <img src="images/sample_holder_with_insert.jpg" width=50%>
 
+The sample holder is used to heat microfluidic sample liquids such as water, oil or agarose to a set temperature and optionally stirring the sample using a magnetic stir bar, before pumping it through a microfluidics chip.  The PCB can also be used separately with external heaters to heat tubing or microscope glass slides.
+
 The sample holder module comprises a PCB, two cartridge heaters, temperature sensor and stirring motor and magnets, all integrated into an aluminium shell.  Aluminium inserts that slot into the top can be machined to accommodate sample bottles of various shapes and sizes.  The sample holder connects to a Raspberry Pi via SPI, from which the sample holder temperature and stir speed are set and monitored.
 
 The sample holder has been tested to 100 degrees Celcius and provides a stable (but uncalibrated) readout to 0.01 degrees Celcius.
@@ -123,4 +125,4 @@ The sample holder is constructed from layers of machined 54mm diameter aluminium
 
 <img src="images/sample_holder_stop_section.jpg">
 
-
+[Download Mechanical Design PDF](doc/sample_holder_design.pdf)
