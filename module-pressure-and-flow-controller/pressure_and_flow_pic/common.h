@@ -12,6 +12,9 @@
 extern "C" {
 #endif
 
+/* Macros */
+#define COPY_16BIT_TO_PTR(ptr,val)      {*((uint8_t *)(ptr)+1)=*((uint8_t *)&(val)+1); *(uint8_t *)(ptr)=*(uint8_t *)&(val);}
+
 /* For __delay_ms */
 #define FCY 75000000UL
 
@@ -35,6 +38,8 @@ extern "C" {
 #define ERR_SENSIRION_COMMS_FAIL    70
 
 #define ERR_PCA9544A_COMMS_FAIL     80
+
+#define ERR_ADS1115_COMMS_FAIL      90
 
 typedef uint8_t err;
 

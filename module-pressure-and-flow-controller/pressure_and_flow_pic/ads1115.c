@@ -6,49 +6,53 @@
 
 uint8_t conversion_reg = ADS1115_REG_CONVERSION;
 
-uint8_t ads1115_write_register( uint8_t addr, uint8_t reg, uint16_t data )
+/* Static Prototypes */
+static err i2c_wait_for_reply( volatile I2C2_MESSAGE_STATUS *status, uint16_t timeout_ms );
+
+/* Extern Functions */
+
+err ads1115_write_register( uint8_t addr, uint8_t reg, uint16_t data )
 {
+    err rc = ERR_OK;
     volatile I2C2_MESSAGE_STATUS status;
     uint8_t writeBuffer[3];
-    uint16_t time;
     
     writeBuffer[0] = reg;
     writeBuffer[1] = data >> 8;
     writeBuffer[2] = data & 0xFF;
     
     I2C2_MasterWrite( writeBuffer, 3, addr, (I2C2_MESSAGE_STATUS *)&status );
+    rc = i2c_wait_for_reply( &status, I2C_TIMEOUT_MS );
     
-    time = timer_ms;
-    while ( ( status != I2C2_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-    if ( status != I2C2_MESSAGE_COMPLETE )
-        I2C2_Abort();
-    
-	return 0;
+	return rc;
 }
 
-uint16_t ads1115_read_register( uint8_t addr, uint8_t reg )
+err ads1115_read_register( uint8_t addr, uint8_t reg, uint16_t *value )
 {
+    err rc = ERR_OK;
     uint8_t buf[2];
     volatile I2C2_MESSAGE_STATUS status;
     I2C2_TRANSACTION_REQUEST_BLOCK trBlocks[2];
-    uint16_t time;
 
     I2C2_MasterWriteTRBBuild( &trBlocks[0], &reg, 1, addr );
     I2C2_MasterReadTRBBuild( &trBlocks[1], (void *)buf, 2, addr );
     I2C2_MasterTRBInsert( 2, (I2C2_TRANSACTION_REQUEST_BLOCK *)&trBlocks, (I2C2_MESSAGE_STATUS *)&status );
+    rc = i2c_wait_for_reply( &status, I2C_TIMEOUT_MS );
     
-    time = timer_ms;
-    while ( ( status != I2C2_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= I2C_TIMEOUT_MS ) );
-    if ( status != I2C2_MESSAGE_COMPLETE )
-        I2C2_Abort();
+    *value = ( ( (uint16_t)(buf[0]) ) << 8 ) | buf[1];
     
-    return ( ( (uint16_t)(buf[0]) ) << 8 ) | buf[1];
+    return rc;
 }
 
-void ads1115_set_ready_pin( uint8_t addr )
+err ads1115_set_ready_pin( uint8_t addr )
 {
-    ads1115_write_register( addr, ADS1115_REG_HI_THRESH, 0b1000000000000000 );
-    ads1115_write_register( addr, ADS1115_REG_LO_THRESH, 0b0000000000000000 );
+    err rc;
+    
+    rc = ads1115_write_register( addr, ADS1115_REG_HI_THRESH, 0b1000000000000000 );
+    if ( rc == ERR_OK )
+        rc = ads1115_write_register( addr, ADS1115_REG_LO_THRESH, 0b0000000000000000 );
+    
+    return rc;
 }
 
 void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain, ads1115_task_t *task )
@@ -148,8 +152,10 @@ int8_t ads1115_read_adc_return( uint16_t *value, int8_t *channel, ads1115_task_t
     return rc;
 }
 
-void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain )
+err ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain )
 {
+    err rc = ERR_OK;
+    
 	uint16_t adc_config =   ADS1115_COMP_QUE_CON1 |
                             ADS1115_COMP_LAT_Latching |
                             ADS1115_COMP_POL_3_ACTIVELOW |
@@ -174,13 +180,35 @@ void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, a
             adc_config |= ADS1115_MUX_AIN3_GND;
             break;
         default:
-            return;
+            rc = ERR_ERROR;
 	}
     
-	ads1115_write_register( addr, ADS1115_REG_CONFIG, adc_config );
+    if ( rc == ERR_OK )
+        rc = ads1115_write_register( addr, ADS1115_REG_CONFIG, adc_config );
+    
+    return rc;
 }
 
-uint16_t ads1115_get_result( uint8_t addr )
+err ads1115_get_result( uint8_t addr, uint16_t *value )
 {
-    return ads1115_read_register( addr, ADS1115_REG_CONVERSION );
+    return ads1115_read_register( addr, ADS1115_REG_CONVERSION, value );
 }
+
+/* Static Functions */
+
+static err i2c_wait_for_reply( volatile I2C2_MESSAGE_STATUS *status, uint16_t timeout_ms )
+{
+    err rc = ERR_OK;
+    uint16_t time;
+    
+    time = timer_ms;
+    while ( ( *status != I2C2_MESSAGE_COMPLETE ) && ( ( timer_ms - time ) <= timeout_ms ) );
+    if ( *status != I2C2_MESSAGE_COMPLETE )
+    {
+        rc = ERR_ADS1115_COMMS_FAIL;
+        I2C2_Abort();
+    }
+    
+    return rc;
+}
+

@@ -47,6 +47,11 @@
 #define PACKET_TYPE_SET_PRESSURE_TARGET     2
 #define PACKET_TYPE_GET_PRESSURE_TARGET     3
 #define PACKET_TYPE_GET_PRESSURE_ACTUAL     4
+#define PACKET_TYPE_SET_FLOW_TARGET         5
+#define PACKET_TYPE_GET_FLOW_TARGET         6
+#define PACKET_TYPE_GET_FLOW_ACTUAL         7
+#define PACKET_TYPE_SET_CONTROL_MODE        8
+#define PACKET_TYPE_GET_CONTROL_MODE        9
 
 /* DAC Constants */
 typedef enum
@@ -79,8 +84,6 @@ typedef enum
 
 /* Flow Constants */
 const uint8_t flow_map[NUM_PRESSURE_CLTRLS] = {1, 0, 2, 3};
-uint16_t flow_scales[NUM_PRESSURE_CLTRLS];
-bool flow_present[NUM_PRESSURE_CLTRLS];
 
 typedef enum
 {
@@ -94,13 +97,25 @@ typedef enum
 const char *OK_STR = "OK";
 const char *FAIL_STR = "FAIL";
 
+/* System Constants */
+typedef enum
+{
+    CTRL_MODE_ZERO,
+    CTRL_MODE_PRESSURE_OPEN_LOOP,
+    CTRL_MODE_PRESSURE,
+    CTRL_MODE_FLOW
+} E_CTRL_MODE;
+
 /* System Data */
 uint8_t device_id[] = "MICROFLOW";
 bool eeprom_okay;
+bool adc_okay;
+bool mux_okay;
 volatile uint16_t timer_ms;
+E_CTRL_MODE ctrl_modes[NUM_PRESSURE_CLTRLS];
 
 /* Pressure Data */
-E_PRESSURE_CTRL_STATE pressure_ctrl_state;
+E_PRESSURE_CTRL_STATE pressure_ctrl_state[NUM_PRESSURE_CLTRLS];
 volatile int16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
 volatile uint16_t pressure_mbar_shl_output[NUM_PRESSURE_CLTRLS];
 uint16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
@@ -116,7 +131,9 @@ ads1115_task_t adc_task;
 /* Flow Data */
 E_FLOW_CTRL_STATE flow_ctrl_state[NUM_PRESSURE_CLTRLS];
 volatile int16_t flow_raw_actual[NUM_PRESSURE_CLTRLS];
-volatile int16_t flow_raw_target[NUM_PRESSURE_CLTRLS];
+int16_t flow_raw_target[NUM_PRESSURE_CLTRLS];
+uint16_t flow_scales_ul_min[NUM_PRESSURE_CLTRLS];
+bool flow_present[NUM_PRESSURE_CLTRLS];
 uint8_t pca9544a_i2c_addr = 0b1110000;
 volatile int32_t fpid_integrated[NUM_PRESSURE_CLTRLS];
 int32_t fpid_windup_limit = UINT16_MAX;
@@ -215,25 +232,27 @@ err parse_packet_set_pressure_target( uint8_t packet_type, uint8_t *packet_data,
 
     err rc = ERR_OK;
     uint8_t *press_data_ptr = packet_data;
-    uint8_t press_chan_mask;
-    uint8_t press_chan;
+    uint8_t chan_mask;
+    uint8_t chan;
     uint16_t pressures_mbar[NUM_PRESSURE_CLTRLS];
-    uint16_t pressure_mbar;
+    uint16_t pressure_mbar_shl;
     int16_t data_size = packet_data_size;
     
-    while ( data_size >= ( 1 + sizeof(pressure_mbar) ) )
+    memcpy( pressures_mbar, pressure_mbar_shl_target, sizeof(pressure_mbar_shl_target) );
+    
+    while ( data_size >= ( 1 + sizeof(pressure_mbar_shl) ) )
     {
         /* U8 mask + U16 flow */
-        press_chan_mask = *press_data_ptr++;
-        pressure_mbar = ( press_data_ptr[1] << 8 ) | press_data_ptr[0];
-        press_data_ptr += sizeof(pressure_mbar);
-        data_size -= ( 1 + sizeof(pressure_mbar) );
+        chan_mask = *press_data_ptr++;
+        pressure_mbar_shl = ( press_data_ptr[1] << 8 ) | press_data_ptr[0];
+        press_data_ptr += sizeof(pressure_mbar_shl);
+        data_size -= ( 1 + sizeof(pressure_mbar_shl) );
 
-        for ( press_chan=0; press_chan<NUM_PRESSURE_CLTRLS; press_chan++ )
+        for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
         {
-            if ( press_chan_mask & 0x01 )
-                pressures_mbar[press_chan] = pressure_mbar;
-            press_chan_mask >>= 1;
+            if ( chan_mask & 0x01 )
+                pressures_mbar[chan] = pressure_mbar_shl;
+            chan_mask >>= 1;
         }
     }
     
@@ -241,10 +260,33 @@ err parse_packet_set_pressure_target( uint8_t packet_type, uint8_t *packet_data,
         rc = ERR_PACKET_INVALID;
     else
     {
-        memcpy( (void *)pressure_mbar_shl_output, pressures_mbar, sizeof(pressures_mbar) );
-        set_pressures();
+        memcpy( pressure_mbar_shl_target, pressures_mbar, sizeof(pressures_mbar) );
+//        set_pressures();
         spi_packet_write( packet_type, &rc, 1 );
     }
+    
+    return rc;
+}
+
+err parse_packet_get_pressure_target( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Return: [err U8]4x[Pressure mbar U16>>PRESSURE_SHL] */
+    
+    err rc = ERR_OK;
+    uint8_t i;
+    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*sizeof(int16_t)) ];
+    uint8_t *return_buf_ptr;
+    
+    return_buf_ptr = return_buf;
+    *return_buf_ptr++ = ERR_OK;
+    
+    for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
+    {
+        COPY_16BIT_TO_PTR( return_buf_ptr, pressure_mbar_shl_target[i] );
+        return_buf_ptr += sizeof(int16_t);
+    }
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
     
     return rc;
 }
@@ -263,8 +305,200 @@ err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data,
     
     for ( i=0; i<NUM_PRESSURE_CLTRLS; i++ )
     {
-        *(int16_t *)return_buf_ptr = pressure_mbar_shl_actual[i];
+        COPY_16BIT_TO_PTR( return_buf_ptr, pressure_mbar_shl_actual[i] );
+//        *(int16_t *)return_buf_ptr = pressure_mbar_shl_actual[i];
         return_buf_ptr += sizeof(int16_t);
+    }
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
+    
+    return rc;
+}
+
+err parse_packet_set_flow_target( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Data: n*[ [Controller Mask U8][Flow ul/hr I16] ] */
+
+    err rc = ERR_OK;
+    uint8_t *flow_data_ptr = packet_data;
+    uint8_t chan_mask;
+    uint8_t chan;
+    int16_t flows_raw_target[NUM_PRESSURE_CLTRLS];
+    int16_t flow_target_ul_hr;
+    int16_t data_size = packet_data_size;
+    bool valid = true;
+    
+    memcpy( flows_raw_target, flow_raw_target, sizeof(flow_raw_target) );
+    
+    while ( data_size >= ( 1 + sizeof(flow_target_ul_hr) ) )
+    {
+        /* U8 mask + U16 flow */
+        chan_mask = *flow_data_ptr++;
+        flow_target_ul_hr = ( flow_data_ptr[1] << 8 ) | flow_data_ptr[0];
+        flow_data_ptr += sizeof(flow_target_ul_hr);
+        data_size -= ( 1 + sizeof(flow_target_ul_hr) );
+        
+        if ( flow_target_ul_hr > ( (int32_t)INT16_MAX * 60 / flow_scales_ul_min[chan] ) )
+        {
+            /* Target too large to fit */
+            valid = false;
+        }
+        else
+        {
+            for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+            {
+                if ( chan_mask & 0x01 )
+                    flows_raw_target[chan] = (int32_t)flow_target_ul_hr * flow_scales_ul_min[chan] / 60;
+                chan_mask >>= 1;
+            }
+        }
+    }
+    
+    if ( ( data_size != 0 ) || ( !valid ) )
+        rc = ERR_PACKET_INVALID;
+    else
+    {
+        memcpy( (void *)flow_raw_target, flows_raw_target, sizeof(flows_raw_target) );
+        spi_packet_write( packet_type, &rc, 1 );
+    }
+    
+    return rc;
+}
+
+err parse_packet_get_flow_target( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Return: [err U8]4x[Flow target ul/hr I16] */
+    
+    err rc = ERR_OK;
+    uint8_t chan;
+    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*sizeof(int16_t)) ];
+    uint8_t *return_buf_ptr;
+    
+    return_buf_ptr = return_buf;
+    *return_buf_ptr++ = ERR_OK;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        int16_t flow_scaled = (int32_t)flow_raw_target[chan] * 60 / flow_scales_ul_min[chan];
+        COPY_16BIT_TO_PTR( return_buf_ptr, flow_scaled );
+        return_buf_ptr += sizeof(int16_t);
+    }
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
+    
+    return rc;
+}
+
+err parse_packet_get_flow_actual( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Return: [err U8]4x[Flow ul/hr I16] */
+    
+    err rc = ERR_OK;
+    uint8_t chan;
+    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*sizeof(int16_t)) ];
+    uint8_t *return_buf_ptr;
+    
+    return_buf_ptr = return_buf;
+    *return_buf_ptr++ = ERR_OK;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        int16_t flow_scaled = (int32_t)flow_raw_actual[chan] * 60 / flow_scales_ul_min[chan];
+        COPY_16BIT_TO_PTR( return_buf_ptr, flow_scaled );
+//        *(int16_t *)return_buf_ptr = flow_raw_actual[chan] / flow_scales_ul_min[chan];
+        return_buf_ptr += sizeof(int16_t);
+    }
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
+    
+    return rc;
+}
+
+void set_ctrl_modes( E_CTRL_MODE *ctrl_modes_new )
+{
+    uint8_t chan;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        ctrl_modes[chan] = ctrl_modes_new[chan];
+        
+        switch ( ctrl_modes[chan] )
+        {
+            case CTRL_MODE_ZERO:
+            case CTRL_MODE_PRESSURE_OPEN_LOOP:
+                if ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_RUNNING )
+                    pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_READY;
+                if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING )
+                    flow_ctrl_state[chan] = FLOW_CTRL_STATE_READY;
+                break;
+            default:;
+        }
+    }
+}
+
+err parse_packet_set_control_mode( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Data: n*[ [Controller Mask U8][Control Mode U8] ] */
+
+    err rc = ERR_OK;
+    uint8_t *ctrl_mode_data_ptr = packet_data;
+    uint8_t chan_mask;
+    uint8_t chan;
+    E_CTRL_MODE ctrl_modes_new[NUM_PRESSURE_CLTRLS];
+    uint8_t ctrl_mode;
+    int16_t data_size = packet_data_size;
+    bool valid = true;
+    
+    memcpy( ctrl_modes_new, ctrl_modes, sizeof(ctrl_modes) );
+    
+    while ( ( data_size >= ( 1 + sizeof(ctrl_mode) ) ) && valid )
+    {
+        /* U8 mask + U16 flow */
+        chan_mask = *ctrl_mode_data_ptr++;
+        ctrl_mode = ( ctrl_mode_data_ptr[1] << 8 ) | ctrl_mode_data_ptr[0];
+        ctrl_mode_data_ptr += sizeof(ctrl_mode);
+        data_size -= ( 1 + sizeof(ctrl_mode) );
+        
+        if ( ctrl_mode > CTRL_MODE_FLOW )
+            valid = false;
+        else
+        {
+            for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+            {
+                if ( chan_mask & 0x01 )
+                    ctrl_modes_new[chan] = ctrl_mode;
+                chan_mask >>= 1;
+            }
+        }
+    }
+    
+    if ( ( data_size != 0 ) || ( !valid ) )
+        rc = ERR_PACKET_INVALID;
+    else
+    {
+        set_ctrl_modes( ctrl_modes_new );
+        spi_packet_write( packet_type, &rc, 1 );
+    }
+    
+    return rc;
+}
+
+err parse_packet_get_control_mode( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Return: [err U8]4x[Control Mode U8] */
+    
+    err rc = ERR_OK;
+    uint8_t chan;
+    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*sizeof(uint8_t)) ];
+    uint8_t *return_buf_ptr;
+    
+    return_buf_ptr = return_buf;
+    *return_buf_ptr++ = ERR_OK;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        *return_buf_ptr = ctrl_modes[chan];
+        return_buf_ptr += sizeof(uint8_t);
     }
     
     spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
@@ -285,6 +519,7 @@ err flow_ctrl_start( uint8_t chan, int16_t flow_rate_raw )
         flow_raw_target[chan] = flow_rate_raw;
         fpid_error_prev[chan] = flow_raw_target[chan] - flow_raw_actual[chan];
         flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
+        ctrl_modes[chan] = CTRL_MODE_FLOW;
         /** Enable interrupt */
     }
     
@@ -295,6 +530,12 @@ void init( void )
 {
     uint8_t chan;
     
+    /* System Init */
+    eeprom_okay = false;
+    adc_okay = false;
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+        ctrl_modes[chan] = CTRL_MODE_ZERO;
+    
     /* ADC Init */
     adc_state = ADC_STATE_START;
     adc_chan = 0;
@@ -302,11 +543,13 @@ void init( void )
     timer_ms = 0;
     
     /* Pressure Control Init */
-    pressure_ctrl_state = PRESSURE_CTRL_STATE_UNCONFIGURED;
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+        pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_UNCONFIGURED;
     memset( (void *)pressure_mbar_shl_output, 0, sizeof(pressure_mbar_shl_output) );
     memset( (void *)pressure_mbar_shl_target, 0, sizeof(pressure_mbar_shl_target) );
     memset( (void *)pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
-    pressure_ctrl_state = PRESSURE_CTRL_STATE_READY;
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+        pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_READY;
     
     /* Flow Control Init */
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
@@ -370,6 +613,8 @@ void storage_startup()
         printf( "Saving Defaults\n" );
         storage_save_defaults();
     }
+    
+    printf( "\n" );
 }
 
 void read_flows( void )
@@ -411,7 +656,7 @@ void read_flows( void )
         
         pressure_actual = (float)pressure_mbar_shl_actual[chan] / ( 1 << PRESSURE_SHL );
         pressure_target = (float)pressure_mbar_shl_output[chan] / ( 1 << PRESSURE_SHL );
-        printf( "Chan %hu, Pressure %8.2f / %7.2f, Flow %8.3f rc=%3hu\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow/flow_scales[chan], rc );
+        printf( "Chan %hu, Pressure %8.2f / %7.2f, Flow %8.3f ul/hr rc=%3hu\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow*60/flow_scales_ul_min[chan], rc );
     }
     
     printf( "\n" );
@@ -426,6 +671,8 @@ void update_outputs( void )
     {
         if ( ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING ) && flow_present[chan] )
         {
+            /* Flow control loop */
+            
             int32_t error;
             int32_t output;
             
@@ -437,13 +684,30 @@ void update_outputs( void )
             fpid_error_prev[chan] = error;
             
             output = constrain_i32( ( error * fpid_p[chan] ), -(int32_t)UINT16_MAX, UINT16_MAX ) +
-                                    ( fpid_integrated[chan] ) +
-                                    constrain_i32( fpid_diff[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
+                     ( fpid_integrated[chan] ) +
+                     constrain_i32( fpid_diff[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
             output = constrain_i32( output >> 3, 0, 20000 );
             
             pressure_mbar_shl_output[chan] = (uint16_t)output;
             
 //            printf( "Chan %hu, error %li, output %li, %li, %li, %li\n", chan, error, output, error * fpid_p[chan], fpid_integrated[chan], fpid_diff[chan] );
+        }
+        else if ( ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_RUNNING ) && true )
+        {
+            /* Pressure control loop */
+            
+        }
+        else if ( ctrl_modes[chan] == CTRL_MODE_PRESSURE_OPEN_LOOP )
+        {
+            /* Pressure open loop */
+            
+            pressure_mbar_shl_output[chan] = pressure_mbar_shl_target[chan];
+        }
+        else if ( ctrl_modes[chan] == CTRL_MODE_ZERO )
+        {
+            /* Pressure zero */
+            
+            pressure_mbar_shl_output[chan] = 0;
         }
     }
         
@@ -456,8 +720,15 @@ void startup_test( void )
     
     eeprom_okay = eeprom_comms_check();
     all_okay &= eeprom_okay;
-    
     printf( "EEPROM %s\n", eeprom_okay ? OK_STR : FAIL_STR );
+    
+    adc_okay = ( ads1115_set_ready_pin( adc_i2c_addr ) == ERR_OK );
+    all_okay &= adc_okay;
+    printf( "ADC %s\n", adc_okay ? OK_STR : FAIL_STR );
+    
+    mux_okay = ( pca9544a_write( pca9544a_i2c_addr, 0, 0 ) == ERR_OK );
+    all_okay &= mux_okay;
+    printf( "I2C MUX %s\n", mux_okay ? OK_STR : FAIL_STR );
     
     printf( "Startup test %s\n", all_okay ? OK_STR : FAIL_STR );
     printf( "\n" );
@@ -466,6 +737,16 @@ void startup_test( void )
     if ( !all_okay )
     {
         printf( "Shutting down\n" );
+        while (1);
+    }
+    else if ( 0 )
+    {
+        dac_reset();
+        dac_ref_internal( 1 );
+        dac_write_ldac( DAC_CHAN_A, 1ul * 0xFFFF / 5, 0 );
+        dac_write_ldac( DAC_CHAN_B, 2ul * 0xFFFF / 5, 0 );
+        dac_write_ldac( DAC_CHAN_C, 3ul * 0xFFFF / 5, 0 );
+        dac_write_ldac( DAC_CHAN_D, 4ul * 0xFFFF / 5, 1 );
         while (1);
     }
 }
@@ -500,11 +781,17 @@ void init_sensirion_lg16( void )
         if ( rc == ERR_OK )
             sensirion_measurement_start();
         
-        flow_scales[chan] = flow_scale;
+        flow_scales_ul_min[chan] = flow_scale;
         flow_present[chan] = ( rc == ERR_OK ) ? true : false;
+        
+        /* We can't start flow loop without flow scaling units */
+        if ( !flow_present[chan] )
+            flow_ctrl_state[chan] = FLOW_CTRL_STATE_ERROR;
         
         printf( "Sensirion LG16 channel %hu %s, scale %u\n", chan+1, (rc==ERR_OK)?OK_STR:FAIL_STR, flow_scale );
     }
+    
+    printf( "\n" );
     
     /* Allow enough time for first measurements. */
     __delay_ms( 100 );
@@ -551,13 +838,14 @@ int main(void)
     __delay_ms( 100 );
     printf( "\r\nStarting...\n\n" );
     
+    /* Init Timers */
+    TMR1_SetInterruptHandler( &timer_isr );
+    
+    /* Test Peripherals */
     startup_test();
     
     /* Load Settings from EEPROM */
     storage_startup();
-    
-    /* Init Timers */
-    TMR1_SetInterruptHandler( &timer_isr );
     
     /* Init ADC */
     ads1115_set_ready_pin( adc_i2c_addr );
@@ -583,7 +871,7 @@ int main(void)
     
     /* Test Code */
     read_flows();
-    flow_ctrl_start( 1, (int16_t)( 0.1 * flow_scales[1] ) );
+    flow_ctrl_start( 0, (int16_t)( (int32_t)10 * flow_scales_ul_min[1] / 60 ) );    // in ul/hr
     
 //    while ( 1 );
     
@@ -637,7 +925,7 @@ int main(void)
                                 pressure_mbar_shl_actual[1],
                                 pressure_mbar_shl_actual[2],
                                 pressure_mbar_shl_actual[3] );
-                        /**/
+                        */
                     }
                     
                     break;
@@ -733,24 +1021,32 @@ int main(void)
                     break;
                 }
                 case PACKET_TYPE_GET_ID:
-                {
                     rc = parse_packet_get_id( packet_type, packet_data, packet_data_size );
                     break;
-                }
                 case PACKET_TYPE_SET_PRESSURE_TARGET:
-                {
                     rc = parse_packet_set_pressure_target( packet_type, packet_data, packet_data_size );
                     break;
-                }
                 case PACKET_TYPE_GET_PRESSURE_TARGET:
-                {
+                    rc = parse_packet_get_pressure_target( packet_type, packet_data, packet_data_size );
                     break;
-                }
                 case PACKET_TYPE_GET_PRESSURE_ACTUAL:
-                {
                     rc = parse_packet_get_pressure_actual( packet_type, packet_data, packet_data_size );
                     break;
-                }
+                case PACKET_TYPE_SET_FLOW_TARGET:
+                    rc = parse_packet_set_flow_target( packet_type, packet_data, packet_data_size );
+                    break;
+                case PACKET_TYPE_GET_FLOW_TARGET:
+                    rc = parse_packet_get_flow_target( packet_type, packet_data, packet_data_size );
+                    break;
+                case PACKET_TYPE_GET_FLOW_ACTUAL:
+                    rc = parse_packet_get_flow_actual( packet_type, packet_data, packet_data_size );
+                    break;
+                case PACKET_TYPE_SET_CONTROL_MODE:
+                    rc = parse_packet_set_control_mode( packet_type, packet_data, packet_data_size );
+                    break;
+                case PACKET_TYPE_GET_CONTROL_MODE:
+                    rc = parse_packet_get_control_mode( packet_type, packet_data, packet_data_size );
+                    break;
                 default:
                     rc = ERR_PACKET_INVALID;
             }

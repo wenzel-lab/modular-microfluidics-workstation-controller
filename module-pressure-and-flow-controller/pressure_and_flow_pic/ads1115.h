@@ -143,10 +143,10 @@ typedef struct
 /* ADS1115 FUNCTIONS			                                        */
 /************************************************************************/
 
-void ads1115_set_ready_pin( uint8_t addr );
+err ads1115_set_ready_pin( uint8_t addr );
 void ads1115_read_adc_start( uint8_t addr, int8_t read_channel, int8_t start_channel, ads1115_datarate dr, ads1115_fsr_gain gain, ads1115_task_t *task );
 int8_t ads1115_read_adc_return( uint16_t *value, int8_t *channel, ads1115_task_t *task );
-void ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain );
-uint16_t ads1115_get_result( uint8_t addr );
+err ads1115_start_single( uint8_t addr, uint8_t channel, ads1115_datarate dr, ads1115_fsr_gain gain );
+err ads1115_get_result( uint8_t addr, uint16_t *value  );
 
 #endif /* ADS1115_H_ */
