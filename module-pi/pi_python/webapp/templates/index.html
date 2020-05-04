@@ -1,0 +1,35 @@
+<doctype html="">
+    <title>Open Microfluidics Station</title>
+<h2>Open Microfluidics Station</h2>
+<p></p><p>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    </p><ul class="flashes">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<h3>Strobe</h3>
+<table>
+  <tr>
+    <td>Hold</td>
+    <td>{{strobe.hold}}</td>
+  </tr>
+  <tr>
+    <td>Eve</td>
+    <td>Jackson</td>
+    <td>94</td>
+  </tr>
+</table>
+
+</form><form action="" method="post">
+  <dl>
+    <p>
+  </p></dl>
+  <p><input type="submit" name="action" value="On">
+  <p><input type="submit" name="action" value="Off">
+</p></form>
+</doctype>
