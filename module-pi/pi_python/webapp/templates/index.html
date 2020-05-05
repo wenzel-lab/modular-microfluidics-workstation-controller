@@ -1,7 +1,34 @@
 <doctype html="">
 <title>Open Microfluidics Station</title>
-<meta http-equiv="refresh" content="2" />
+<!--meta http-equiv="refresh" content="2" /-->
 <h2>Open Microfluidics Station</h2>
+
+<!--<button onclick="createGame()">Create Game</button>-->
+<script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+<!--<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>-->
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+//    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io();
+    // verify our websocket connection is established
+    socket.on('connect', function() {
+      console.log('Websocket connected!');
+    });
+    socket.on('test', function() {
+      console.log('Test');
+    });
+    socket.on('message', function(msg){
+      console.log(msg.time)
+      $('#test').html('<p>' + msg.time + '</p>');             
+    });
+  //  function createGame() {
+  //    console.log('Creating game...');
+  //    socket.emit('create', {size: 'normal', teams: 2, dictionary: 'Simple'});
+  //  }
+  });
+</script>
+
 <p></p><p>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -12,6 +39,8 @@
     </ul>
   {% endif %}
 {% endwith %}
+
+<p id='test'> Hello </p>
 
 <h3>Strobe</h3>
 <table>
