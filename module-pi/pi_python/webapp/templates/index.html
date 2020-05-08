@@ -15,12 +15,12 @@
     socket.on('connect', function() {
       console.log('Websocket connected!');
     });
-    socket.on('test', function() {
-      console.log('Test');
+    socket.on('debug', function(data) {
+      $('#update_count').html(data.update_count);
     });
-    socket.on('message', function(msg){
-      console.log(msg.time)
-      $('#test').html('<p>' + msg.time + '</p>');             
+    socket.on('heaters', function(data) {
+      $('#heater1_status').html(data[0].status);
+      $('#heater1_temp').html(data[0].temp_actual);
     });
   //  function createGame() {
   //    console.log('Creating game...');
@@ -40,7 +40,7 @@
   {% endif %}
 {% endwith %}
 
-<p id='test'> Hello </p>
+<p>Update Count: <a id='update_count'>{{debug.update_count}}</a></p>
 
 <h3>Strobe</h3>
 <table>
@@ -48,11 +48,21 @@
     <td>Hold</td>
     <td>{{strobe.hold}}</td>
   </tr>
-  <tr>
-    <td>Num</td>
-    <td>{{strobe.num}}</td>
-  </tr>
 </table>
+
+{% for heater in heaters %}
+  <h3>Heater {{loop.index}}</h3>
+  <table>
+    <tr>
+      <td>Status</td>
+      <td><p id='heater{{loop.index}}_status'>{{heater.status}}</p></td>
+    </tr>
+  <tr>
+    <td>Temp</td>
+    <td><p id='heater{{loop.index}}_status'>{{heater.temp_actual}}</p></td>
+  </tr>
+  </table>
+{% endfor %}
 
 </form><form action="" method="post">
   <dl>
