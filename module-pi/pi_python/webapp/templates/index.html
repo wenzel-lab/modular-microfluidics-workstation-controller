@@ -3,15 +3,27 @@
 <!--meta http-equiv="refresh" content="2" /-->
 <h2>Open Microfluidics Station</h2>
 
-<!--<button onclick="createGame()">Create Game</button>-->
 <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 <!--<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>-->
 <script type="text/javascript" charset="utf-8">
+  var socket = io();
+  var strobe = $('#strobe')
+  
+  function strobe_update()
+  {
+    
+//    strobe.hold = data.hold ? 1 : 0;
+    $('#strobe_hold').html( strobe.hold ? 'On' : 'Off' );
+    $('#btn_strobe_hold').html( strobe.hold ? 'Turn Off' : 'Turn On' );
+  }
+  
   $(document).ready(function() {
 //    var socket = io.connect('http://' + document.domain + ':' + location.port);
-    var socket = io();
     // verify our websocket connection is established
+    
+    strobe_update()
+    
     socket.on('connect', function() {
       console.log('Websocket connected!');
     });
@@ -19,14 +31,21 @@
       $('#update_count').html(data.update_count);
     });
     socket.on('heaters', function(data) {
-      $('#heater1_status').html(data[0].status);
-      $('#heater1_temp').html(data[0].temp_actual);
+      for ( var i=0; i<=3; i++ )
+      {
+        $('#heater'+(i+1)+'_status').html(data[i].status);
+        $('#heater'+(i+1)+'_temp').html(data[i].temp_actual);
+      }
     });
-  //  function createGame() {
-  //    console.log('Creating game...');
-  //    socket.emit('create', {size: 'normal', teams: 2, dictionary: 'Simple'});
-  //  }
+    socket.on( 'strobe', function( data ) {
+      strobe = data;
+      strobe_update();
+    });
   });
+  
+  function strobe_hold() {
+    socket.emit( 'strobe', { cmd: 'hold', parameters: { 'on': strobe.hold ? 0 : 1 } } );
+  }
 </script>
 
 <p></p><p>
@@ -45,8 +64,9 @@
 <h3>Strobe</h3>
 <table>
   <tr>
-    <td>Hold</td>
-    <td>{{strobe.hold}}</td>
+    <td width=100>Hold</td>
+    <td width=100><p id='strobe_hold'></p></td>
+    <td><button id='btn_strobe_hold', onclick="strobe_hold()"></button></td>
   </tr>
 </table>
 
@@ -64,11 +84,4 @@
   </table>
 {% endfor %}
 
-</form><form action="" method="post">
-  <dl>
-    <p>
-  </p></dl>
-  <p><input type="submit" name="action" value="On">
-  <p><input type="submit" name="action" value="Off">
-</p></form>
 </doctype>

@@ -1,6 +1,7 @@
 import spidev
 import time
 import RPi.GPIO as GPIO
+from threading import Lock
 
 PORT_NONE         = 0
 PORT_HEATER1      = 31
@@ -15,8 +16,10 @@ col_lightgray2 = "#E0E0E0"
 
 global current_device
 global spi
+global pi_lock
 
-current_device    = PORT_NONE
+current_device = PORT_NONE
+pi_lock = Lock()
 
 def spi_init( bus, mode, speed_hz ):
   global spi
@@ -66,4 +69,16 @@ def spi_deselect_current():
     #print( "Deselected {}".format( current_device ) )
     current_device = PORT_NONE
     #time.sleep(0.1)
-    
+
+def spi_lock():
+  pi_lock.acquire()
+#  while not pi_lock.acquire( False ):
+#    pass
+
+def spi_release():
+  pi_lock.release()
+
+def pi_wait_s( delay_s ):
+  start_time = time.time()
+  while ( time.time() - start_time ) < delay_s:
+    pass

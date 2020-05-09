@@ -59,17 +59,24 @@ class PiHolder:
     picommon.spi.xfer2( msg )
     
   def packet_query( self, type, data ):
-    self.packet_write( type, data )
-    time.sleep( self.reply_pause_s )
-    valid = True
-    data_read = []
-    type_read = 0x100
     try:
-      while valid and ( type_read != type ) and ( type_read != 0 ):
-        valid, type_read, data_read = self.packet_read()
+      picommon.spi_lock()
+      self.packet_write( type, data )
+#      time.sleep( self.reply_pause_s )
+      picommon.pi_wait_s( self.reply_pause_s )
+      valid = True
+      data_read = []
+      type_read = 0x100
+      try:
+        while valid and ( type_read != type ) and ( type_read != 0 ):
+          valid, type_read, data_read = self.packet_read()
+      except:
+        valid = False
+      picommon.spi_deselect_current()
     except:
-      valid = False
-    picommon.spi_deselect_current()
+      pass
+    finally:
+      picommon.spi_release()
     return valid, data_read
     
   def get_id( self ):
