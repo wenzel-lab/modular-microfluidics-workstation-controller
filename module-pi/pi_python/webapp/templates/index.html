@@ -7,22 +7,29 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 <!--<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>-->
 <script type="text/javascript" charset="utf-8">
+//  var socket = io.connect('http://' + document.domain + ':' + location.port);
   var socket = io();
-  var strobe = $('#strobe')
+  var strobe = {{strobe|tojson}}
+  
+  function strobe_update_start()
+  {
+    $('#input_strobe_period_us').val( strobe.period_ns / 1000 );
+  }
   
   function strobe_update()
   {
+    $('#strobe_enable').html( strobe.enable ? 'Enabled' : 'Disabled' );
+    $('#btn_strobe_enable').html( strobe.enable ? 'Disable' : 'Enable' );
     
-//    strobe.hold = data.hold ? 1 : 0;
     $('#strobe_hold').html( strobe.hold ? 'On' : 'Off' );
     $('#btn_strobe_hold').html( strobe.hold ? 'Turn Off' : 'Turn On' );
+    
+    $('#strobe_period_us').html( strobe.period_ns / 1000 );
   }
   
   $(document).ready(function() {
-//    var socket = io.connect('http://' + document.domain + ':' + location.port);
-    // verify our websocket connection is established
-    
-    strobe_update()
+    strobe_update_start();
+    strobe_update();
     
     socket.on('connect', function() {
       console.log('Websocket connected!');
@@ -43,6 +50,9 @@
     });
   });
   
+  function strobe_enable() {
+    socket.emit( 'strobe', { cmd: 'enable', parameters: { 'on': strobe.enable ? 0 : 1 } } );
+  }
   function strobe_hold() {
     socket.emit( 'strobe', { cmd: 'hold', parameters: { 'on': strobe.hold ? 0 : 1 } } );
   }
@@ -64,9 +74,22 @@
 <h3>Strobe</h3>
 <table>
   <tr>
-    <td width=100>Hold</td>
-    <td width=100><p id='strobe_hold'></p></td>
+    <td width=100>Enable</td>
+    <td width=100><p id='strobe_enable'></p></td>
+    <td></td>
+    <td><button id='btn_strobe_enable', onclick="strobe_enable()"></button></td>
+  </tr>
+  <tr>
+    <td>Hold</td>
+    <td><p id='strobe_hold'></p></td>
+    <td></td>
     <td><button id='btn_strobe_hold', onclick="strobe_hold()"></button></td>
+  </tr>
+  <tr>
+    <td>Period (us)</td>
+    <td><p id='strobe_period_us'></p></td>
+    <td><input type="number" id="input_strobe_period_us" min="1" max="10000"></td>
+    <td><button id='btn_strobe_period_us', onclick="strobe_hold()">Set</button></td>
   </tr>
 </table>
 

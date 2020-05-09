@@ -9,10 +9,12 @@ from piholder_web import heater_web
 
 debug_data = { 'update_count': 0 }
 
-strobe_data = { 'hold': 0 }
+strobe_data = { 'hold':0, 'enable':0, 'wait_ns':0, 'period_ns':100000 }
 picommon.spi_init( 0, 2, 30000 )
 strobe = PiStrobe( picommon.PORT_STROBE, 0.1 )
-#valid = strobe.set_enable( True )
+strobe.set_enable( strobe_data['enable'] )
+strobe.set_hold( strobe_data['hold'] )
+strobe.set_timing( strobe_data['wait_ns'], strobe_data['period_ns'] )
 
 heaters_data = [ { 'status': '', 'temp_actual': '' } for i in range(4) ]
 heater1 = heater_web( 1, picommon.PORT_HEATER1 )
@@ -76,6 +78,11 @@ def on_strobe( data ):
     hold_on = 1 if ( data['parameters']['on'] != 0 ) else 0
     valid = strobe.set_hold( hold_on )
     strobe_data['hold'] = hold_on
+  elif ( data['cmd'] == 'enable' ):
+    enabled = 1 if ( data['parameters']['on'] != 0 ) else 0
+    valid = strobe.set_enable( enabled )
+    strobe_data['enable'] = enabled
+  
   socketio.emit( 'strobe', strobe_data )
 
 if __name__ == '__main__':
