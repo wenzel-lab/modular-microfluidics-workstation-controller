@@ -16,8 +16,12 @@ strobe.set_enable( strobe_data['enable'] )
 strobe.set_hold( strobe_data['hold'] )
 strobe.set_timing( strobe_data['wait_ns'], strobe_data['period_ns'] )
 
-heaters_data = [ { 'status': '', 'temp_actual': '' } for i in range(4) ]
+heaters_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.00, 'temp_c_target': 0.00 } for i in range(4) ]
 heater1 = heater_web( 1, picommon.PORT_HEATER1 )
+heater2 = heater_web( 2, picommon.PORT_HEATER2 )
+heater3 = heater_web( 3, picommon.PORT_HEATER3 )
+heater4 = heater_web( 4, picommon.PORT_HEATER4 )
+heaters = [heater1, heater2, heater3, heater4]
 
 eventlet.monkey_patch()
 app = Flask( __name__ )
@@ -30,15 +34,20 @@ def update_strobe_data():
   strobe_data['cam_read_time_us'] = cam_read_time_us
 
 def update_heater_data( index, heater ):
-  heaters_data[index]['temp_actual'] = '{}'.format( round( heater.get_temp(), 2 ) )
+#  heaters_data[index]['temp_text'] = '{}'.format( round( heater.temp_text, 2 ) )
+  heaters_data[index]['temp_text'] = heater.temp_text
+  heaters_data[index]['temp_c_target'] = heater.temp_c_target
   heaters_data[index]['status'] = heater.status_text
 
 def update_heaters_data():
   heater1.update()
+  heater2.update()
+  heater3.update()
+  heater4.update()
   update_heater_data( 0, heater1 )
-  update_heater_data( 1, heater1 )
-  update_heater_data( 2, heater1 )
-  update_heater_data( 3, heater1 )
+  update_heater_data( 1, heater2 )
+  update_heater_data( 2, heater3 )
+  update_heater_data( 3, heater4 )
 
 def update_all_data():
   update_strobe_data()
@@ -58,18 +67,19 @@ def background_stuff():
     socketio.emit( 'strobe', strobe_data )
     socketio.emit( 'heaters', heaters_data )
 
-#@app.route('/', methods=['GET', 'POST'])
-@app.route( '/' )
-def index():
+def start_server():
   global thread
   if thread is None:
 #    thread = socketio.start_background_task( target=background_stuff, args=(picommon.pi_lock,) )
-#    thread = socketio.start_background_task( target=background_stuff )
-    thread = Thread( target=background_stuff )
-    thread.start()
-  
-  debug_data['update_count'] = debug_data['update_count'] + 1
+    thread = socketio.start_background_task( target=background_stuff )
+#    thread = Thread( target=background_stuff )
+#    thread.start()
 
+#@app.route('/', methods=['GET', 'POST'])
+@app.route( '/' )
+def index():
+  debug_data['update_count'] = debug_data['update_count'] + 1
+#  start_server()
   return render_template( 'index.html', debug=debug_data, strobe=strobe_data, heaters=heaters_data )
 
 @socketio.on( 'create' )
@@ -78,6 +88,8 @@ def on_create( data ):
 
 @socketio.on( 'connect' )
 def on_connect():
+  print( "Connected" )
+  start_server()
   pass
 
 @socketio.on( 'strobe' )
@@ -98,6 +110,20 @@ def on_strobe( data ):
     strobe_data['period_ns'] = period_ns
   
   socketio.emit( 'strobe', strobe_data )
+
+@socketio.on( 'heater' )
+def on_heater( data ):
+  index = -1
+  
+  if ( data['cmd'] == 'temp_c_target' ):
+    index = data['parameters']['index'] - 1
+    temp_c_target = data['parameters']['temp_c_target']
+    valid = heaters[index].set_temp( temp_c_target )
+  
+  if index >= 0:
+    heaters[index].update()
+    update_heater_data( index, heaters[index] )
+    socketio.emit( 'heaters', heaters_data )
 
 if __name__ == '__main__':
   update_all_data()

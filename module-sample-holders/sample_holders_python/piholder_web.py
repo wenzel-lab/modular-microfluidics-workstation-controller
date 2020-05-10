@@ -23,16 +23,18 @@ class heater_web:
     self.stir_enabled = False
     self.autotune_target_temp = 50.0
     self.stir_target_speed = 20
+    self.temp_c_actual = 0
     self.status_text = ""
     self.autotune_status_text = ""
+    self.temp_text = ""
     
     valid, id, id_valid = self.holder.get_id()
 #    print( "ID OK:{}".format( valid ) )
     self.enabled = valid and id_valid
     
-    self.temp_c_target = self.get_temp()
+    self.temp_c_target = self.get_temp_target()
 
-  def get_temp( self ):
+  def get_temp_target( self ):
     valid, temp_c_target = self.holder.get_temp_target()
     if valid:
       temp_c_target = round( temp_c_target, 2 )
@@ -43,7 +45,7 @@ class heater_web:
     try:
       temp = round( float( temp ), 2 )
       self.holder.set_pid_temp( temp )
-      self.temp_c_target = self.get_temp()
+      self.temp_c_target = self.get_temp_target()
     except:
       pass
   
@@ -61,7 +63,7 @@ class heater_web:
       #temp = round( float( self.temp_target_box.value ), 2 )
       #self.holder.set_pid_running( run, temp )
       self.holder.set_pid_running( run )
-      #self.temp_c_target = self.get_temp()
+      #self.temp_c_target = self.get_temp_target()
     except:
       pass
   
@@ -80,6 +82,8 @@ class heater_web:
       valid, pid_status, pid_error = self.holder.get_pid_status()
       okay = valid
       valid, temp_c = self.holder.get_temp_actual()
+      if valid:
+        self.temp_c_actual = round( temp_c, 2 )
       okay = okay and valid
       valid, autotune_status, autotune_fail = self.holder.get_autotune_status()
       okay = okay and valid
@@ -108,8 +112,8 @@ class heater_web:
             pass
       
       try:
-        self.holder_temp.value = "{} / {}".format( round( temp_c, 2 ), round( self.temp_c_target, 2 ) )
-        self.stir_speed.value = "{} RPS".format( stir_speed_actual_rps )
+        self.temp_text = "{} / {}".format( round( self.temp_c_actual, 2 ), round( self.temp_c_target, 2 ) )
+#        self.stir_speed_text = "{} RPS".format( stir_speed_actual_rps )
       except:
         pass
       

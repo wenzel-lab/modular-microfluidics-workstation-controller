@@ -10,8 +10,9 @@
 //  var socket = io.connect('http://' + document.domain + ':' + location.port);
   var socket = io();
   var strobe = {{strobe|tojson}}
+  var heaters = {{heaters|tojson}}
   
-  function strobe_update_start()
+  function strobe_update_init()
   {
     $('#input_strobe_period_us').val( strobe.period_ns / 1000 );
     $('#input_strobe_wait_us').val( strobe.wait_ns / 1000 );
@@ -23,29 +24,48 @@
     $('#btn_strobe_enable').html( strobe.enable ? 'Disable' : 'Enable' );
     
     $('#strobe_hold').html( strobe.hold ? 'On' : 'Off' );
-    $('#btn_strobe_hold').html( strobe.hold ? 'Turn Off' : 'Turn On' );
+    $('#btn_strobe_hold').html( strobe.hold ? 'Hold Off' : 'Hold On' );
     
     $('#strobe_period_us').html( strobe.period_ns / 1000 );
     $('#strobe_wait_us').html( strobe.wait_ns / 1000 );
     $('#strobe_cam_time_us').html( strobe.cam_read_time_us );
   }
   
+  function heaters_update_init()
+  {
+    for ( var i=0; i<=3; i++ )
+    {
+      $('#input_heater'+(i+1)+'_temp_c_target').val( heaters[i].temp_c_target.toString() );
+    }
+  }
+  
+  function heaters_update()
+  {
+    for ( var i=0; i<=3; i++ )
+    {
+      $('#heater'+(i+1)+'_status').html( heaters[i].status );
+      $('#heater'+(i+1)+'_temp_text').html( heaters[i].temp_text );
+    }
+  }
+  
   $(document).ready(function() {
-    strobe_update_start();
+    strobe_update_init();
+    heaters_update_init();
     strobe_update();
+    heaters_update();
     
-    socket.on('connect', function() {
-      console.log('Websocket connected!');
+    socket.on( 'connect', function() {
+      console.log( 'Websocket connected!' );
     });
-    socket.on('debug', function(data) {
-      $('#update_count').html(data.update_count);
+    socket.on('disconnect', function(){
+      console.log( 'Websocket connection lost!' );
     });
-    socket.on('heaters', function(data) {
-      for ( var i=0; i<=3; i++ )
-      {
-        $('#heater'+(i+1)+'_status').html(data[i].status);
-        $('#heater'+(i+1)+'_temp').html(data[i].temp_actual);
-      }
+    socket.on( 'debug', function( data ) {
+      $('#update_count').html( data.update_count );
+    });
+    socket.on( 'heaters', function( data ) {
+      heaters = data;
+      heaters_update();
     });
     socket.on( 'strobe', function( data ) {
       strobe = data;
@@ -66,6 +86,9 @@
   function strobe_period() {
     socket.emit( 'strobe', { cmd: 'timing', parameters: { 'wait_ns': strobe.wait_ns, 'period_ns': ( $('#input_strobe_period_us').val() * 1000 ) } } );
   }
+  function heater_temp_c_target( index ) {
+    socket.emit( 'heater', { cmd: 'temp_c_target', parameters: { 'index': index, 'temp_c_target': ( $('#input_heater'+index+'_temp_c_target').val() ) } } );
+  }
 </script>
 
 <p></p><p>
@@ -84,7 +107,7 @@
 <h3>Strobe</h3>
 <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
   <tr>
-    <td width=150>Enable</td>
+    <td width=150>Enabled</td>
     <td width=100><p id='strobe_enable'></p></td>
     <td></td>
     <td><button id='btn_strobe_enable', onclick="strobe_enable()", style="width: 100px"></button></td>
@@ -119,12 +142,14 @@
   <h3>Heater {{loop.index}}</h3>
   <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
     <tr>
-      <td>Status</td>
-      <td><p id='heater{{loop.index}}_status'>{{heater.status}}</p></td>
+      <td width=150>Status</td>
+      <td width=100><p id='heater{{loop.index}}_status'></p></td>
     </tr>
     <tr>
-      <td>Temp</td>
-      <td><p id='heater{{loop.index}}_status'>{{heater.temp_actual}}</p></td>
+      <td>Temperature (degC)</td>
+      <td><p id='heater{{loop.index}}_temp_text'></p></td>
+      <td><input type="number" id="input_heater{{loop.index}}_temp_c_target" min="-50" max="100"></td>
+      <td><button id='btn_heater{{loop.index}}_temp_c_target', onclick="heater_temp_c_target({{loop.index}})", style="width: 100px">Set</button></td>
     </tr>
   </table>
 {% endfor %}
