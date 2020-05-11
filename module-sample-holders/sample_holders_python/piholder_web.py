@@ -27,6 +27,7 @@ class heater_web:
     self.status_text = ""
     self.autotune_status_text = ""
     self.temp_text = ""
+    self.stir_speed_text = ""
     
     valid, id, id_valid = self.holder.get_id()
 #    print( "ID OK:{}".format( valid ) )
@@ -49,17 +50,17 @@ class heater_web:
     except:
       pass
   
-  def set_autotune( self ):
+  def set_autotune( self, autotuning ):
     try:
       temp = round( float( self.autotune_target_temp ), 2 )
-      autotuning = 0 if self.autotuning else 1
+      #autotuning = 0 if self.autotuning else 1
       self.holder.set_autotune_running( autotuning, temp )
     except:
       pass
     
-  def set_pid_running( self ):
+  def set_pid_running( self, run ):
     try:
-      run = 0 if self.pid_enabled else 1
+      #run = 0 if self.pid_enabled else 1
       #temp = round( float( self.temp_target_box.value ), 2 )
       #self.holder.set_pid_running( run, temp )
       self.holder.set_pid_running( run )
@@ -67,9 +68,9 @@ class heater_web:
     except:
       pass
   
-  def set_stir_running( self ):
+  def set_stir_running( self, run ):
     try:
-      run = 0 if self.stir_enabled else 1
+      #run = 0 if self.stir_enabled else 1
       stir_speed_rps = int( self.stir_target_speed )
       self.holder.set_stir_running( run, stir_speed_rps )
     except:
@@ -113,7 +114,7 @@ class heater_web:
       
       try:
         self.temp_text = "{} / {}".format( round( self.temp_c_actual, 2 ), round( self.temp_c_target, 2 ) )
-#        self.stir_speed_text = "{} RPS".format( stir_speed_actual_rps )
+        self.stir_speed_text = "{} RPS".format( stir_speed_actual_rps )
       except:
         pass
       

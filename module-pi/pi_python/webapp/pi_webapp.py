@@ -16,7 +16,9 @@ strobe.set_enable( strobe_data['enable'] )
 strobe.set_hold( strobe_data['hold'] )
 strobe.set_timing( strobe_data['wait_ns'], strobe_data['period_ns'] )
 
-heaters_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.00, 'temp_c_target': 0.00 } for i in range(4) ]
+heaters_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
+                   'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
+                   'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
 heater1 = heater_web( 1, picommon.PORT_HEATER1 )
 heater2 = heater_web( 2, picommon.PORT_HEATER2 )
 heater3 = heater_web( 3, picommon.PORT_HEATER3 )
@@ -34,10 +36,17 @@ def update_strobe_data():
   strobe_data['cam_read_time_us'] = cam_read_time_us
 
 def update_heater_data( index, heater ):
+  heaters_data[index]['status'] = heater.status_text
 #  heaters_data[index]['temp_text'] = '{}'.format( round( heater.temp_text, 2 ) )
   heaters_data[index]['temp_text'] = heater.temp_text
   heaters_data[index]['temp_c_target'] = heater.temp_c_target
-  heaters_data[index]['status'] = heater.status_text
+  heaters_data[index]['pid_enabled'] = heater.pid_enabled
+  heaters_data[index]['autotune_status'] = heater.autotune_status_text
+  heaters_data[index]['autotune_target_temp'] = heater.autotune_target_temp
+  heaters_data[index]['autotuning'] = heater.autotuning
+  heaters_data[index]['stir_speed_text'] = heater.stir_speed_text
+  heaters_data[index]['stir_speed_target'] = heater.stir_target_speed
+  heaters_data[index]['stir_enabled'] = heater.stir_enabled
 
 def update_heaters_data():
   heater1.update()
@@ -116,9 +125,25 @@ def on_heater( data ):
   index = -1
   
   if ( data['cmd'] == 'temp_c_target' ):
-    index = data['parameters']['index'] - 1
+    index = data['parameters']['index']
     temp_c_target = data['parameters']['temp_c_target']
     valid = heaters[index].set_temp( temp_c_target )
+  elif ( data['cmd'] == 'pid_enable' ):
+    index = data['parameters']['index']
+    enabled = data['parameters']['on']
+    valid = heaters[index].set_pid_running( enabled )
+  elif ( data['cmd'] == 'autotune' ):
+    index = data['parameters']['index']
+    enabled = data['parameters']['on']
+    temp = data['parameters']['temp']
+    heaters[index].autotune_target_temp = temp
+    valid = heaters[index].set_autotune( enabled )
+  elif ( data['cmd'] == 'stir' ):
+    index = data['parameters']['index']
+    enabled = data['parameters']['on']
+    speed = data['parameters']['speed']
+    heaters[index].stir_target_speed = speed
+    valid = heaters[index].set_stir_running( enabled )
   
   if index >= 0:
     heaters[index].update()

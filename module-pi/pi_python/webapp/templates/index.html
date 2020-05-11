@@ -36,6 +36,8 @@
     for ( var i=0; i<=3; i++ )
     {
       $('#input_heater'+(i+1)+'_temp_c_target').val( heaters[i].temp_c_target.toString() );
+      $('#input_heater'+(i+1)+'_autotune_target_temp').val( heaters[i].autotune_target_temp.toString() );
+      $('#input_heater'+(i+1)+'_stir_speed').val( heaters[i].stir_speed_target.toString() );
     }
   }
   
@@ -43,6 +45,15 @@
   {
     for ( var i=0; i<=3; i++ )
     {
+      $('#heater'+(i+1)+'_pid_enabled').html( heaters[i].pid_enabled ? "Enabled" : "Disabled" );
+      $('#btn_heater'+(i+1)+'_pid_enabled').html( heaters[i].pid_enabled ? 'Disable' : 'Enable' );
+      
+      $('#heater'+(i+1)+'_autotune_status').html( heaters[i].autotune_status );
+      $('#btn_heater'+(i+1)+'_autotune').html( heaters[i].autotuning ? 'Stop' : 'Start' );
+      
+      $('#heater'+(i+1)+'_stir_speed').html( heaters[i].stir_speed_text );
+      $('#btn_heater'+(i+1)+'_stir').html( heaters[i].stir_enabled ? 'Stop' : 'Start' );
+      
       $('#heater'+(i+1)+'_status').html( heaters[i].status );
       $('#heater'+(i+1)+'_temp_text').html( heaters[i].temp_text );
     }
@@ -87,7 +98,16 @@
     socket.emit( 'strobe', { cmd: 'timing', parameters: { 'wait_ns': strobe.wait_ns, 'period_ns': ( $('#input_strobe_period_us').val() * 1000 ) } } );
   }
   function heater_temp_c_target( index ) {
-    socket.emit( 'heater', { cmd: 'temp_c_target', parameters: { 'index': index, 'temp_c_target': ( $('#input_heater'+index+'_temp_c_target').val() ) } } );
+    socket.emit( 'heater', { cmd: 'temp_c_target', parameters: { 'index': index, 'temp_c_target': ( $('#input_heater'+(index+1)+'_temp_c_target').val() ) } } );
+  }
+  function heater_pid_enable( index ) {
+    socket.emit( 'heater', { cmd: 'pid_enable', parameters: { 'index': index, 'on': !heaters[index].pid_enabled } } );
+  }
+  function heater_autotune( index ) {
+    socket.emit( 'heater', { cmd: 'autotune', parameters: { 'index': index, 'on': !heaters[index].autotuning, 'temp': ( $('#input_heater'+(index+1)+'_autotune_target_temp').val() ) } } );
+  }
+  function heater_stir( index ) {
+    socket.emit( 'heater', { cmd: 'stir', parameters: { 'index': index, 'on': !heaters[index].stir_enabled, 'speed': ( $('#input_heater'+(index+1)+'_stir_speed').val() ) } } );
   }
 </script>
 
@@ -146,10 +166,28 @@
       <td width=100><p id='heater{{loop.index}}_status'></p></td>
     </tr>
     <tr>
+      <td>PID Enabled</td>
+      <td><p id='heater{{loop.index}}_pid_enabled'></p></td>
+      <td></td>
+      <td><button id='btn_heater{{loop.index}}_pid_enabled', onclick="heater_pid_enable({{loop.index-1}})", style="width: 100px">Set</button></td>
+    </tr>
+    <tr>
       <td>Temperature (degC)</td>
       <td><p id='heater{{loop.index}}_temp_text'></p></td>
       <td><input type="number" id="input_heater{{loop.index}}_temp_c_target" min="-50" max="100"></td>
-      <td><button id='btn_heater{{loop.index}}_temp_c_target', onclick="heater_temp_c_target({{loop.index}})", style="width: 100px">Set</button></td>
+      <td><button id='btn_heater{{loop.index}}_temp_c_target', onclick="heater_temp_c_target({{loop.index-1}})", style="width: 100px">Set</button></td>
+    </tr>
+    <tr>
+      <td>Autotune Status</td>
+      <td><p id='heater{{loop.index}}_autotune_status'></p></td>
+      <td><input type="number" id="input_heater{{loop.index}}_autotune_target_temp" min="-50" max="100"></td>
+      <td><button id='btn_heater{{loop.index}}_autotune', onclick="heater_autotune({{loop.index-1}})", style="width: 100px">Set</button></td>
+    </tr>
+    <tr>
+      <td>Stir Speed</td>
+      <td><p id='heater{{loop.index}}_stir_speed'></p></td>
+      <td><input type="number" id="input_heater{{loop.index}}_stir_speed" min="0" max="100"></td>
+      <td><button id='btn_heater{{loop.index}}_stir' onclick="heater_stir({{loop.index-1}})", style="width: 100px">Set</button></td>
     </tr>
   </table>
 {% endfor %}
