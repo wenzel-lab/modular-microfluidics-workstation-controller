@@ -1,11 +1,16 @@
 import time
 from threading import Thread, Event
-from flask import Flask, flash, render_template, request, redirect
+from flask import Flask, flash, render_template, request, redirect, Response
 from flask_socketio import SocketIO, join_room, emit, send
 import eventlet 
 import picommon
 from pistrobe import PiStrobe
 from piholder_web import heater_web
+#from camera import Camera
+from camera_pi import Camera
+
+eventlet.monkey_patch( os=True, select=True, socket=True, thread=False, time=True, psycopg=True )
+#eventlet.monkey_patch()
 
 debug_data = { 'update_count': 0 }
 
@@ -25,7 +30,6 @@ heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
-eventlet.monkey_patch()
 app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
 thread = None
@@ -108,7 +112,7 @@ def on_strobe( data ):
     valid = strobe.set_hold( hold_on )
     strobe_data['hold'] = hold_on
   elif ( data['cmd'] == 'enable' ):
-    enabled = 1 if ( data['parameters']['on'] != 0 ) else 0
+    enabled = data['parameters']['on'] != 0
     valid = strobe.set_enable( enabled )
     strobe_data['enable'] = enabled
   elif ( data['cmd'] == 'timing' ):
@@ -150,8 +154,18 @@ def on_heater( data ):
     update_heater_data( index, heaters[index] )
     socketio.emit( 'heaters', heaters_data )
 
+def gen( camera ):
+  while True:
+    frame = camera.get_frame()
+    yield ( b'--frame\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n' )
+
+@app.route( '/video' )
+def video():
+  return Response( gen( Camera() ), mimetype='multipart/x-mixed-replace; boundary=frame' )
+
 if __name__ == '__main__':
   update_all_data()
-#    app.run( debug=True, host='0.0.0.0' )
+#  app.run( debug=True, host='0.0.0.0', threaded=True )
   socketio.run( app, host='0.0.0.0', debug=True )
   
