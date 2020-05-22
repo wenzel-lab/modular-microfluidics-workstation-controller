@@ -61,7 +61,8 @@ class PiStrobe:
     return valid, data_read
     
   def set_enable( self, enable ):
-    valid, data = self.packet_query( 1, [1 if enable else 0] )
+    enabled = 1 if enable else 0
+    valid, data = self.packet_query( 1, [enabled] )
     return ( valid and ( data[0] == 0 ) )
 
   def set_timing( self, wait_ns, period_ns ):
