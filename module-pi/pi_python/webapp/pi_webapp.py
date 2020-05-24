@@ -8,6 +8,7 @@ from pistrobe import PiStrobe
 from piholder_web import heater_web
 #from camera import Camera
 from camera_pi import Camera
+#from vimba_pi import Camera
 
 eventlet.monkey_patch( os=True, select=True, socket=True, thread=False, time=True, psycopg=True )
 #eventlet.monkey_patch()
@@ -30,10 +31,16 @@ heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
+exit_event = Event()
+
+cam = Camera( exit_event )
+#cam.initialize()
+#cam.init2()
+cam_data = { 'status': '' }
+
 app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
 thread = None
-event = Event()
 
 def update_strobe_data():
   valid, cam_read_time_us = strobe.get_cam_read_time()
@@ -79,6 +86,7 @@ def background_stuff():
     socketio.emit( 'debug', debug_data )
     socketio.emit( 'strobe', strobe_data )
     socketio.emit( 'heaters', heaters_data )
+    socketio.emit( 'cam', cam_data )
 
 def start_server():
   global thread
@@ -93,7 +101,7 @@ def start_server():
 def index():
   debug_data['update_count'] = debug_data['update_count'] + 1
 #  start_server()
-  return render_template( 'index.html', debug=debug_data, strobe=strobe_data, heaters=heaters_data )
+  return render_template( 'index.html', debug=debug_data, strobe=strobe_data, heaters=heaters_data, cam=cam_data )
 
 @socketio.on( 'create' )
 def on_create( data ):
@@ -104,6 +112,14 @@ def on_connect():
   print( "Connected" )
   start_server()
   pass
+
+@socketio.on( 'cam' )
+def on_cam( data ):
+  if ( data['cmd'] == 'snapshot' ):
+    print( "Snapshot" )
+    cam.save()
+    
+  socketio.emit( 'cam', cam_data )
 
 @socketio.on( 'strobe' )
 def on_strobe( data ):
@@ -162,10 +178,12 @@ def gen( camera ):
 
 @app.route( '/video' )
 def video():
-  return Response( gen( Camera() ), mimetype='multipart/x-mixed-replace; boundary=frame' )
+  return Response( gen( cam ), mimetype='multipart/x-mixed-replace; boundary=frame' )
 
 if __name__ == '__main__':
-  update_all_data()
-#  app.run( debug=True, host='0.0.0.0', threaded=True )
-  socketio.run( app, host='0.0.0.0', debug=True )
-  
+    update_all_data()
+#    app.run( debug=True, host='0.0.0.0', threaded=True )
+    socketio.run( app, host='0.0.0.0', debug=True, use_reloader=False )
+    
+    exit_event.set()
+    

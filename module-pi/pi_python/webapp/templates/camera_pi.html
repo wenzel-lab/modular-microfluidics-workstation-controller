@@ -1,0 +1,35 @@
+{% macro js_functions( cam ) %}
+  var cam = {{cam|tojson}}
+  
+  function cam_update()
+  {
+    $('#btn_cam_snapshot').html( "Snapshot" );
+  }
+  
+  function cam_snapshot()
+  {
+    socket.emit( 'cam', { cmd: 'snapshot', parameters: {} } );
+  }
+{% endmacro %}
+
+{% macro js_doc_ready() %}
+  cam_update();
+  
+  socket.on( 'cam', function( data ) {
+    cam = data;
+    cam_update();
+  });
+{% endmacro %}
+
+{% macro html() %}
+  <h3>RPi Camera</h3>
+  <p><img src="{{ url_for('video') }}"></p>
+  <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
+    <tr>
+      <td width=150>Snapshot</td>
+      <td width=100><p id='cam_snapshot'></p></td>
+      <td></td>
+      <td><button id='btn_cam_snapshot', onclick="cam_snapshot()", style="width: 100px"></button></td>
+    </tr>
+  </table>
+{% endmacro %}

@@ -2,31 +2,40 @@ import time
 import io
 import threading
 import picamera
-
+from PIL import Image
 
 class Camera(object):
     thread = None  # background thread that reads frames from camera
     frame = None  # current frame is stored here by background thread
     last_access = 0  # time of last client access to the camera
-
-    def initialize(self):
-        if Camera.thread is None:
+    
+    def __init__( self, exit_event ):
+      self.exit_event = exit_event
+    
+    def initialize( self ):
+        if self.thread is None:
             # start background frame thread
-            Camera.thread = threading.Thread(target=self._thread)
-            Camera.thread.start()
-
+            self.thread = threading.Thread(target=self._thread)
+#            self.thread.daemon = True
+            self.thread.start()
+            
             # wait until frames start to be available
             while self.frame is None:
 #                time.sleep(0)
               pass
 
     def get_frame(self):
-        Camera.last_access = time.time()
+        self.last_access = time.time()
         self.initialize()
         return self.frame
-
+    
+    def save( self ):
+      img=Image.open( io.BytesIO( self.frame ) )
+      img.save( "snapshot.jpg", "JPEG" )
+#      self.strobe_cam.camera.capture( "snapshot.jpg" )
+    
     @classmethod
-    def _thread(cls):
+    def _thread(self):
         with picamera.PiCamera() as camera:
             # camera setup
             camera.resolution = (320, 240)
@@ -42,7 +51,7 @@ class Camera(object):
                                                  use_video_port=True):
                 # store frame
                 stream.seek(0)
-                cls.frame = stream.read()
+                self.frame = stream.read()
 
                 # reset stream for next frame
                 stream.seek(0)
@@ -50,6 +59,9 @@ class Camera(object):
 
                 # if there hasn't been any clients asking for frames in
                 # the last 10 seconds stop the thread
-                if time.time() - cls.last_access > 10:
-                    break
-        cls.thread = None
+                if time.time() - self.last_access > 10:
+                  break
+                if self.exit_event.isSet():
+                  print( "Pi Camera thread exiting" )
+                  break
+        self.thread = None

@@ -1,5 +1,6 @@
 <doctype html="">
   <head>
+    {% import 'camera_pi.html' as cam_html %}
     <title>Open Microfluidics Station</title>
     <!--meta http-equiv="refresh" content="2" /-->
     <h2>Open Microfluidics Station</h2>
@@ -9,6 +10,8 @@
     <!--<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>-->
     <script type="text/javascript" charset="utf-8">
     //  var socket = io.connect('http://' + document.domain + ':' + location.port);
+      {{ cam_html.js_functions( cam ) }}
+      
       var socket = io();
       var strobe = {{strobe|tojson}}
       var heaters = {{heaters|tojson}}
@@ -61,6 +64,8 @@
       }
       
       $(document).ready(function() {
+        {{ cam_html.js_doc_ready() }}
+        
         strobe_update_init();
         heaters_update_init();
         strobe_update();
@@ -127,6 +132,8 @@
 
     <p>Update Count: <a id='update_count'>{{debug.update_count}}</a></p>
 
+    {{ cam_html.html() }}
+    
     <h3>Strobe</h3>
     <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
       <tr>
@@ -194,8 +201,6 @@
         </tr>
       </table>
     {% endfor %}
-
-    <p><img src="{{ url_for('video') }}"></p>
   </body>
 
 </doctype>
