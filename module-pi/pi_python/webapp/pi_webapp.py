@@ -36,7 +36,7 @@ exit_event = Event()
 cam = Camera( exit_event )
 #cam.initialize()
 #cam.init2()
-cam_data = { 'status': '' }
+cam_data = { 'camera': 'none', 'status': '' }
 
 app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
@@ -118,8 +118,11 @@ def on_cam( data ):
   if ( data['cmd'] == 'snapshot' ):
     print( "Snapshot" )
     cam.save()
-    
-  socketio.emit( 'cam', cam_data )
+  elif ( data['cmd'] == 'select' ):
+    cam_data['camera'] = data['parameters']['camera']
+    socketio.emit( 'reload' )
+  
+#  socketio.emit( 'cam', cam_data )
 
 @socketio.on( 'strobe' )
 def on_strobe( data ):
@@ -183,7 +186,8 @@ def video():
 if __name__ == '__main__':
     update_all_data()
 #    app.run( debug=True, host='0.0.0.0', threaded=True )
-    socketio.run( app, host='0.0.0.0', debug=True, use_reloader=False )
+#    socketio.run( app, host='0.0.0.0', debug=True, use_reloader=False )
+    socketio.run( app, host='0.0.0.0', debug=True )
     
     exit_event.set()
     

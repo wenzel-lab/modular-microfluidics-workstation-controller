@@ -1,6 +1,11 @@
 <doctype html="">
   <head>
-    {% import 'camera_pi.html' as cam_html %}
+    {% if cam.camera == 'rpi' %}
+      {% import 'camera_pi.html' as cam_html %}
+    {% else %}
+      {% import 'camera_none.html' as cam_html %}
+    {% endif %}
+    
     <title>Open Microfluidics Station</title>
     <!--meta http-equiv="refresh" content="2" /-->
     <h2>Open Microfluidics Station</h2>
@@ -15,6 +20,7 @@
       var socket = io();
       var strobe = {{strobe|tojson}}
       var heaters = {{heaters|tojson}}
+      //var cam = {{cam|tojson}}
       
       function strobe_update_init()
       {
@@ -77,6 +83,10 @@
         socket.on('disconnect', function(){
           console.log( 'Websocket connection lost!' );
         });
+        socket.on( 'reload', function( data ) {
+//          $('#select_camera').val( data.camera )
+          location.reload( true )
+        });
         socket.on( 'debug', function( data ) {
           $('#update_count').html( data.update_count );
         });
@@ -90,6 +100,9 @@
         });
       });
       
+      function cam_select() {
+        socket.emit( 'cam', { cmd: 'select', parameters: { 'camera': $('#select_camera').val() } } );
+      }
       function strobe_enable() {
         socket.emit( 'strobe', { cmd: 'enable', parameters: { 'on': strobe.enable ? 0 : 1 } } );
       }
@@ -97,7 +110,6 @@
         socket.emit( 'strobe', { cmd: 'hold', parameters: { 'on': strobe.hold ? 0 : 1 } } );
       }
       function strobe_wait() {
-    //    socket.emit( 'strobe', { cmd: 'timing', parameters: { 'wait_ns': ( 10000 ), 'period_ns': strobe.period_ns } } );
         socket.emit( 'strobe', { cmd: 'timing', parameters: { 'wait_ns': ( $('#input_strobe_wait_us').val() * 1000 ), 'period_ns': strobe.period_ns } } );
       }
       function strobe_period() {
@@ -132,6 +144,12 @@
 
     <p>Update Count: <a id='update_count'>{{debug.update_count}}</a></p>
 
+    <h3>Camera</h3>
+    <!--<p>Camera: {{cam.camera}}</p>-->
+    <select id="select_camera" onchange="cam_select()">
+      <option value="none">None</option>
+      <option value="rpi"{% if cam.camera == "rpi" %} selected{%endif%}>RPI</option>
+    </select>    
     {{ cam_html.html() }}
     
     <h3>Strobe</h3>
