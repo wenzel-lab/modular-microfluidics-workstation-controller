@@ -9,14 +9,18 @@ from piholder_web import heater_web
 #from camera import Camera
 from camera_pi import Camera
 #from vimba_pi import Camera
+from piflow_web import flow_web
 
 eventlet.monkey_patch( os=True, select=True, socket=True, thread=False, time=True, psycopg=True )
 #eventlet.monkey_patch()
 
+exit_event = Event()
+
+picommon.spi_init( 0, 2, 30000 )
+
 debug_data = { 'update_count': 0 }
 
 strobe_data = { 'hold':0, 'enable':0, 'wait_ns':0, 'period_ns':100000, 'cam_read_time_us':0 }
-picommon.spi_init( 0, 2, 30000 )
 strobe = PiStrobe( picommon.PORT_STROBE, 0.1 )
 strobe.set_enable( strobe_data['enable'] )
 strobe.set_hold( strobe_data['hold'] )
@@ -31,12 +35,15 @@ heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
-exit_event = Event()
-
 cam = Camera( exit_event )
 #cam.initialize()
 #cam.init2()
 cam_data = { 'camera': 'none', 'status': '' }
+
+flows_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
+                 'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
+                 'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
+flow = flow_web( picommon.PORT_FLOW )
 
 app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
@@ -69,9 +76,20 @@ def update_heaters_data():
   update_heater_data( 2, heater3 )
   update_heater_data( 3, heater4 )
 
+def update_flow_data( index ):
+  flows_data[index]['status'] = flow.status_text[index]
+
+def update_flows_data():
+  flow.update()
+  update_flow_data( 0 )
+  update_flow_data( 1 )
+  update_flow_data( 2 )
+  update_flow_data( 3 )
+
 def update_all_data():
   update_strobe_data()
   update_heaters_data()
+  update_flows_data()
 
 def background_stuff():
   while True:
@@ -86,6 +104,7 @@ def background_stuff():
     socketio.emit( 'debug', debug_data )
     socketio.emit( 'strobe', strobe_data )
     socketio.emit( 'heaters', heaters_data )
+    socketio.emit( 'flows', flows_data )
     socketio.emit( 'cam', cam_data )
 
 def start_server():
@@ -101,7 +120,7 @@ def start_server():
 def index():
   debug_data['update_count'] = debug_data['update_count'] + 1
 #  start_server()
-  return render_template( 'index.html', debug=debug_data, strobe=strobe_data, heaters=heaters_data, cam=cam_data )
+  return render_template( 'index.html', debug=debug_data, strobe=strobe_data, heaters=heaters_data, flows=flows_data, cam=cam_data )
 
 @socketio.on( 'create' )
 def on_create( data ):
@@ -183,11 +202,15 @@ def gen( camera ):
 def video():
   return Response( gen( cam ), mimetype='multipart/x-mixed-replace; boundary=frame' )
 
+def before_first_request():
+  print( "Before First Request -----------------------------" )
+
 if __name__ == '__main__':
     update_all_data()
 #    app.run( debug=True, host='0.0.0.0', threaded=True )
-#    socketio.run( app, host='0.0.0.0', debug=True, use_reloader=False )
-    socketio.run( app, host='0.0.0.0', debug=True )
+    app.before_first_request( before_first_request )
+    socketio.run( app, host='0.0.0.0', debug=True, use_reloader=False )
+#    socketio.run( app, host='0.0.0.0', debug=True )
     
     exit_event.set()
     

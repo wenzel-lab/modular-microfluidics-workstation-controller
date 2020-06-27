@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=pressure_and_flow_pic
 
 # Active Configuration
-DEFAULTCONF=Snap
+DEFAULTCONF=PICkit4
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Unpowered 3_3V Snap 
+ALLCONFS=Unpowered 3_3V Snap PICkit4 
 
 
 # build
@@ -48,6 +48,7 @@ ALLCONFS=Unpowered 3_3V Snap
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3V clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4 clean
 
 
 
@@ -56,6 +57,7 @@ ALLCONFS=Unpowered 3_3V Snap
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3V build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4 build
 
 
 

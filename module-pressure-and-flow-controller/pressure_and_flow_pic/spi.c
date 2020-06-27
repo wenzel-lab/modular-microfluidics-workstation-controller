@@ -6,6 +6,9 @@
 #include "spi.h"
 //#include "mcc_generated_files/spi1.h"
 
+#define SPI1_INT_ON()           { IEC0bits.SPI1RXIE = 1; }
+#define SPI1_INT_OFF()          { IEC0bits.SPI1RXIE = 0; }
+
 #define READ_BUF_SIZE           32
 #define READ_BUF_SIZE_MASK      ( READ_BUF_SIZE - 1 )
 #define WRITE_BUF_SIZE          32
@@ -30,7 +33,7 @@ volatile uint8_t write_buf_remaining;
 // Static Prototypes -------------------------------------------------------
 
 static uint8_t spi_handler( uint8_t byte_in, uint8_t *byte_out );
-static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void );
+//static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void );
 
 // Extern Functions --------------------------------------------------------
 
@@ -51,7 +54,8 @@ extern void spi_init( void )
 //    SPI1_setExchangeHandler( spi_handler );
     SPI1STATL = 0;
     IFS0bits.SPI1RXIF = 0;
-    IEC0bits.SPI1RXIE = 1;
+//    IEC0bits.SPI1RXIE = 1;
+    SPI1_INT_ON();
 }
 
 #ifdef SPI_READ_SUPPORTED
@@ -62,7 +66,28 @@ extern uint8_t spi_read_bytes_available( void )
 #endif
 
 #ifdef SPI_WRITE_SUPPORTED
-extern uint8_t spi_write_bytes_available( void )
+extern void spi_clear_write( void )
+{
+//    uint8_t int_enabled = SPI1IMSKLbits.SPIRBFEN;
+    
+    SPI1_INT_OFF();
+    
+//    SPI1IMSKLbits.SPIRBFEN = 0;
+    write_buf_head = 0;
+    write_buf_tail = 0;
+    write_buf_remaining = WRITE_BUF_SIZE;
+    
+//    SPI1BUFL = 0xFF;
+    
+//    SPI1IMSKLbits.SPIRBFEN = int_enabled;
+//    SPI1IMSKLbits.SPIRBFEN = 1;
+    SPI1_INT_ON();
+//    IEC0bits.SPI1RXIE = 1;
+}
+#endif
+
+#ifdef SPI_WRITE_SUPPORTED
+extern uint8_t spi_write_bytes_written( void )
 {
     return ( WRITE_BUF_SIZE - write_buf_remaining );
 }
@@ -75,9 +100,11 @@ extern uint8_t spi_read_byte( void )
     
     if ( READ_BUF_SIZE != read_buf_remaining )
     {
+        SPI1_INT_OFF();
         byte = read_buf[read_buf_tail];
         read_buf_tail = ( read_buf_tail + 1 ) & READ_BUF_SIZE_MASK;
         read_buf_remaining++;
+        SPI1_INT_ON();
     }
     
     return byte;
@@ -92,7 +119,9 @@ extern err spi_write_byte( uint8_t byte )
     
     if ( write_buf_remaining )
     {
-        SPI1IMSKLbits.SPIRBFEN = 0;
+        SPI1_INT_OFF();
+//        SPI1IMSKLbits.SPIRBFEN = 0;
+        SPI1STATLbits.SPITUR = 0;
         
         if ( WRITE_BUF_SIZE == write_buf_remaining )
         {
@@ -112,7 +141,8 @@ extern err spi_write_byte( uint8_t byte )
         
         write_buf_remaining--;
 //        PIE3bits.SSP1IE = 1;
-        SPI1IMSKLbits.SPIRBFEN = 1;
+//        SPI1IMSKLbits.SPIRBFEN = 1;
+        SPI1_INT_ON();
     }
     else
         rc = ERR_SPI_WRITE_OVERFLOW;
@@ -124,6 +154,14 @@ extern err spi_write_byte( uint8_t byte )
 extern void spi_packet_clear( spi_packet_buf_t *packet )
 {
     packet->buf_bytes = 0;
+}
+
+extern void spi_packet_init( spi_packet_buf_t *packet, uint16_t *timer_ptr, uint16_t timeout )
+{
+    spi_packet_clear( packet );
+    
+    packet->timer_ptr = timer_ptr;
+    packet->timeout = timeout;
 }
 
 #ifdef SPI_READ_SUPPORTED
@@ -149,10 +187,13 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
     /* Read until we find STX. */
     while ( ( packet->buf_bytes == 0 ) && spi_read_bytes_available() )
     {
+//        printf( "Bytes: %hu\n", spi_read_bytes_available() );
+
         if ( spi_read_byte() == STX )
         {
             packet->buf[0] = STX;
             packet->buf_bytes = 1;
+            packet->start_time = *packet->timer_ptr;
         }
     }
     
@@ -162,12 +203,17 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
         while ( spi_read_bytes_available() && ( packet->buf_bytes < SPI_PACKET_BUF_SIZE ) )
             packet->buf[packet->buf_bytes++] = spi_read_byte();
 
-        if ( packet->buf_bytes >= 3 )
+        if ( ( *packet->timer_ptr - packet->start_time ) > packet->timeout )
+        {
+            rc = ERR_PACKET_TIMEOUT;
+            invalidate = 1;
+        }
+        else if ( packet->buf_bytes >= 3 )
         {
             /* We have at minimum: STX, size and packet type */
 
             packet_size = packet->buf[1];
-
+            
             if ( ( packet_size > SPI_PACKET_BUF_SIZE ) || ( packet_size > data_buf_size ) )
             {
                 rc = ERR_PACKET_OVERFLOW;
@@ -204,6 +250,11 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
                 {
                     /* Checksum is good. */
 
+//                    printf( "Packet %hu\n", type );
+//                    printf( "Packet Size %hu\n", packet_size );
+//                    printf( "Data Size %hu\n", *data_size );
+//                    printf( "Available %hu\n", spi_read_bytes_available() );
+                    
                     if ( packet->buf_bytes == packet_size )
                         packet->buf_bytes = 0;
                     else
@@ -221,19 +272,19 @@ extern err spi_packet_read( spi_packet_buf_t *packet, uint8_t *packet_type, uint
                         *packet_type = type;
                 }
             }
+        }
+        
+        if ( invalidate )
+        {
+            /* Data in buffer is invalid -> look for next STX. */
 
-            if ( invalidate )
-            {
-                /* Data in buffer is invalid -> look for next STX. */
+            buf_ptr = &packet->buf[1];
+            for ( i=1; i<packet->buf_bytes; i++ )
+                if ( packet->buf[i] == STX )
+                    break;
 
-                buf_ptr = &packet->buf[1];
-                for ( i=1; i<packet->buf_bytes; i++ )
-                    if ( packet->buf[i] == STX )
-                        break;
-
-                packet->buf_bytes -= i;
-                memcpy( packet->buf, &packet->buf[i], packet->buf_bytes );
-            }
+            packet->buf_bytes -= i;
+            memcpy( packet->buf, &packet->buf[i], packet->buf_bytes );
         }
     }
     
@@ -277,12 +328,15 @@ extern err spi_packet_write( uint8_t packet_type, uint8_t *data, uint8_t data_si
 }
 #endif
 
+uint8_t spi_packet_timeout( spi_packet_buf_t *packet )
+{
+    return ( ( *packet->timer_ptr - packet->start_time ) > packet->timeout );
+}
+
 // Static Functions --------------------------------------------------------
 
 static uint8_t spi_handler( uint8_t byte_in, uint8_t *byte_out )
 {
-//	PIR3bits.SSP1IF = 0;
-    
 #ifdef SPI_READ_SUPPORTED
     if ( read_buf_remaining )
     {
@@ -325,6 +379,9 @@ static void __attribute__( ( __interrupt__, auto_psv ) ) _SPI1RXInterrupt( void 
 //    dummy = SPI1BUFL;
 //    SPI1BUFL = 11;
 //    PORTAbits.RA0 = 1;
+    
+    SPI1STATLbits.SPIROV = 0;
+    SPI1STATLbits.SPITUR = 0;
     
     if ( SPI1IMSKLbits.SPIRBFEN && SPI1STATLbits.SPIRBF )
     {

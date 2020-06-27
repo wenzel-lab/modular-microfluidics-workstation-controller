@@ -25,3 +25,10 @@ CND_ARTIFACT_PATH_Snap=dist/Snap/production/pressure_and_flow_pic.production.hex
 CND_PACKAGE_DIR_Snap=${CND_DISTDIR}/Snap/package
 CND_PACKAGE_NAME_Snap=pressureandflowpic.tar
 CND_PACKAGE_PATH_Snap=${CND_DISTDIR}/Snap/package/pressureandflowpic.tar
+# PICkit4 configuration
+CND_ARTIFACT_DIR_PICkit4=dist/PICkit4/production
+CND_ARTIFACT_NAME_PICkit4=pressure_and_flow_pic.production.hex
+CND_ARTIFACT_PATH_PICkit4=dist/PICkit4/production/pressure_and_flow_pic.production.hex
+CND_PACKAGE_DIR_PICkit4=${CND_DISTDIR}/PICkit4/package
+CND_PACKAGE_NAME_PICkit4=pressureandflowpic.tar
+CND_PACKAGE_PATH_PICkit4=${CND_DISTDIR}/PICkit4/package/pressureandflowpic.tar

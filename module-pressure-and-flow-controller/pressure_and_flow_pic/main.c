@@ -144,6 +144,7 @@ volatile int32_t fpid_diff[NUM_PRESSURE_CLTRLS];
 volatile int32_t fpid_error_prev[NUM_PRESSURE_CLTRLS];
 
 /* Packet Data */
+uint8_t slave_select;
 spi_packet_buf_t spi_packet;
 uint8_t packet_type;
 uint8_t packet_data[SPI_PACKET_BUF_SIZE];
@@ -425,11 +426,24 @@ void set_ctrl_modes( E_CTRL_MODE *ctrl_modes_new )
         switch ( ctrl_modes[chan] )
         {
             case CTRL_MODE_ZERO:
+                // Intentional drop-through
             case CTRL_MODE_PRESSURE_OPEN_LOOP:
                 if ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_RUNNING )
                     pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_READY;
                 if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING )
                     flow_ctrl_state[chan] = FLOW_CTRL_STATE_READY;
+                break;
+            case CTRL_MODE_PRESSURE:
+                if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_RUNNING )
+                    flow_ctrl_state[chan] = FLOW_CTRL_STATE_READY;
+//                if ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_READY )
+//                    pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_RUNNING;
+                break;
+            case CTRL_MODE_FLOW:
+                if ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_RUNNING )
+                    pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_READY;
+//                if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_READY )
+//                    flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
                 break;
             default:;
         }
@@ -529,6 +543,9 @@ err flow_ctrl_start( uint8_t chan, int16_t flow_rate_raw )
 void init( void )
 {
     uint8_t chan;
+    
+    /* Comms */
+    slave_select = 1;
     
     /* System Init */
     eeprom_okay = false;
@@ -827,6 +844,7 @@ void init_sensirion_lg16( void )
 int main(void)
 {
     err rc = 0;
+    err comms_rc;
     bool adc_i2c_wait;
 //    uint8_t ints, enabled, channel;
     
@@ -877,7 +895,7 @@ int main(void)
     
     /* Init SPI */
     spi_init();
-    spi_packet_clear( &spi_packet );
+    spi_packet_init( &spi_packet, (uint16_t *)&timer_ms, 300 );
     
     __delay_ms( 100 );
 
@@ -1007,10 +1025,14 @@ int main(void)
                 adc_state = ADC_STATE_START;
         }
         
-        if ( ( spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE ) == ERR_OK ) &&
-             ( packet_type != 0 ) )
+        comms_rc = spi_packet_read( &spi_packet, &packet_type, (uint8_t *)&packet_data, &packet_data_size, SPI_PACKET_BUF_SIZE );
+        
+        if ( ( comms_rc == ERR_OK ) && ( packet_type != 0 ) )
         {
             rc = ERR_OK;
+            
+            printf( "Packet received: Cmd %hu\n", packet_type );
+            spi_clear_write();
             
             switch ( packet_type )
             {
@@ -1053,6 +1075,23 @@ int main(void)
             
             if ( rc != ERR_OK )
                 spi_packet_write( packet_type, &rc, 1 );
+        }
+        else if ( ( spi_write_bytes_written() > 0 ) && spi_packet_timeout( &spi_packet ) )
+        {
+            spi_clear_write();
+            printf( "Cleared\n" );
+        }
+        else if ( SS1_GetValue() != slave_select )
+        {
+            /* If slave select dropped, clear SPI interface */
+            
+            slave_select = !slave_select;
+            
+            if ( slave_select == 1 )
+            {
+                spi_packet_clear( &spi_packet );
+                spi_clear_write();
+            }
         }
     }
     

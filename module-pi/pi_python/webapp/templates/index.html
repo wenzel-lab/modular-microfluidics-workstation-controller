@@ -20,6 +20,7 @@
       var socket = io();
       var strobe = {{strobe|tojson}}
       var heaters = {{heaters|tojson}}
+      var flows = {{flows|tojson}}
       //var cam = {{cam|tojson}}
       
       function strobe_update_init()
@@ -69,6 +70,14 @@
         }
       }
       
+      function flows_update()
+      {
+        for ( var i=0; i<=3; i++ )
+        {
+          $('#flow'+(i+1)+'_status').html( flows[i].status );
+        }
+      }
+      
       $(document).ready(function() {
         {{ cam_html.js_doc_ready() }}
         
@@ -76,6 +85,7 @@
         heaters_update_init();
         strobe_update();
         heaters_update();
+        flows_update();
         
         socket.on( 'connect', function() {
           console.log( 'Websocket connected!' );
@@ -97,6 +107,10 @@
         socket.on( 'strobe', function( data ) {
           strobe = data;
           strobe_update();
+        });
+        socket.on( 'flows', function( data ) {
+          flows = data;
+          flows_update();
         });
       });
       
@@ -219,6 +233,17 @@
         </tr>
       </table>
     {% endfor %}
+
+    {% for flow in flows %}
+      <h3>Flow {{loop.index}}</h3>
+      <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
+        <tr>
+          <td width=150>Status</td>
+          <td width=100><p id='flow{{loop.index}}_status'></p></td>
+        </tr>
+      </table>
+    {% endfor %}
+  
   </body>
 
 </doctype>
