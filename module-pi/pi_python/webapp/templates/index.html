@@ -70,6 +70,14 @@
         }
       }
       
+      function flows_update_init()
+      {
+        for ( var i=0; i<=3; i++ )
+        {
+          $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_text.toString() );
+        }
+      }
+      
       function flows_update()
       {
         for ( var i=0; i<=3; i++ )
@@ -84,6 +92,7 @@
         
         strobe_update_init();
         heaters_update_init();
+        flows_update_init();
         strobe_update();
         heaters_update();
         flows_update();
@@ -143,7 +152,7 @@
         socket.emit( 'heater', { cmd: 'stir', parameters: { 'index': index, 'on': !heaters[index].stir_enabled, 'speed': ( $('#input_heater'+(index+1)+'_stir_speed').val() ) } } );
       }
       function flow_pressure_mbar_target( index ) {
-        socket.emit( 'flow', { cmd: 'stir', parameters: { 'index': index, 'on': !heaters[index].stir_enabled, 'speed': ( $('#input_heater'+(index+1)+'_stir_speed').val() ) } } );
+        socket.emit( 'flow', { cmd: 'pressure_mbar_target', parameters: { 'index': index, 'pressure_mbar_target': ( $('#input_flow'+(index+1)+'_pressure_mbar_target').val() ) } } );
       }
     </script>
   </head>

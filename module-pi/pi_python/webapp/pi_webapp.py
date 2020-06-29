@@ -40,9 +40,7 @@ cam = Camera( exit_event )
 #cam.init2()
 cam_data = { 'camera': 'none', 'status': '' }
 
-flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
-                 'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
-                 'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
+flows_data = [ { 'status': '', 'pressure_mbar_text': '' } for i in range(4) ]
 flow = flow_web( picommon.PORT_FLOW )
 
 app = Flask( __name__ )
@@ -192,6 +190,19 @@ def on_heater( data ):
     heaters[index].update()
     update_heater_data( index, heaters[index] )
     socketio.emit( 'heaters', heaters_data )
+
+@socketio.on( 'flow' )
+def on_flow( data ):
+  index = -1
+  
+  if ( data['cmd'] == 'pressure_mbar_target' ):
+    index = data['parameters']['index']
+    pressure_mbar_target = data['parameters']['pressure_mbar_target']
+    valid = flow.set_pressure( index, pressure_mbar_target )
+    flow.get_pressures_target()
+    
+    update_flows_data()
+    socketio.emit( 'flows', flows_data )
 
 def gen( camera ):
   while True:

@@ -22,29 +22,30 @@ class flow_web:
 
   def __init__( self, port ):
     self.flow = piflow.PiFlow( port, 0.1 )
+    
 #    self.pid_enabled = False
-    self.status_text = "Init"
-    self.pressure_mbar_text = ""
+    self.status_text = [ ("Init") for i in range (self.flow.NUM_CONTROLLERS) ]
+    self.pressure_mbar_text = [ ("") for i in range (self.flow.NUM_CONTROLLERS) ]
     self.pressures_target = [ (0.00) for i in range (self.flow.NUM_CONTROLLERS) ]
     
     valid, id, id_valid = self.flow.get_id()
     print( "ID OK:{}, ID={}".format( id_valid, id ) )
     self.enabled = valid and id_valid
     
-#    self.temp_c_target = self.get_temp_target()
+    self.get_pressures_target()
 
-  def get_temp_target( self ):
-    valid, temp_c_target = self.holder.get_temp_target()
+  def get_pressures_target( self ):
+    valid, pressures_mbar_target = self.flow.get_pressure_target()
     if valid:
-      temp_c_target = round( temp_c_target, 2 )
-    self.temp_c_target = temp_c_target
-    return temp_c_target
+      self.pressures_target = pressures_mbar_target
 
-  def set_temp( self, temp ):
+  def set_pressure( self, index, pressure_mbar ):
     try:
-      temp = round( float( temp ), 2 )
-      self.holder.set_pid_temp( temp )
-      self.temp_c_target = self.get_temp_target()
+#      pressure = round( float( pressure_mbar ), 2 )
+      pressure = int( pressure_mbar )
+      self.flow.set_pressure( [index], [pressure] )
+#      self.pressures_target[index] = self.get_temp_target()
+#      self.pressures_target[index] = pressure
     except:
       pass
   

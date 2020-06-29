@@ -229,7 +229,7 @@ err parse_packet_get_id( uint8_t packet_type, uint8_t *packet_data, uint8_t pack
 
 err parse_packet_set_pressure_target( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
-    /* Data: n*[ [Controller Mask U8][Pressure mbar U16>>3] ] */
+    /* Data: n*[ [Controller Mask U8][Pressure mbar U16>>PRESSURE_SHL] ] */
 
     err rc = ERR_OK;
     uint8_t *press_data_ptr = packet_data;

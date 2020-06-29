@@ -89,7 +89,7 @@ class PiFlow:
       id_valid = False
     return ( valid and checksum_okay, id, id_valid )
 
-  def set_pressure( self, pressures_mbar ):
+  def set_pressure_all( self, pressures_mbar ):
     pressures_mbar_bytes = []
     for i in range(self.NUM_CONTROLLERS):
       mask = 1 << i
@@ -100,6 +100,27 @@ class PiFlow:
 #    print( "data={}, wait={}, period={}, wait_bytes={}".format( data, actual_wait_ns, actual_period_ns, data[1:5] ) )
     return ( ( valid and ( data[0] == 0 ) ) )
 
+  def set_pressure( self, indices, pressures_mbar ):
+    pressures_mbar_bytes = []
+    for i in range(len(indices)):
+      mask = 1 << indices[i]
+      pressure_fp = int( pressures_mbar[i] * self.PRESSURE_SCALE );
+      pressures_mbar_bytes.extend( [mask] + list( pressure_fp.to_bytes( 2, 'little', signed=False ) ) )
+    valid, data = self.packet_query( self.PACKET_TYPE_SET_PRESSURE_TARGET, pressures_mbar_bytes )
+#    actual_wait_ns = int.from_bytes( data[1:5], byteorder='little', signed=False )
+#    print( "data={}, wait={}, period={}, wait_bytes={}".format( data, actual_wait_ns, actual_period_ns, data[1:5] ) )
+    return ( ( valid and ( data[0] == 0 ) ) )
+
+  def get_pressure_target( self ):
+    valid, data = self.packet_query( self.PACKET_TYPE_GET_PRESSURE_TARGET, [] )
+    count = int( ( len(data) - 1 ) / 2 )
+    pressures_mbar=[]
+    for i in range(count):
+      index = 1 + ( i << 1 )
+      pressure_mbar = int.from_bytes( data[index:index+2], byteorder='little', signed=False ) / self.PRESSURE_SCALE
+      pressures_mbar.extend( [pressure_mbar] )
+    return ( valid and ( data[0] == 0 ), pressures_mbar )
+
   def get_pressure_actual( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_GET_PRESSURE_ACTUAL, [] )
     count = int( ( len(data) - 1 ) / 2 )
@@ -109,4 +130,3 @@ class PiFlow:
       pressure_mbar = int.from_bytes( data[index:index+2], byteorder='little', signed=True ) / self.PRESSURE_SCALE
       pressures_mbar.extend( [pressure_mbar] )
     return ( valid and ( data[0] == 0 ), pressures_mbar )
-
