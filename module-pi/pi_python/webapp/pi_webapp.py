@@ -40,7 +40,7 @@ cam = Camera( exit_event )
 #cam.init2()
 cam_data = { 'camera': 'none', 'status': '' }
 
-flows_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
+flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
                  'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
                  'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
 flow = flow_web( picommon.PORT_FLOW )
@@ -78,6 +78,7 @@ def update_heaters_data():
 
 def update_flow_data( index ):
   flows_data[index]['status'] = flow.status_text[index]
+  flows_data[index]['pressure_mbar_text'] = flow.pressure_mbar_text[index]
 
 def update_flows_data():
   flow.update()

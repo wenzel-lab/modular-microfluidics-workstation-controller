@@ -24,6 +24,8 @@ class flow_web:
     self.flow = piflow.PiFlow( port, 0.1 )
 #    self.pid_enabled = False
     self.status_text = "Init"
+    self.pressure_mbar_text = ""
+    self.pressures_target = [ (0.00) for i in range (self.flow.NUM_CONTROLLERS) ]
     
     valid, id, id_valid = self.flow.get_id()
     print( "ID OK:{}, ID={}".format( id_valid, id ) )
@@ -65,9 +67,9 @@ class flow_web:
       valid = True
       
       okay = valid
-      valid, pressure_actual = self.flow.get_pressure_actual();
+      valid, pressures_actual = self.flow.get_pressure_actual();
       if valid:
-        self.pressure_actual = pressure_actual
+        self.pressures_actual = pressures_actual
 #        self.temp_c_actual = round( temp_c, 2 )
       okay = okay and valid
       
@@ -88,8 +90,8 @@ class flow_web:
             pass
       
       try:
-#        self.pressure_text = [ ( "{} / {}".format( round( self.temp_c_actual, 2 ), round( self.temp_c_target, 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-        self.pressure_text = [ ( "{} / {}".format( 0.00, 1.00 ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+        self.pressure_mbar_text = [ ( "{} / {}".format( round( self.pressures_actual[i], 2 ), round( self.pressures_target[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+#        self.pressure_mbar_text = [ ( "{} / {}".format( 0.00, 1.00 ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
       except:
         pass
       

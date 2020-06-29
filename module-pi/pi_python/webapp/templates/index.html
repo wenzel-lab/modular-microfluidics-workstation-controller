@@ -75,6 +75,7 @@
         for ( var i=0; i<=3; i++ )
         {
           $('#flow'+(i+1)+'_status').html( flows[i].status );
+          $('#flow'+(i+1)+'_pressure_mbar_text').html( flows[i].pressure_mbar_text );
         }
       }
       
@@ -140,6 +141,9 @@
       }
       function heater_stir( index ) {
         socket.emit( 'heater', { cmd: 'stir', parameters: { 'index': index, 'on': !heaters[index].stir_enabled, 'speed': ( $('#input_heater'+(index+1)+'_stir_speed').val() ) } } );
+      }
+      function flow_pressure_mbar_target( index ) {
+        socket.emit( 'flow', { cmd: 'stir', parameters: { 'index': index, 'on': !heaters[index].stir_enabled, 'speed': ( $('#input_heater'+(index+1)+'_stir_speed').val() ) } } );
       }
     </script>
   </head>
@@ -240,6 +244,12 @@
         <tr>
           <td width=150>Status</td>
           <td width=100><p id='flow{{loop.index}}_status'></p></td>
+        </tr>
+        <tr>
+          <td>Pressure (mbar)</td>
+          <td><p id='flow{{loop.index}}_pressure_mbar_text'></p></td>
+          <td><input type="number" id="input_flow{{loop.index}}_pressure_mbar_target" min="0" max="10000"></td>
+          <td><button id='btn_flow{{loop.index}}_pressure_mbar_target', onclick="flow_pressure_mbar_target({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
       </table>
     {% endfor %}

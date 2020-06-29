@@ -103,10 +103,10 @@ class PiFlow:
   def get_pressure_actual( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_GET_PRESSURE_ACTUAL, [] )
     count = int( ( len(data) - 1 ) / 2 )
-    pressures=[]
+    pressures_mbar=[]
     for i in range(count):
       index = 1 + ( i << 1 )
-      pressure = int.from_bytes( data[index:index+2], byteorder='little', signed=False ) / self.PRESSURE_SCALE
-      pressures.extend( [pressure] )
-    return ( valid and ( data[0] == 0 ), pressures )
+      pressure_mbar = int.from_bytes( data[index:index+2], byteorder='little', signed=True ) / self.PRESSURE_SCALE
+      pressures_mbar.extend( [pressure_mbar] )
+    return ( valid and ( data[0] == 0 ), pressures_mbar )
 
