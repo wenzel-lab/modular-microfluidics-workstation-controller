@@ -74,7 +74,7 @@
       {
         for ( var i=0; i<=3; i++ )
         {
-          $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_text.toString() );
+          $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_target.toString() );
         }
       }
       
@@ -84,6 +84,8 @@
         {
           $('#flow'+(i+1)+'_status').html( flows[i].status );
           $('#flow'+(i+1)+'_pressure_mbar_text').html( flows[i].pressure_mbar_text );
+          $('#flow'+(i+1)+'_control_mode').html( flows[i].control_modes[flows[i].control_mode] );
+          $("input:radio[name=input_flow"+(i+1)+"_control_mode][value='"+flows[i].control_mode+"']").prop( "checked", true );
         }
       }
       
@@ -153,6 +155,9 @@
       }
       function flow_pressure_mbar_target( index ) {
         socket.emit( 'flow', { cmd: 'pressure_mbar_target', parameters: { 'index': index, 'pressure_mbar_target': ( $('#input_flow'+(index+1)+'_pressure_mbar_target').val() ) } } );
+      }
+      function flow_control_mode( index ) {
+        socket.emit( 'flow', { cmd: 'control_mode', parameters: { 'index': index, 'control_mode': ( $('input:radio[name=input_flow'+(index+1)+'_control_mode]:checked').val() ) } } );
       }
     </script>
   </head>
@@ -252,7 +257,18 @@
       <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
         <tr>
           <td width=150>Status</td>
-          <td width=100><p id='flow{{loop.index}}_status'></p></td>
+          <td width=150><p id='flow{{loop.index}}_status'></p></td>
+        </tr>
+        <tr valign="top">
+          <td>Control Mode</td>
+          <td><p id='flow{{loop.index}}_control_mode'></p></td>
+          <td></td>
+          <td>
+          {% set flow_loop = loop %}
+          {% for mode_str in flows[flow_loop.index-1].control_modes %}
+            <input type="radio" name="input_flow{{flow_loop.index}}_control_mode" value="{{loop.index-1}}" onclick="flow_control_mode({{flow_loop.index-1}})" {% if flows[flow_loop.index-1].control_mode == mode_str %} checked{%endif%}><label>{{mode_str}}</label><br>
+          {% endfor %}
+          </td>
         </tr>
         <tr>
           <td>Pressure (mbar)</td>

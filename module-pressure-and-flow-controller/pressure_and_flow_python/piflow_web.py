@@ -24,28 +24,45 @@ class flow_web:
     self.flow = piflow.PiFlow( port, 0.1 )
     
 #    self.pid_enabled = False
-    self.status_text = [ ("Init") for i in range (self.flow.NUM_CONTROLLERS) ]
-    self.pressure_mbar_text = [ ("") for i in range (self.flow.NUM_CONTROLLERS) ]
-    self.pressures_target = [ (0.00) for i in range (self.flow.NUM_CONTROLLERS) ]
+    self.status_text            = [ ("Init")  for i in range(self.flow.NUM_CONTROLLERS) ]
+    self.pressure_mbar_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
+    self.pressure_mbar_targets  = [ (0.00)    for i in range(self.flow.NUM_CONTROLLERS) ]
+    self.control_modes          = [ (0)       for i in range(self.flow.NUM_CONTROLLERS) ]
+    self.control_modes_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     
     valid, id, id_valid = self.flow.get_id()
     print( "ID OK:{}, ID={}".format( id_valid, id ) )
     self.enabled = valid and id_valid
     
-    self.get_pressures_target()
+    self.get_pressure_targets()
+    self.get_control_modes()
 
-  def get_pressures_target( self ):
-    valid, pressures_mbar_target = self.flow.get_pressure_target()
+  def get_pressure_targets( self ):
+    valid, pressures_mbar_targets = self.flow.get_pressure_target()
     if valid:
-      self.pressures_target = pressures_mbar_target
+      self.pressure_mbar_targets = pressures_mbar_targets
+
+  def get_control_modes( self ):
+    valid, control_modes = self.flow.get_control_modes()
+    if valid:
+      self.control_modes = control_modes
+      self.control_modes_text = [ (self.ctrl_mode_str[control_mode]) for control_mode in control_modes ]
 
   def set_pressure( self, index, pressure_mbar ):
     try:
 #      pressure = round( float( pressure_mbar ), 2 )
       pressure = int( pressure_mbar )
       self.flow.set_pressure( [index], [pressure] )
-#      self.pressures_target[index] = self.get_temp_target()
-#      self.pressures_target[index] = pressure
+      self.get_pressure_targets()
+    except:
+      pass
+  
+  def set_control_mode( self, index, control_mode ):
+    try:
+      self.flow.set_control_mode( [index], [control_mode] )
+#      self.pressure_targets[index] = self.get_temp_target()
+#      self.pressure_targets[index] = pressure
+      self.get_control_modes()
     except:
       pass
   
@@ -91,7 +108,7 @@ class flow_web:
             pass
       
       try:
-        self.pressure_mbar_text = [ ( "{} / {}".format( round( self.pressures_actual[i], 2 ), round( self.pressures_target[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+        self.pressure_mbar_text = [ ( "{} / {}".format( round( self.pressures_actual[i], 2 ), round( self.pressure_mbar_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
 #        self.pressure_mbar_text = [ ( "{} / {}".format( 0.00, 1.00 ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
       except:
         pass

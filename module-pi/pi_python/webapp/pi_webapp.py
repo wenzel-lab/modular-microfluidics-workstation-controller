@@ -40,7 +40,7 @@ cam = Camera( exit_event )
 #cam.init2()
 cam_data = { 'camera': 'none', 'status': '' }
 
-flows_data = [ { 'status': '', 'pressure_mbar_text': '' } for i in range(4) ]
+flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'control_modes': [], 'control_mode': '' } for i in range(4) ]
 flow = flow_web( picommon.PORT_FLOW )
 
 app = Flask( __name__ )
@@ -77,6 +77,9 @@ def update_heaters_data():
 def update_flow_data( index ):
   flows_data[index]['status'] = flow.status_text[index]
   flows_data[index]['pressure_mbar_text'] = flow.pressure_mbar_text[index]
+  flows_data[index]['pressure_mbar_target'] = flow.pressure_mbar_targets[index]
+  flows_data[index]['control_modes'] = flow.ctrl_mode_str
+  flows_data[index]['control_mode'] = flow.control_modes[index]
 
 def update_flows_data():
   flow.update()
@@ -199,7 +202,10 @@ def on_flow( data ):
     index = data['parameters']['index']
     pressure_mbar_target = data['parameters']['pressure_mbar_target']
     valid = flow.set_pressure( index, pressure_mbar_target )
-    flow.get_pressures_target()
+  if ( data['cmd'] == 'control_mode' ):
+    index = data['parameters']['index']
+    control_mode = data['parameters']['control_mode']
+    valid = flow.set_control_mode( index, int( control_mode ) )
     
     update_flows_data()
     socketio.emit( 'flows', flows_data )
