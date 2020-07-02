@@ -26,7 +26,7 @@ class PiStrobeCam:
         if ( framerate > 60 ):
             framerate = 60
         self.camera.framerate = framerate
-        self.camera.shutter_speed = shutter_speed_us;
+        self.camera.shutter_speed = shutter_speed_us
         
         # Inter-frame period in microseconds
         frame_rate_period_us = int( 1000000 / float( self.camera.framerate ) )

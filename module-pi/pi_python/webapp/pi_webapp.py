@@ -20,12 +20,6 @@ picommon.spi_init( 0, 2, 30000 )
 
 debug_data = { 'update_count': 0 }
 
-strobe_data = { 'hold':0, 'enable':0, 'wait_ns':0, 'period_ns':100000, 'cam_read_time_us':0 }
-strobe = PiStrobe( picommon.PORT_STROBE, 0.1 )
-strobe.set_enable( strobe_data['enable'] )
-strobe.set_hold( strobe_data['hold'] )
-strobe.set_timing( strobe_data['wait_ns'], strobe_data['period_ns'] )
-
 heaters_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
                    'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
                    'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
@@ -35,11 +29,6 @@ heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
-cam = Camera( exit_event )
-#cam.initialize()
-#cam.init2()
-cam_data = { 'camera': 'none', 'status': '' }
-
 flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'control_modes': [], 'control_mode': '' } for i in range(4) ]
 flow = flow_web( picommon.PORT_FLOW )
 
@@ -47,9 +36,9 @@ app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
 thread = None
 
-def update_strobe_data():
-  valid, cam_read_time_us = strobe.get_cam_read_time()
-  strobe_data['cam_read_time_us'] = cam_read_time_us
+cam = Camera( exit_event, socketio )
+#cam.initialize()
+#cam.init2()
 
 def update_heater_data( index, heater ):
   heaters_data[index]['status'] = heater.status_text
@@ -89,7 +78,7 @@ def update_flows_data():
   update_flow_data( 3 )
 
 def update_all_data():
-  update_strobe_data()
+  cam.update_strobe_data()
   update_heaters_data()
   update_flows_data()
 
@@ -104,10 +93,9 @@ def background_stuff():
     update_all_data()
     
     socketio.emit( 'debug', debug_data )
-    socketio.emit( 'strobe', strobe_data )
     socketio.emit( 'heaters', heaters_data )
     socketio.emit( 'flows', flows_data )
-    socketio.emit( 'cam', cam_data )
+    cam.emit()
 
 def start_server():
   global thread
@@ -122,7 +110,7 @@ def start_server():
 def index():
   debug_data['update_count'] = debug_data['update_count'] + 1
 #  start_server()
-  return render_template( 'index.html', debug=debug_data, strobe=strobe_data, heaters=heaters_data, flows=flows_data, cam=cam_data )
+  return render_template( 'index.html', debug=debug_data, strobe=cam.strobe_data, heaters=heaters_data, flows=flows_data, cam=cam.cam_data )
 
 @socketio.on( 'create' )
 def on_create( data ):
@@ -133,36 +121,6 @@ def on_connect():
   print( "Connected" )
   start_server()
   pass
-
-@socketio.on( 'cam' )
-def on_cam( data ):
-  if ( data['cmd'] == 'snapshot' ):
-    print( "Snapshot" )
-    cam.save()
-  elif ( data['cmd'] == 'select' ):
-    cam_data['camera'] = data['parameters']['camera']
-    socketio.emit( 'reload' )
-  
-#  socketio.emit( 'cam', cam_data )
-
-@socketio.on( 'strobe' )
-def on_strobe( data ):
-  if ( data['cmd'] == 'hold' ):
-    hold_on = 1 if ( data['parameters']['on'] != 0 ) else 0
-    valid = strobe.set_hold( hold_on )
-    strobe_data['hold'] = hold_on
-  elif ( data['cmd'] == 'enable' ):
-    enabled = data['parameters']['on'] != 0
-    valid = strobe.set_enable( enabled )
-    strobe_data['enable'] = enabled
-  elif ( data['cmd'] == 'timing' ):
-    wait_ns = int( data['parameters']['wait_ns'] )
-    period_ns = int( data['parameters']['period_ns'] )
-    valid = strobe.set_timing( wait_ns, period_ns )
-    strobe_data['wait_ns'] = wait_ns
-    strobe_data['period_ns'] = period_ns
-  
-  socketio.emit( 'strobe', strobe_data )
 
 @socketio.on( 'heater' )
 def on_heater( data ):

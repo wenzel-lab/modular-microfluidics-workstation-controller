@@ -24,6 +24,38 @@
 {% macro html() %}
   <p><img src="{{ url_for('video') }}"></p>
   <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
+      <tr>
+        <td width=150>Enabled</td>
+        <td width=100><p id='strobe_enable'></p></td>
+        <td></td>
+        <td><button id='btn_strobe_enable', onclick="strobe_enable()", style="width: 100px"></button></td>
+      </tr>
+      <tr>
+        <td>Hold</td>
+        <td><p id='strobe_hold'></p></td>
+        <td></td>
+        <td><button id='btn_strobe_hold', onclick="strobe_hold()", style="width: 100px"></button></td>
+      </tr>
+<!--
+      <tr>
+        <td>Wait (us)</td>
+        <td><p id='strobe_wait_us'></p></td>
+        <td><input type="number" id="input_strobe_wait_us" min="0" max="10000"></td>
+        <td><button id='btn_strobe_wait_us', onclick="strobe_wait()", style="width: 100px">Set</button></td>
+      </tr>
+-->
+      <tr>
+        <td>Period (us)</td>
+        <td><p id='strobe_period_us'></p></td>
+        <td><input type="number" id="input_strobe_period_us" min="1" max="10000"></td>
+        <td><button id='btn_strobe_period_us', onclick="strobe_period()", style="width: 100px">Set</button></td>
+      </tr>
+      <tr>
+        <td>Cam Read Time (us)</td>
+        <td><p id='strobe_cam_time_us'></p></td>
+        <td></td>
+        <td></td>
+      </tr>
     <tr>
       <td width=150>Snapshot</td>
       <td width=100><p id='cam_snapshot'></p></td>
