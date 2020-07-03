@@ -5,7 +5,6 @@ For 4ml autosampler vial sample reservoirs, 3D designs and drawings [freely acce
 
 <img src="4-cap-manifold.png" width=50%> <img src="4-cap-mainfold_w_hidden_edges.png" width=44%>
 
-<img src="9-cap-manifold.png" width=77%>
 
 
 For 100ml high-pressure Duran glass bottles
