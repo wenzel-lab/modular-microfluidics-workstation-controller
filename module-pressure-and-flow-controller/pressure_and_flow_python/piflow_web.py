@@ -27,6 +27,7 @@ class flow_web:
     self.status_text            = [ ("Init")  for i in range(self.flow.NUM_CONTROLLERS) ]
     self.pressure_mbar_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     self.pressure_mbar_targets  = [ (0.00)    for i in range(self.flow.NUM_CONTROLLERS) ]
+    self.flow_ul_hr_text        = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     self.control_modes          = [ (0)       for i in range(self.flow.NUM_CONTROLLERS) ]
     self.control_modes_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     
@@ -88,7 +89,12 @@ class flow_web:
       valid, pressures_actual = self.flow.get_pressure_actual();
       if valid:
         self.pressures_actual = pressures_actual
-#        self.temp_c_actual = round( temp_c, 2 )
+      okay = okay and valid
+      
+      valid, flows_actual = self.flow.get_flow_actual();
+      if valid:
+        self.flows_actual = flows_actual
+#        self.flows_actual = [11, 22, 33, 44]
       okay = okay and valid
       
       if not okay:
@@ -109,7 +115,8 @@ class flow_web:
       
       try:
         self.pressure_mbar_text = [ ( "{} / {}".format( round( self.pressures_actual[i], 2 ), round( self.pressure_mbar_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-#        self.pressure_mbar_text = [ ( "{} / {}".format( 0.00, 1.00 ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+        self.flow_ul_hr_text = [ ( "{}".format( round( self.flows_actual[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+#        self.flow_ul_hr_text = [ ( "{} / {}".format( round( self.flows_actual[i], 2 ), round( self.flow_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
       except:
         pass
       

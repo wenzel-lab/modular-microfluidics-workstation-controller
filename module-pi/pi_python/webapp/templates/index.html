@@ -65,6 +65,7 @@
         {
           $('#flow'+(i+1)+'_status').html( flows[i].status );
           $('#flow'+(i+1)+'_pressure_mbar_text').html( flows[i].pressure_mbar_text );
+          $('#flow'+(i+1)+'_flow_ul_hr_text').html( flows[i].flow_ul_hr_text );
           $('#flow'+(i+1)+'_control_mode').html( flows[i].control_modes[flows[i].control_mode] );
           $("input:radio[name=input_flow"+(i+1)+"_control_mode][value='"+flows[i].control_mode+"']").prop( "checked", true );
         }
@@ -118,6 +119,9 @@
       }
       function flow_pressure_mbar_target( index ) {
         socket.emit( 'flow', { cmd: 'pressure_mbar_target', parameters: { 'index': index, 'pressure_mbar_target': ( $('#input_flow'+(index+1)+'_pressure_mbar_target').val() ) } } );
+      }
+      function flow_flow_ul_hr_target( index ) {
+        socket.emit( 'flow', { cmd: 'flow_ul_hr_target', parameters: { 'index': index, 'flow_ul_hr_target': ( $('#input_flow'+(index+1)+'_flow_ul_hr_target').val() ) } } );
       }
       function flow_control_mode( index ) {
         socket.emit( 'flow', { cmd: 'control_mode', parameters: { 'index': index, 'control_mode': ( $('input:radio[name=input_flow'+(index+1)+'_control_mode]:checked').val() ) } } );
@@ -204,6 +208,12 @@
           <td><p id='flow{{loop.index}}_pressure_mbar_text'></p></td>
           <td><input type="number" id="input_flow{{loop.index}}_pressure_mbar_target" min="0" max="10000"></td>
           <td><button id='btn_flow{{loop.index}}_pressure_mbar_target', onclick="flow_pressure_mbar_target({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+        <tr>
+          <td>Flow (ul/hr)</td>
+          <td><p id='flow{{loop.index}}_flow_ul_hr_text'></p></td>
+          <!--<td><input type="number" id="input_flow{{loop.index}}_flow_ul_hr_target" min="0" max="10000"></td>
+          <td><button id='btn_flow{{loop.index}}_flow_ul_hr_target', onclick="flow_flow_ul_hr_target({{loop.index-1}})", style="width: 100px">Set</button></td>-->
         </tr>
       </table>
     {% endfor %}

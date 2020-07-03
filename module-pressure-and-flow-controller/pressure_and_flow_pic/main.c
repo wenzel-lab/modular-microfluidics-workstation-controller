@@ -294,7 +294,7 @@ err parse_packet_get_pressure_target( uint8_t packet_type, uint8_t *packet_data,
 
 err parse_packet_get_pressure_actual( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
 {
-    /* Return: [err U8]4x[Pressure mbar U16>>PRESSURE_SHL] */
+    /* Return: [err U8]4x[Pressure mbar I16>>PRESSURE_SHL] */
     
     err rc = ERR_OK;
     uint8_t i;
