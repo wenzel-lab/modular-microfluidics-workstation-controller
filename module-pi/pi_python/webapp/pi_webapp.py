@@ -122,6 +122,13 @@ def on_connect():
   start_server()
   pass
 
+@socketio.on( 'cam_select' )
+def on_cam( data ):
+  if ( data['cmd'] == 'select' ):
+    cam.cam_data['camera'] = data['parameters']['camera']
+    socketio.emit( 'reload' )
+#    socketio.emit( 'cam', cam.cam_data )
+
 @socketio.on( 'heater' )
 def on_heater( data ):
   index = -1

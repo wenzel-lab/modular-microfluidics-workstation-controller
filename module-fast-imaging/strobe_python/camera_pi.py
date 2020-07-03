@@ -17,7 +17,7 @@ class Camera(object):
       self.strobe_cam = PiStrobeCam( picommon.PORT_STROBE, 0.1 )
       self.camera = self.strobe_cam.camera
       
-      self.strobe_data = { 'hold':0, 'enable':0, 'wait_ns':0, 'period_ns':100000, 'cam_read_time_us':0 }
+      self.strobe_data = { 'hold':0, 'enable':0, 'wait_ns':0, 'period_ns':100000, 'framerate':0, 'cam_read_time_us':0 }
       self.strobe_period_ns = int( self.strobe_data['period_ns'] )
       valid = self.strobe_cam.strobe.set_enable( self.strobe_data['enable'] )
       self.strobe_cam.strobe.set_hold( self.strobe_data['hold'] )
@@ -112,11 +112,29 @@ class Camera(object):
       except:
         pass
     
+    def optimize_fps( self ):
+      get_cam_read_time_us = 10000
+      get_cam_read_time_us_prev = 0
+      strobe_post_padding_ns = 1000000
+      tries = 10
+      while ( abs( get_cam_read_time_us - get_cam_read_time_us_prev ) > 1000 ):
+        get_cam_read_time_us_prev = get_cam_read_time_us
+        self.strobe_cam.set_timing( 32, self.strobe_period_ns, strobe_post_padding_ns )
+        #print( "strobe wait={}ns, strobe period={}ns, strobe padding={}ns".format( self.strobe_cam.strobe_wait_ns, self.strobe_cam.strobe_period_ns, strobe_post_padding_ns ) )
+        valid, get_cam_read_time_us = self.strobe_cam.strobe.get_cam_read_time();
+        #print( "get_cam_read_time_us={}".format( get_cam_read_time_us ) )
+        strobe_post_padding_ns = ( get_cam_read_time_us + 100 ) * 1000
+        
+        tries = tries - 1
+        if tries <= 0:
+          break
+    
     def update( self ):
       valid, cam_read_time_us = self.strobe_cam.strobe.get_cam_read_time()
       if valid:
         self.cam_read_time_us = cam_read_time_us
       
+      self.strobe_framerate = int( self.strobe_cam.camera.framerate )
 #      self.strobe_time_text = "{} us".format( round( float( self.strobe_cam.strobe_period_ns ) / 1000, 3 ) )
     
     def update_strobe_data( self ):
@@ -125,6 +143,7 @@ class Camera(object):
 #      self.strobe_data['strobe_time_text'] = self.strobe_time_text
 #      self.strobe_data['wait_ns'] = wait_ns
       self.strobe_data['period_ns'] = self.strobe_period_ns
+      self.strobe_data['framerate'] = self.strobe_framerate
     
     def on_strobe( self, data ):
       if ( data['cmd'] == 'hold' ):
@@ -149,8 +168,10 @@ class Camera(object):
       if ( data['cmd'] == 'snapshot' ):
         print( "Snapshot" )
         self.save()
-      elif ( data['cmd'] == 'select' ):
-        self.cam_data['camera'] = data['parameters']['camera']
-        self.socketio.emit( 'reload' )
-#        self.socketio.emit( 'cam', self.cam_data )
+      elif ( data['cmd'] == 'optimize' ):
+        print( "Optimize FPS" )
+        self.optimize_fps()
+      
+      self.update_strobe_data()
+      self.socketio.emit( 'strobe', self.strobe_data )
     
