@@ -25,6 +25,8 @@ class Camera(object):
       self.set_timing()
       self.enabled = valid
       
+      self.cam_read_time_us = 0
+      
       self.cam_data = { 'camera': 'none', 'status': '' }
       
       @self.socketio.on( 'cam' )

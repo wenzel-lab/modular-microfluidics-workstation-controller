@@ -40,7 +40,7 @@ class PiStrobeCam:
         #print( 'wait {}, strobe {}, framerate {}, frametime {}, shutter {}={}'.format( pre_padding_ns, strobe_period_ns, int( self.camera.framerate ), frame_rate_period_us, int( shutter_speed_us ), int( self.camera.shutter_speed ) ) )
         
         valid, self.strobe_wait_ns, self.strobe_period_ns = self.strobe.set_timing( pre_padding_ns, strobe_period_ns )
-        self.strobe.set_enable( True )
+#        self.strobe.set_enable( True )
         
         self.framerate_set = framerate
         
