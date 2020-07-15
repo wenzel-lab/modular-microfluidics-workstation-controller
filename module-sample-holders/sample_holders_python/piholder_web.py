@@ -30,10 +30,11 @@ class heater_web:
     self.stir_speed_text = ""
     
     valid, id, id_valid = self.holder.get_id()
-#    print( "ID OK:{}".format( valid ) )
+    print( "Heater {} ID OK:{}".format( heater_num, valid ) )
     self.enabled = valid and id_valid
     
     self.temp_c_target = self.get_temp_target()
+    valid, self.heat_power_limit_pc = self.holder.get_heat_power_limit_pc()
 
   def get_temp_target( self ):
     valid, temp_c_target = self.holder.get_temp_target()
@@ -47,6 +48,16 @@ class heater_web:
       temp = round( float( temp ), 2 )
       self.holder.set_pid_temp( temp )
       self.temp_c_target = self.get_temp_target()
+    except:
+      pass
+  
+  def set_heat_power_limit_pc( self, power_limit_pc ):
+    try:
+      limit_pc = int( power_limit_pc )
+      valid = self.holder.set_heat_power_limit_pc( limit_pc )
+      valid, power_limit_pc = self.holder.get_heat_power_limit_pc()
+      if valid:
+        self.heat_power_limit_pc = power_limit_pc
     except:
       pass
   
@@ -121,21 +132,6 @@ class heater_web:
       self.pid_enabled = ( pid_status == 2 )
       self.stir_enabled = ( stir_status == 2 )
       
-#    if ( not self.pid_enabled ):
-#      self.set_pid_enable_btn.text = "Enable PID"
-#    else:
-#      self.set_pid_enable_btn.text = "Disable PID"
-    
-#    if ( not self.autotuning ):
-#      self.autotune_btn.text = "Start Autotune"
-#    else:
-#      self.autotune_btn.text = "Abort Autotune"
-    
-#    if ( not self.stir_enabled ):
-#      self.stir_btn.text = "Start Stir"
-#    else:
-#      self.stir_btn.text = "Stop Stir"
-    
     try:
       self.autotune_status_text = "{}".format( self.autotune_status_str[autotune_status] )
     except:

@@ -105,6 +105,7 @@
 #define PACKET_TYPE_STIR_GET_STATUS         13
 #define PACKET_TYPE_STIR_SPEED_GET_ACTUAL   14
 #define PACKET_TYPE_HEAT_POWER_LIMIT_SET    15
+#define PACKET_TYPE_HEAT_POWER_LIMIT_GET    16
 
 /* Stirrer Constants*/
 //#define STIR_DEBUG
@@ -1085,7 +1086,7 @@ err parse_packet_heat_power_limit_pc_set( uint8_t packet_type, uint8_t *packet_d
         rc = ERR_PACKET_INVALID;
     else
     {
-        heat_power_limit_pc = packet_data[1];
+        heat_power_limit_pc = packet_data[0];
         
         /* Can't change this while autotuning */
         if ( htune_active )
@@ -1103,6 +1104,22 @@ err parse_packet_heat_power_limit_pc_set( uint8_t packet_type, uint8_t *packet_d
     
     if ( rc == ERR_OK )
         spi_packet_write( packet_type, &rc, 1 );
+    
+    return rc;
+}
+
+err parse_packet_heat_power_limit_pc_get( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    err rc = ERR_OK;
+    uint8_t heat_power_limit_pc;
+    uint8_t return_buf[ sizeof(err) + 1*sizeof(uint8_t) ];
+    
+    heat_power_limit_pc = ( (uint32_t)heater_output_max * 100 + ( HEATER_POWER_MAX >> 1 ) ) / HEATER_POWER_MAX;
+    
+    return_buf[0] = ERR_OK;
+    return_buf[1] = heat_power_limit_pc;
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
     
     return rc;
 }
@@ -1640,6 +1657,11 @@ int main(void)
                 case PACKET_TYPE_HEAT_POWER_LIMIT_SET:
                 {
                     rc = parse_packet_heat_power_limit_pc_set( packet_type, packet_data, packet_data_size );
+                    break;
+                }
+                case PACKET_TYPE_HEAT_POWER_LIMIT_GET:
+                {
+                    rc = parse_packet_heat_power_limit_pc_get( packet_type, packet_data, packet_data_size );
                     break;
                 }
                 default:

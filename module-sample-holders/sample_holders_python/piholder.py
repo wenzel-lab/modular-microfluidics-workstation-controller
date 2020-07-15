@@ -23,6 +23,7 @@ class PiHolder:
   PACKET_TYPE_STIR_GET_STATUS       = 13
   PACKET_TYPE_STIR_SPEED_GET_ACTUAL = 14
   PACKET_TYPE_HEAT_POWER_LIMIT_SET  = 15
+  PACKET_TYPE_HEAT_POWER_LIMIT_GET  = 16
   
   def __init__( self, device_port, reply_pause_s ):
     self.device_port = device_port
@@ -198,3 +199,17 @@ class PiHolder:
     send_bytes.extend( list( stir_speed_rps.to_bytes( 2, 'little', signed=False ) ) )
     valid, data = self.packet_query( self.PACKET_TYPE_STIR_SET_RUNNING, send_bytes )
     return ( ( valid and ( data[0] == 0 ) ) )
+
+  def set_heat_power_limit_pc( self, power_limit_pc ):
+    send_bytes = list( power_limit_pc.to_bytes( 1, 'little', signed=False ) )
+    valid, data = self.packet_query( self.PACKET_TYPE_HEAT_POWER_LIMIT_SET, send_bytes )
+    return ( ( valid and ( data[0] == 0 ) ) )
+
+  def get_heat_power_limit_pc( self ):
+    valid, data = self.packet_query( self.PACKET_TYPE_HEAT_POWER_LIMIT_GET, [] )
+    if valid:
+      heat_power_limit_pc = data[1]
+    else:
+      heat_power_limit_pc = 0
+    return ( valid and ( data[0] == 0 ), heat_power_limit_pc )
+
