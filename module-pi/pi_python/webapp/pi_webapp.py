@@ -21,7 +21,7 @@ picommon.spi_init( 0, 2, 30000 )
 debug_data = { 'update_count': 0 }
 
 heaters_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
-                   'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
+                   'power_limit': 0, 'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
                    'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
 heater1 = heater_web( 1, picommon.PORT_HEATER1 )
 heater2 = heater_web( 2, picommon.PORT_HEATER2 )
@@ -46,6 +46,7 @@ def update_heater_data( index, heater ):
   heaters_data[index]['temp_text'] = heater.temp_text
   heaters_data[index]['temp_c_target'] = heater.temp_c_target
   heaters_data[index]['pid_enabled'] = heater.pid_enabled
+  heaters_data[index]['power_limit'] = heater.heat_power_limit_pc
   heaters_data[index]['autotune_status'] = heater.autotune_status_text
   heaters_data[index]['autotune_target_temp'] = heater.autotune_target_temp
   heaters_data[index]['autotuning'] = heater.autotuning
@@ -142,6 +143,10 @@ def on_heater( data ):
     index = data['parameters']['index']
     enabled = data['parameters']['on']
     valid = heaters[index].set_pid_running( enabled )
+  elif ( data['cmd'] == 'power_limit_pc' ):
+    index = data['parameters']['index']
+    power_limit_pc = data['parameters']['power_limit_pc']
+    valid = heaters[index].set_heat_power_limit_pc( power_limit_pc )
   elif ( data['cmd'] == 'autotune' ):
     index = data['parameters']['index']
     enabled = data['parameters']['on']

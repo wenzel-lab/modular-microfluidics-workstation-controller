@@ -29,6 +29,7 @@
         {
           $('#input_heater'+(i+1)+'_temp_c_target').val( heaters[i].temp_c_target.toString() );
           $('#input_heater'+(i+1)+'_autotune_target_temp').val( heaters[i].autotune_target_temp.toString() );
+          $('#input_heater'+(i+1)+'_power_limit').val( heaters[i].power_limit.toString() );
           $('#input_heater'+(i+1)+'_stir_speed').val( heaters[i].stir_speed_target.toString() );
         }
       }
@@ -42,6 +43,8 @@
           
           $('#heater'+(i+1)+'_autotune_status').html( heaters[i].autotune_status );
           $('#btn_heater'+(i+1)+'_autotune').html( heaters[i].autotuning ? 'Stop' : 'Start' );
+          
+          $('#heater'+(i+1)+'_power_limit').html( heaters[i].power_limit );
           
           $('#heater'+(i+1)+'_stir_speed').html( heaters[i].stir_speed_text );
           $('#btn_heater'+(i+1)+'_stir').html( heaters[i].stir_enabled ? 'Stop' : 'Start' );
@@ -114,6 +117,9 @@
       function heater_autotune( index ) {
         socket.emit( 'heater', { cmd: 'autotune', parameters: { 'index': index, 'on': !heaters[index].autotuning, 'temp': ( $('#input_heater'+(index+1)+'_autotune_target_temp').val() ) } } );
       }
+      function heater_set_power_limit( index ) {
+        socket.emit( 'heater', { cmd: 'power_limit_pc', parameters: { 'index': index, 'power_limit_pc': ( $('#input_heater'+(index+1)+'_power_limit').val() ) } } );
+      }
       function heater_stir( index ) {
         socket.emit( 'heater', { cmd: 'stir', parameters: { 'index': index, 'on': !heaters[index].stir_enabled, 'speed': ( $('#input_heater'+(index+1)+'_stir_speed').val() ) } } );
       }
@@ -151,40 +157,6 @@
     </select>    
     {{ cam_html.html() }}
     
-    {% for heater in heaters %}
-      <h3>Heater {{loop.index}}</h3>
-      <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
-        <tr>
-          <td width=150>Status</td>
-          <td width=100><p id='heater{{loop.index}}_status'></p></td>
-        </tr>
-        <tr>
-          <td>PID Enabled</td>
-          <td><p id='heater{{loop.index}}_pid_enabled'></p></td>
-          <td></td>
-          <td><button id='btn_heater{{loop.index}}_pid_enabled', onclick="heater_pid_enable({{loop.index-1}})", style="width: 100px">Set</button></td>
-        </tr>
-        <tr>
-          <td>Temperature (degC)</td>
-          <td><p id='heater{{loop.index}}_temp_text'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_temp_c_target" min="-50" max="100"></td>
-          <td><button id='btn_heater{{loop.index}}_temp_c_target', onclick="heater_temp_c_target({{loop.index-1}})", style="width: 100px">Set</button></td>
-        </tr>
-        <tr>
-          <td>Autotune Status</td>
-          <td><p id='heater{{loop.index}}_autotune_status'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_autotune_target_temp" min="-50" max="100"></td>
-          <td><button id='btn_heater{{loop.index}}_autotune', onclick="heater_autotune({{loop.index-1}})", style="width: 100px">Set</button></td>
-        </tr>
-        <tr>
-          <td>Stir Speed</td>
-          <td><p id='heater{{loop.index}}_stir_speed'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_stir_speed" min="0" max="100"></td>
-          <td><button id='btn_heater{{loop.index}}_stir' onclick="heater_stir({{loop.index-1}})", style="width: 100px">Set</button></td>
-        </tr>
-      </table>
-    {% endfor %}
-
     {% for flow in flows %}
       <h3>Flow {{loop.index}}</h3>
       <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
@@ -218,6 +190,46 @@
       </table>
     {% endfor %}
   
+    {% for heater in heaters %}
+      <h3>Heater {{loop.index}}</h3>
+      <table style="border: 1px solid black; padding: 10px" cellpadding="2px">
+        <tr>
+          <td width=150>Status</td>
+          <td width=100><p id='heater{{loop.index}}_status'></p></td>
+        </tr>
+        <tr>
+          <td>PID Enabled</td>
+          <td><p id='heater{{loop.index}}_pid_enabled'></p></td>
+          <td></td>
+          <td><button id='btn_heater{{loop.index}}_pid_enabled', onclick="heater_pid_enable({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+        <tr>
+          <td>Temperature (degC)</td>
+          <td><p id='heater{{loop.index}}_temp_text'></p></td>
+          <td><input type="number" id="input_heater{{loop.index}}_temp_c_target" min="-50" max="100"></td>
+          <td><button id='btn_heater{{loop.index}}_temp_c_target', onclick="heater_temp_c_target({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+        <tr>
+          <td>Autotune Status</td>
+          <td><p id='heater{{loop.index}}_autotune_status'></p></td>
+          <td><input type="number" id="input_heater{{loop.index}}_autotune_target_temp" min="-50" max="100"></td>
+          <td><button id='btn_heater{{loop.index}}_autotune', onclick="heater_autotune({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+        <tr>
+          <td>Power Limit (%)</td>
+          <td><p id='heater{{loop.index}}_power_limit'></p></td>
+          <td><input type="number" id="input_heater{{loop.index}}_power_limit" min="1" max="100"></td>
+          <td><button id='btn_heater{{loop.index}}_power_limit', onclick="heater_set_power_limit({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+        <tr>
+          <td>Stir Speed</td>
+          <td><p id='heater{{loop.index}}_stir_speed'></p></td>
+          <td><input type="number" id="input_heater{{loop.index}}_stir_speed" min="0" max="100"></td>
+          <td><button id='btn_heater{{loop.index}}_stir' onclick="heater_stir({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+      </table>
+    {% endfor %}
+
   </body>
 
 </doctype>
