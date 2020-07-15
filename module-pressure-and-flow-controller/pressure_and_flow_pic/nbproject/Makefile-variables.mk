@@ -32,3 +32,10 @@ CND_ARTIFACT_PATH_PICkit4=dist/PICkit4/production/pressure_and_flow_pic.producti
 CND_PACKAGE_DIR_PICkit4=${CND_DISTDIR}/PICkit4/package
 CND_PACKAGE_NAME_PICkit4=pressureandflowpic.tar
 CND_PACKAGE_PATH_PICkit4=${CND_DISTDIR}/PICkit4/package/pressureandflowpic.tar
+# PICkit3 configuration
+CND_ARTIFACT_DIR_PICkit3=dist/PICkit3/production
+CND_ARTIFACT_NAME_PICkit3=pressure_and_flow_pic.production.hex
+CND_ARTIFACT_PATH_PICkit3=dist/PICkit3/production/pressure_and_flow_pic.production.hex
+CND_PACKAGE_DIR_PICkit3=${CND_DISTDIR}/PICkit3/package
+CND_PACKAGE_NAME_PICkit3=pressureandflowpic.tar
+CND_PACKAGE_PATH_PICkit3=${CND_DISTDIR}/PICkit3/package/pressureandflowpic.tar

@@ -73,7 +73,7 @@
 // CONFIG4
 #pragma config WRT = OFF    // UserNVM self-write protection bits->Write protection off
 #pragma config SCANE = available    // Scanner Enable bit->Scanner module is available for use
-#pragma config LVP = OFF    // Low Voltage Programming Enable bit->High Voltage on MCLR/Vpp must be used for programming
+#pragma config LVP = ON    // Low Voltage Programming Enable bit->Low Voltage programming enabled. MCLR/Vpp pin function is MCLR.
 
 // CONFIG5
 #pragma config CP = OFF    // UserNVM Program memory code protection bit->Program Memory code protection disabled

@@ -404,7 +404,7 @@ err parse_packet_get_flow_actual( uint8_t packet_type, uint8_t *packet_data, uin
     
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
     {
-        int16_t flow_scaled = (int32_t)flow_raw_actual[chan] * 60 / flow_scales_ul_min[chan];
+        int16_t flow_scaled = (int32_t)flow_raw_actual[chan] * 60 / flow_scales_ul_min[chan];   // ul/hr
         COPY_16BIT_TO_PTR( return_buf_ptr, flow_scaled );
 //        *(int16_t *)return_buf_ptr = flow_raw_actual[chan] / flow_scales_ul_min[chan];
         return_buf_ptr += sizeof(int16_t);
@@ -673,7 +673,7 @@ void read_flows( void )
         
         pressure_actual = (float)pressure_mbar_shl_actual[chan] / ( 1 << PRESSURE_SHL );
         pressure_target = (float)pressure_mbar_shl_output[chan] / ( 1 << PRESSURE_SHL );
-        printf( "Chan %hu, Pressure %8.2f / %7.2f, Flow %8.3f ul/hr rc=%3hu\n", chan+1, (double)pressure_actual, (double)pressure_target, (double)flow*60/flow_scales_ul_min[chan], rc );
+        printf( "Chan %hu mode %u, Pressure %8.2f / %7.2f, Flow %8.3f ul/hr rc=%3hu present=%u\n", chan+1, ctrl_modes[chan], (double)pressure_actual, (double)pressure_target, (double)flow*60/flow_scales_ul_min[chan], rc, flow_present[chan] );
     }
     
     printf( "\n" );
@@ -888,8 +888,8 @@ int main(void)
     init_sensirion_lg16();
     
     /* Test Code */
-    read_flows();
-    flow_ctrl_start( 0, (int16_t)( (int32_t)10 * flow_scales_ul_min[1] / 60 ) );    // in ul/hr
+//    read_flows();
+//    flow_ctrl_start( 0, (int16_t)( (int32_t)10 * flow_scales_ul_min[1] / 60 ) );    // in ul/hr
     
 //    while ( 1 );
     

@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=strobe_pic
 
 # Active Configuration
-DEFAULTCONF=default
+DEFAULTCONF=PICkit3
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=default 
+ALLCONFS=PICkit4 Snap PICkit3 
 
 
 # build
@@ -45,13 +45,17 @@ ALLCONFS=default
 
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4 clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit3 clean
 
 
 
 # all
 .all-impl: .all-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4 build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit3 build
 
 
 

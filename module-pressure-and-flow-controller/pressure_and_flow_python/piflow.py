@@ -142,7 +142,7 @@ class PiFlow:
     flows_ul_hr=[]
     for i in range(count):
       index = 1 + ( i << 1 )
-      flow_ul_hr = int.from_bytes( data[index:index+2], byteorder='little', signed=True ) / self.PRESSURE_SCALE
+      flow_ul_hr = int.from_bytes( data[index:index+2], byteorder='little', signed=True )
       flows_ul_hr.extend( [flow_ul_hr] )
     return ( valid and ( data[0] == 0 ), flows_ul_hr )
 
