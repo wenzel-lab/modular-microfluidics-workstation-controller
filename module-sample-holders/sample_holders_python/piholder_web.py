@@ -1,5 +1,6 @@
 import picommon
 import piholder
+import time
 
 class heater_web:
   pid_status_str = [ "Unconfigured",
@@ -16,6 +17,8 @@ class heater_web:
                           "Failed"
                    ]
   
+  INIT_TRIES = 3
+  
   def __init__( self, heater_num, port ):
     self.holder = piholder.PiHolder( port, 0.05 )
     self.autotuning = False
@@ -29,7 +32,12 @@ class heater_web:
     self.temp_text = ""
     self.stir_speed_text = ""
     
-    valid, id, id_valid = self.holder.get_id()
+    for i in range( self.INIT_TRIES ):
+      valid, id, id_valid = self.holder.get_id()
+      if valid:
+        break
+#      else:
+#        time.sleep( 0.1 )
     print( "Heater {} ID OK:{}".format( heater_num, valid ) )
     self.enabled = valid and id_valid
     
