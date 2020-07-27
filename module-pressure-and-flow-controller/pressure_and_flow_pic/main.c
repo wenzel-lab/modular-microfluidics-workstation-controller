@@ -33,8 +33,14 @@
 #define PRESSURE_ADC_ZERO                   ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_ZERO_MV / PRESSURE_ADC_REF_MV )
 
 /* Flow Constants */
-#define FPID_DIFF_FILT_SHIFT              3
-#define FPID_DIFF_FILT_MUL                ( ( 1 << FPID_DIFF_FILT_SHIFT ) - 1 )
+#define FPID_DIFF_FILT_SHIFT                3
+#define FPID_DIFF_FILT_MUL                  ( ( 1 << FPID_DIFF_FILT_SHIFT ) - 1 )
+#define FPID_TERM_MAX                       ( INT32_MAX >> 2 )  // Allows for 4 terms to be added in PID
+#define FPID_P_TERM_LIMIT                   ( (int32_t)100 << FPID_I_SHIFT )
+#define FPID_I_CHANGE_LIMIT                 ( (int32_t)200 << FPID_I_SHIFT )
+//#define FPID_P_TERM_LIMIT                   FPID_TERM_MAX
+#define FPID_OUTPUT_SLEW_LIMIT              FPID_I_CHANGE_LIMIT
+#define FPID_I_SHIFT                        12
 
 /* Flow / Pressure Macros */
 #define ADC_CHAN_MAX                        ( NUM_PRESSURE_CLTRLS - 1 )
@@ -118,6 +124,7 @@ E_CTRL_MODE ctrl_modes[NUM_PRESSURE_CLTRLS];
 E_PRESSURE_CTRL_STATE pressure_ctrl_state[NUM_PRESSURE_CLTRLS];
 volatile int16_t pressure_mbar_shl_actual[NUM_PRESSURE_CLTRLS];
 volatile uint16_t pressure_mbar_shl_output[NUM_PRESSURE_CLTRLS];
+volatile uint16_t pressure_mbar_shl_output_prev[NUM_PRESSURE_CLTRLS];
 uint16_t pressure_mbar_shl_target[NUM_PRESSURE_CLTRLS];
 E_ADC_STATE adc_state;
 uint8_t adc_go = 0;
@@ -136,10 +143,10 @@ uint16_t flow_scales_ul_min[NUM_PRESSURE_CLTRLS];
 bool flow_present[NUM_PRESSURE_CLTRLS];
 uint8_t pca9544a_i2c_addr = 0b1110000;
 volatile int32_t fpid_integrated[NUM_PRESSURE_CLTRLS];
-int32_t fpid_windup_limit = UINT16_MAX;
-uint16_t fpid_p[NUM_PRESSURE_CLTRLS] = {200, 500, 10000, 200};
-uint16_t fpid_i[NUM_PRESSURE_CLTRLS] = {20, 10, 20, 20};
-uint16_t fpid_d[NUM_PRESSURE_CLTRLS] = {20000, 10000, 40000, 20000};
+int32_t fpid_windup_limit = INT32_MAX - UINT16_MAX;
+uint16_t fpid_p[NUM_PRESSURE_CLTRLS] = {1000, 500, 10000, 200};
+uint16_t fpid_i[NUM_PRESSURE_CLTRLS] = {800, 10, 20, 20};
+uint16_t fpid_d[NUM_PRESSURE_CLTRLS] = {800, 10000, 40000, 20000};
 volatile int32_t fpid_diff[NUM_PRESSURE_CLTRLS];
 volatile int32_t fpid_error_prev[NUM_PRESSURE_CLTRLS];
 
@@ -415,6 +422,28 @@ err parse_packet_get_flow_actual( uint8_t packet_type, uint8_t *packet_data, uin
     return rc;
 }
 
+err flow_ctrl_start( uint8_t chan, int16_t flow_rate_raw )
+{
+    err rc = ERR_OK;
+    
+    if ( ( flow_ctrl_state[chan] != FLOW_CTRL_STATE_READY ) &&
+         ( flow_ctrl_state[chan] != FLOW_CTRL_STATE_RUNNING ) )
+        rc = ERR_ERROR;
+    else
+    {
+        /** Disable interrupt */
+        flow_raw_target[chan] = flow_rate_raw;
+        fpid_integrated[chan] = 0;
+        fpid_error_prev[chan] = flow_raw_target[chan] - flow_raw_actual[chan];
+        pressure_mbar_shl_output_prev[chan] = pressure_mbar_shl_output[chan];
+        flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
+        ctrl_modes[chan] = CTRL_MODE_FLOW;
+        /** Enable interrupt */
+    }
+    
+    return rc;
+}
+
 void set_ctrl_modes( E_CTRL_MODE *ctrl_modes_new )
 {
     uint8_t chan;
@@ -442,8 +471,11 @@ void set_ctrl_modes( E_CTRL_MODE *ctrl_modes_new )
             case CTRL_MODE_FLOW:
                 if ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_RUNNING )
                     pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_READY;
-//                if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_READY )
+                if ( flow_ctrl_state[chan] == FLOW_CTRL_STATE_READY )
+                {
+                    flow_ctrl_start( chan, flow_raw_target[chan] );
 //                    flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
+                }
                 break;
             default:;
         }
@@ -520,26 +552,6 @@ err parse_packet_get_control_mode( uint8_t packet_type, uint8_t *packet_data, ui
     return rc;
 }
 
-err flow_ctrl_start( uint8_t chan, int16_t flow_rate_raw )
-{
-    err rc = ERR_OK;
-    
-    if ( ( flow_ctrl_state[chan] != FLOW_CTRL_STATE_READY ) &&
-         ( flow_ctrl_state[chan] != FLOW_CTRL_STATE_RUNNING ) )
-        rc = ERR_ERROR;
-    else
-    {
-        /** Disable interrupt */
-        flow_raw_target[chan] = flow_rate_raw;
-        fpid_error_prev[chan] = flow_raw_target[chan] - flow_raw_actual[chan];
-        flow_ctrl_state[chan] = FLOW_CTRL_STATE_RUNNING;
-        ctrl_modes[chan] = CTRL_MODE_FLOW;
-        /** Enable interrupt */
-    }
-    
-    return rc;
-}
-
 void init( void )
 {
     uint8_t chan;
@@ -563,6 +575,7 @@ void init( void )
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
         pressure_ctrl_state[chan] = PRESSURE_CTRL_STATE_UNCONFIGURED;
     memset( (void *)pressure_mbar_shl_output, 0, sizeof(pressure_mbar_shl_output) );
+    memset( (void *)pressure_mbar_shl_output_prev, 0, sizeof(pressure_mbar_shl_output_prev) );
     memset( (void *)pressure_mbar_shl_target, 0, sizeof(pressure_mbar_shl_target) );
     memset( (void *)pressure_mbar_shl_actual, 0, sizeof(pressure_mbar_shl_actual) );
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
@@ -692,22 +705,30 @@ void update_outputs( void )
             
             int32_t error;
             int32_t output;
+            int32_t output_change;
+            int32_t fpid_p_term;
             
             error = flow_raw_target[chan] - flow_raw_actual[chan];
-            fpid_integrated[chan] += constrain_i32( error * fpid_i[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
+//            error = constrain_i32( error, -400, 400 );
+            fpid_p_term = constrain_i32( ( error * fpid_p[chan] ), -(int32_t)FPID_P_TERM_LIMIT, FPID_P_TERM_LIMIT );
+            fpid_integrated[chan] += constrain_i32( error * fpid_i[chan], -(int32_t)FPID_I_CHANGE_LIMIT, FPID_I_CHANGE_LIMIT );
             fpid_integrated[chan] = constrain_i32( fpid_integrated[chan], 0, fpid_windup_limit );
             diff = ( constrain_i32( error - fpid_error_prev[chan], INT16_MIN, INT16_MAX ) * fpid_d[chan] );
             fpid_diff[chan] = ( ( fpid_diff[chan] * FPID_DIFF_FILT_MUL ) + diff ) >> FPID_DIFF_FILT_SHIFT;
             fpid_error_prev[chan] = error;
             
-            output = constrain_i32( ( error * fpid_p[chan] ), -(int32_t)UINT16_MAX, UINT16_MAX ) +
+//            output = constrain_i32( ( error * fpid_p[chan] ), -(int32_t)UINT16_MAX, UINT16_MAX ) +
+            output = ( fpid_p_term ) +
                      ( fpid_integrated[chan] ) +
-                     constrain_i32( fpid_diff[chan], -(int32_t)UINT16_MAX, UINT16_MAX );
-            output = constrain_i32( output >> 3, 0, 20000 );
+                     constrain_i32( fpid_diff[chan], -(int32_t)FPID_TERM_MAX, FPID_TERM_MAX );
+            output = constrain_i32( output >> FPID_I_SHIFT, 0, (int32_t)PRESSURE_CTLR_MBAR << PRESSURE_SHL );
             
+            output_change = constrain_i32( output - pressure_mbar_shl_output_prev[chan], -(int32_t)FPID_OUTPUT_SLEW_LIMIT, FPID_OUTPUT_SLEW_LIMIT );
+            output = pressure_mbar_shl_output_prev[chan] + output_change;
             pressure_mbar_shl_output[chan] = (uint16_t)output;
+            pressure_mbar_shl_output_prev[chan] = output;
             
-//            printf( "Chan %hu, error %li, output %li, %li, %li, %li\n", chan, error, output, error * fpid_p[chan], fpid_integrated[chan], fpid_diff[chan] );
+           printf( "Chan %hu, error %6li, output %5li, %6li, %6li, %6li, change %5li\n", chan, error, output, fpid_p_term >> FPID_I_SHIFT, fpid_integrated[chan] >> FPID_I_SHIFT, fpid_diff[chan] >> FPID_I_SHIFT, output_change );
         }
         else if ( ( pressure_ctrl_state[chan] == PRESSURE_CTRL_STATE_RUNNING ) && true )
         {

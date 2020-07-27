@@ -28,6 +28,7 @@ class flow_web:
     self.pressure_mbar_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     self.pressure_mbar_targets  = [ (0.00)    for i in range(self.flow.NUM_CONTROLLERS) ]
     self.flow_ul_hr_text        = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
+    self.flow_ul_hr_targets     = [ (0.00)    for i in range(self.flow.NUM_CONTROLLERS) ]
     self.control_modes          = [ (0)       for i in range(self.flow.NUM_CONTROLLERS) ]
     self.control_modes_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     
@@ -36,12 +37,18 @@ class flow_web:
     self.enabled = valid and id_valid
     
     self.get_pressure_targets()
+    self.get_flow_targets()
     self.get_control_modes()
 
   def get_pressure_targets( self ):
     valid, pressures_mbar_targets = self.flow.get_pressure_target()
     if valid:
       self.pressure_mbar_targets = pressures_mbar_targets
+
+  def get_flow_targets( self ):
+    valid, flows_ul_hr_targets = self.flow.get_flow_target()
+    if valid:
+      self.flow_ul_hr_targets = flows_ul_hr_targets
 
   def get_control_modes( self ):
     valid, control_modes = self.flow.get_control_modes()
@@ -55,6 +62,14 @@ class flow_web:
       pressure = int( pressure_mbar )
       self.flow.set_pressure( [index], [pressure] )
       self.get_pressure_targets()
+    except:
+      pass
+  
+  def set_flow( self, index, flow_ul_hr ):
+    try:
+      flow = int( flow_ul_hr )
+      self.flow.set_flow( [index], [flow] )
+      self.get_flow_targets()
     except:
       pass
   
@@ -115,8 +130,8 @@ class flow_web:
       
       try:
         self.pressure_mbar_text = [ ( "{} / {}".format( round( self.pressures_actual[i], 2 ), round( self.pressure_mbar_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-        self.flow_ul_hr_text = [ ( "{}".format( round( self.flows_actual[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-#        self.flow_ul_hr_text = [ ( "{} / {}".format( round( self.flows_actual[i], 2 ), round( self.flow_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+#        self.flow_ul_hr_text = [ ( "{}".format( round( self.flows_actual[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
+        self.flow_ul_hr_text = [ ( "{} / {}".format( round( self.flows_actual[i], 2 ), round( self.flow_ul_hr_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
       except:
         pass
       

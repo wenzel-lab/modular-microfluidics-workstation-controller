@@ -27,7 +27,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=pressure_and_flow_pic
 
 # Active Configuration
-DEFAULTCONF=PICkit3
+DEFAULTCONF=Snap
 CONF=${DEFAULTCONF}
 
 # All Configurations

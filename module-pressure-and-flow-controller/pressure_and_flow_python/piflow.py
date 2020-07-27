@@ -107,6 +107,15 @@ class PiFlow:
     valid, data = self.packet_query( self.PACKET_TYPE_SET_PRESSURE_TARGET, data_bytes )
     return ( ( valid and ( data[0] == 0 ) ) )
 
+  def set_flow( self, indices, flows_ul_hr ):
+    data_bytes = []
+    for i in range(len(indices)):
+      mask = 1 << indices[i]
+      flow_fp = int( flows_ul_hr[i] );
+      data_bytes.extend( [mask] + list( flow_fp.to_bytes( 2, 'little', signed=True ) ) )
+    valid, data = self.packet_query( self.PACKET_TYPE_SET_FLOW_TARGET, data_bytes )
+    return ( ( valid and ( data[0] == 0 ) ) )
+
   def set_control_mode( self, indices, control_modes ):
     data_bytes = []
     for i in range(len(indices)):
@@ -125,6 +134,16 @@ class PiFlow:
       pressure_mbar = int.from_bytes( data[index:index+2], byteorder='little', signed=False ) / self.PRESSURE_SCALE
       pressures_mbar.extend( [pressure_mbar] )
     return ( valid and ( data[0] == 0 ), pressures_mbar )
+
+  def get_flow_target( self ):
+    valid, data = self.packet_query( self.PACKET_TYPE_GET_FLOW_TARGET, [] )
+    count = int( ( len(data) - 1 ) / 2 )
+    flows_ul_hr=[]
+    for i in range(count):
+      index = 1 + ( i << 1 )
+      flow_ul_hr = int.from_bytes( data[index:index+2], byteorder='little', signed=True )
+      flows_ul_hr.extend( [flow_ul_hr] )
+    return ( valid and ( data[0] == 0 ), flows_ul_hr )
 
   def get_pressure_actual( self ):
     valid, data = self.packet_query( self.PACKET_TYPE_GET_PRESSURE_ACTUAL, [] )
