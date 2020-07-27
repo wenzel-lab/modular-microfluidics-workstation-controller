@@ -59,6 +59,7 @@
         for ( var i=0; i<=3; i++ )
         {
           $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_target.toString() );
+          $('#input_flow'+(i+1)+'_flow_ul_hr_target').val( flows[i].flow_ul_hr_target.toString() );
         }
       }
       
@@ -184,8 +185,8 @@
         <tr>
           <td>Flow (ul/hr)</td>
           <td><p id='flow{{loop.index}}_flow_ul_hr_text'></p></td>
-          <!--<td><input type="number" id="input_flow{{loop.index}}_flow_ul_hr_target" min="0" max="10000"></td>
-          <td><button id='btn_flow{{loop.index}}_flow_ul_hr_target', onclick="flow_flow_ul_hr_target({{loop.index-1}})", style="width: 100px">Set</button></td>-->
+          <td><input type="number" id="input_flow{{loop.index}}_flow_ul_hr_target" min="0" max="10000"></td>
+          <td><button id='btn_flow{{loop.index}}_flow_ul_hr_target', onclick="flow_flow_ul_hr_target({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
       </table>
     {% endfor %}

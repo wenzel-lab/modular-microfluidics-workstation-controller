@@ -29,7 +29,7 @@ heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
-flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'flow_ul_hr_text':'', 'control_modes': [], 'control_mode': '' } for i in range(4) ]
+flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'flow_ul_hr_target': 0.0, 'flow_ul_hr_text':'', 'control_modes': [], 'control_mode': '' } for i in range(4) ]
 flow = flow_web( picommon.PORT_FLOW )
 
 app = Flask( __name__ )
@@ -69,6 +69,7 @@ def update_flow_data( index ):
   flows_data[index]['pressure_mbar_text'] = flow.pressure_mbar_text[index]
   flows_data[index]['pressure_mbar_target'] = flow.pressure_mbar_targets[index]
   flows_data[index]['flow_ul_hr_text'] = flow.flow_ul_hr_text[index]
+  flows_data[index]['flow_ul_hr_target'] = flow.flow_ul_hr_targets[index]
   flows_data[index]['control_modes'] = flow.ctrl_mode_str
   flows_data[index]['control_mode'] = flow.control_modes[index]
 
@@ -173,7 +174,11 @@ def on_flow( data ):
     index = data['parameters']['index']
     pressure_mbar_target = data['parameters']['pressure_mbar_target']
     valid = flow.set_pressure( index, pressure_mbar_target )
-  if ( data['cmd'] == 'control_mode' ):
+  elif ( data['cmd'] == 'flow_ul_hr_target' ):
+    index = data['parameters']['index']
+    flow_ul_hr_target = data['parameters']['flow_ul_hr_target']
+    valid = flow.set_flow( index, flow_ul_hr_target )
+  elif ( data['cmd'] == 'control_mode' ):
     index = data['parameters']['index']
     control_mode = data['parameters']['control_mode']
     valid = flow.set_control_mode( index, int( control_mode ) )
