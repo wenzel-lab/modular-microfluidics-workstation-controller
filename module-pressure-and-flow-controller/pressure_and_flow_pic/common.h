@@ -18,6 +18,9 @@ extern "C" {
 /* For __delay_ms */
 #define FCY 75000000UL
 
+/* System Constants */
+#define NUM_PRESSURE_CLTRLS                 4
+
 /* Errors */
 #define ERR_OK                      0
 #define ERR_ERROR                   1

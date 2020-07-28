@@ -20,7 +20,6 @@
 #include "pca9544a.h"
 
 /* Pressure Constants */
-#define NUM_PRESSURE_CLTRLS                 4
 #define PRESSURE_SHL                        3
 #define PRESSURE_ADC_REF_MV                 6144
 #define PRESSURE_ADC_BITRES                 15
@@ -33,6 +32,9 @@
 #define PRESSURE_ADC_ZERO                   ( (int32_t)PRESSURE_ADC_MAX * PRESSURE_CTLR_ZERO_MV / PRESSURE_ADC_REF_MV )
 
 /* Flow Constants */
+#define FPID_DEFAULT_P                      200
+#define FPID_DEFAULT_I                      100
+#define FPID_DEFAULT_D                      1000
 #define FPID_DIFF_FILT_SHIFT                3
 #define FPID_DIFF_FILT_MUL                  ( ( 1 << FPID_DIFF_FILT_SHIFT ) - 1 )
 #define FPID_TERM_MAX                       ( INT32_MAX >> 2 )  // Allows for 4 terms to be added in PID
@@ -58,6 +60,8 @@
 #define PACKET_TYPE_GET_FLOW_ACTUAL         7
 #define PACKET_TYPE_SET_CONTROL_MODE        8
 #define PACKET_TYPE_GET_CONTROL_MODE        9
+#define PACKET_TYPE_SET_FPID_CONSTS         10
+#define PACKET_TYPE_GET_FPID_CONSTS         11
 
 /* DAC Constants */
 typedef enum
@@ -78,7 +82,6 @@ typedef enum
 } E_ADC_STATE;
 
 const uint8_t adc_map[NUM_PRESSURE_CLTRLS] = {3, 2, 0, 1};
-//uint8_t adc_map[NUM_PRESSURE_CLTRLS] = {2, 3, 1, 0};
 
 typedef enum
 {
@@ -143,9 +146,9 @@ bool flow_present[NUM_PRESSURE_CLTRLS];
 uint8_t pca9544a_i2c_addr = 0b1110000;
 volatile int32_t fpid_integrated[NUM_PRESSURE_CLTRLS];
 int32_t fpid_windup_limit = 100;
-uint16_t fpid_p[NUM_PRESSURE_CLTRLS] = {200, 200, 200, 200};
-uint16_t fpid_i[NUM_PRESSURE_CLTRLS] = {100, 100, 100, 100};
-uint16_t fpid_d[NUM_PRESSURE_CLTRLS] = {1000, 1000, 1000, 1000};
+uint16_t fpid_p[NUM_PRESSURE_CLTRLS];
+uint16_t fpid_i[NUM_PRESSURE_CLTRLS];
+uint16_t fpid_d[NUM_PRESSURE_CLTRLS];
 volatile int32_t fpid_diff[NUM_PRESSURE_CLTRLS];
 volatile int32_t fpid_error_prev[NUM_PRESSURE_CLTRLS];
 
@@ -550,6 +553,78 @@ err parse_packet_get_control_mode( uint8_t packet_type, uint8_t *packet_data, ui
     return rc;
 }
 
+err parse_packet_set_fpid_consts( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Data: n*[ [Controller Mask U8][PID_P U16][PID_I U16][PID_D U16] ] */
+
+    err rc = ERR_OK;
+    uint8_t *data_ptr = packet_data;
+    uint8_t chan_mask;
+    uint8_t chan;
+    uint16_t pid_consts[3];
+    int16_t data_size = packet_data_size;
+    bool valid = true;
+    
+    while ( ( data_size >= ( 1 + ( 3 * sizeof(uint16_t) ) ) ) && valid && ( rc == ERR_OK ) )
+    {
+        /* U8 mask + 3x U16 PID  */
+        chan_mask = *data_ptr++;
+        pid_consts[0] = ( data_ptr[1] << 8 ) | data_ptr[0];
+        pid_consts[1] = ( data_ptr[3] << 8 ) | data_ptr[2];
+        pid_consts[2] = ( data_ptr[5] << 8 ) | data_ptr[4];
+        data_ptr += 3 * sizeof(uint16_t);
+        data_size -= ( 1 + ( 3 * sizeof(uint16_t) ) );
+        
+        for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+        {
+            if ( chan_mask & 0x01 )
+            {
+                /** Disable interrupt */
+                fpid_p[chan] = pid_consts[0];
+                fpid_i[chan] = pid_consts[1];
+                fpid_d[chan] = pid_consts[2];
+                /** Enable interrupt */
+                rc = store_save_fpid_consts( chan, pid_consts );
+            }
+            chan_mask >>= 1;
+        }
+    }
+    
+    if ( ( data_size != 0 ) || ( !valid ) )
+        rc = ERR_PACKET_INVALID;
+    else
+        spi_packet_write( packet_type, &rc, 1 );
+    
+    return rc;
+}
+
+err parse_packet_get_fpid_consts( uint8_t packet_type, uint8_t *packet_data, uint8_t packet_data_size )
+{
+    /* Return: [err U8]4x([PID_P U16][PID_I U16][PID_D U16]) */
+    
+    err rc = ERR_OK;
+    uint8_t chan;
+    uint8_t return_buf[ sizeof(err) + (NUM_PRESSURE_CLTRLS*3*sizeof(uint16_t)) ];
+    uint8_t *return_buf_ptr;
+    
+    return_buf_ptr = return_buf;
+    *return_buf_ptr++ = ERR_OK;
+    
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        COPY_16BIT_TO_PTR( return_buf_ptr, fpid_p[chan] );
+        return_buf_ptr += sizeof(uint16_t);
+        COPY_16BIT_TO_PTR( return_buf_ptr, fpid_i[chan] );
+        return_buf_ptr += sizeof(uint16_t);
+        COPY_16BIT_TO_PTR( return_buf_ptr, fpid_d[chan] );
+        return_buf_ptr += sizeof(uint16_t);
+    }
+    
+    spi_packet_write( packet_type, return_buf, sizeof(return_buf) );
+    
+    return rc;
+}
+
 void init( void )
 {
     uint8_t chan;
@@ -580,7 +655,12 @@ void init( void )
     
     /* Flow Control Init */
     for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
         flow_ctrl_state[chan] = FLOW_CTRL_STATE_UNCONFIGURED;
+        fpid_p[chan] = FPID_DEFAULT_P;
+        fpid_i[chan] = FPID_DEFAULT_I;
+        fpid_d[chan] = FPID_DEFAULT_D;
+    }
     memset( (void *)flow_raw_target, 0, sizeof(flow_raw_target) );
     memset( (void *)flow_raw_actual, 0, sizeof(flow_raw_actual) );
     memset( (void *)fpid_integrated, 0, sizeof(fpid_integrated) );
@@ -621,8 +701,18 @@ void __attribute__ ((weak)) timer_isr(void)
 void storage_save_defaults()
 {
     err rc;
+    uint8_t chan;
+    uint16_t pid_consts[3] = {FPID_DEFAULT_P, FPID_DEFAULT_I, FPID_DEFAULT_D};
     
+    /* Store EEPROM version */
     rc = store_save_eeprom_ver( EEPROM_VER );
+    
+    /* Store default Flow PID Constants */
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        if ( rc == ERR_OK )
+           rc = store_save_fpid_consts( chan, pid_consts );
+    }
     
     printf( "Save Defaults %s\n", (rc==ERR_OK) ? "OK" : "FAIL" );
 }
@@ -630,9 +720,20 @@ void storage_save_defaults()
 void storage_startup()
 {
     uint8_t eeprom_ver;
+    uint8_t chan;
+    uint16_t pid_consts[NUM_PRESSURE_CLTRLS][3];
 
     store_load_eeprom_ver( &eeprom_ver );
     printf( "EEPROM Version %hu\n", eeprom_ver );
+    
+    store_load_fpid_consts( (uint16_t *)pid_consts );
+    for ( chan=0; chan<NUM_PRESSURE_CLTRLS; chan++ )
+    {
+        fpid_p[chan] = pid_consts[chan][0];
+        fpid_i[chan] = pid_consts[chan][1];
+        fpid_d[chan] = pid_consts[chan][2];
+        printf( "Flow %hu PID Constants P %u I %u D %u\n", chan, fpid_p[chan], fpid_i[chan], fpid_d[chan] );
+    }
     
     if ( eeprom_ver == EEPROM_BLANK_U8 )
     {
@@ -1085,6 +1186,12 @@ int main(void)
                     break;
                 case PACKET_TYPE_GET_CONTROL_MODE:
                     rc = parse_packet_get_control_mode( packet_type, packet_data, packet_data_size );
+                    break;
+                case PACKET_TYPE_SET_FPID_CONSTS:
+                    rc = parse_packet_set_fpid_consts( packet_type, packet_data, packet_data_size );
+                    break;
+                case PACKET_TYPE_GET_FPID_CONSTS:
+                    rc = parse_packet_get_fpid_consts( packet_type, packet_data, packet_data_size );
                     break;
                 default:
                     rc = ERR_PACKET_INVALID;
