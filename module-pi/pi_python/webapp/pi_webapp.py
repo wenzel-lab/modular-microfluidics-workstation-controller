@@ -29,7 +29,8 @@ heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
-flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'flow_ul_hr_target': 0.0, 'flow_ul_hr_text':'', 'control_modes': [], 'control_mode': '' } for i in range(4) ]
+flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'flow_ul_hr_target': 0.0,
+                 'flow_ul_hr_text':'', 'flow_pid_consts': [[]], 'control_modes': [], 'control_mode': '', 'reload': False } for i in range(4) ]
 flow = flow_web( picommon.PORT_FLOW )
 
 app = Flask( __name__ )
@@ -70,8 +71,10 @@ def update_flow_data( index ):
   flows_data[index]['pressure_mbar_target'] = flow.pressure_mbar_targets[index]
   flows_data[index]['flow_ul_hr_text'] = flow.flow_ul_hr_text[index]
   flows_data[index]['flow_ul_hr_target'] = flow.flow_ul_hr_targets[index]
+  flows_data[index]['flow_pid_consts'] = flow.flow_pid_consts[index]
   flows_data[index]['control_modes'] = flow.ctrl_mode_str
   flows_data[index]['control_mode'] = flow.control_modes[index]
+  flows_data[index]['reload'] = flow.reload
 
 def update_flows_data():
   flow.update()
@@ -79,6 +82,7 @@ def update_flows_data():
   update_flow_data( 1 )
   update_flow_data( 2 )
   update_flow_data( 3 )
+  flow.reload = False
 
 def update_all_data():
   cam.update_strobe_data()
@@ -182,9 +186,16 @@ def on_flow( data ):
     index = data['parameters']['index']
     control_mode = data['parameters']['control_mode']
     valid = flow.set_control_mode( index, int( control_mode ) )
+  elif ( data['cmd'] == 'flow_pid_consts' ):
+    index = data['parameters']['index']
+    pid_p = int( data['parameters']['p'] )
+    pid_i = int( data['parameters']['i'] )
+    pid_d = int( data['parameters']['d'] )
+    flow_pid_consts = [pid_p, pid_i, pid_d]
+    valid = flow.set_flow_pid_consts( index, flow_pid_consts )
     
-    update_flows_data()
-    socketio.emit( 'flows', flows_data )
+  update_flows_data()
+  socketio.emit( 'flows', flows_data )
 
 def gen( camera ):
   while True:

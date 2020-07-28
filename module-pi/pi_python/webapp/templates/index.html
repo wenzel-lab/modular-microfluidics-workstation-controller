@@ -60,11 +60,17 @@
         {
           $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_target.toString() );
           $('#input_flow'+(i+1)+'_flow_ul_hr_target').val( flows[i].flow_ul_hr_target.toString() );
+          $('#input_flow'+(i+1)+'_pid_p').val( flows[i].flow_pid_consts[0].toString() );
+          $('#input_flow'+(i+1)+'_pid_i').val( flows[i].flow_pid_consts[1].toString() );
+          $('#input_flow'+(i+1)+'_pid_d').val( flows[i].flow_pid_consts[2].toString() );
         }
       }
       
       function flows_update()
       {
+        if ( flows[0].reload )
+          flows_update_init()
+        
         for ( var i=0; i<=3; i++ )
         {
           $('#flow'+(i+1)+'_status').html( flows[i].status );
@@ -130,6 +136,11 @@
       function flow_flow_ul_hr_target( index ) {
         socket.emit( 'flow', { cmd: 'flow_ul_hr_target', parameters: { 'index': index, 'flow_ul_hr_target': ( $('#input_flow'+(index+1)+'_flow_ul_hr_target').val() ) } } );
       }
+      function flow_flow_pid_consts( index ) {
+        socket.emit( 'flow', { cmd: 'flow_pid_consts', parameters: { 'index': index, 'p': ( $('#input_flow'+(index+1)+'_pid_p').val() ),
+                                                                                     'i': ( $('#input_flow'+(index+1)+'_pid_i').val() ),
+                                                                                     'd': ( $('#input_flow'+(index+1)+'_pid_d').val() ) } } );
+      }
       function flow_control_mode( index ) {
         socket.emit( 'flow', { cmd: 'control_mode', parameters: { 'index': index, 'control_mode': ( $('input:radio[name=input_flow'+(index+1)+'_control_mode]:checked').val() ) } } );
       }
@@ -187,6 +198,16 @@
           <td><p id='flow{{loop.index}}_flow_ul_hr_text'></p></td>
           <td><input type="number" id="input_flow{{loop.index}}_flow_ul_hr_target" min="0" max="10000"></td>
           <td><button id='btn_flow{{loop.index}}_flow_ul_hr_target', onclick="flow_flow_ul_hr_target({{loop.index-1}})", style="width: 100px">Set</button></td>
+        </tr>
+        <tr>
+          <td>PID Constants</td>
+          <td>
+          P <input type="number" id="input_flow{{loop.index}}_pid_p" min="0" max="9999" style="width: 4em">
+          I <input type="number" id="input_flow{{loop.index}}_pid_i" min="0" max="9999" style="width: 4em">
+          D <input type="number" id="input_flow{{loop.index}}_pid_d" min="0" max="9999" style="width: 4em">
+          </td>
+          <td></td>
+          <td><button id='btn_flow{{loop.index}}_flow_pid_consts', onclick="flow_flow_pid_consts({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
       </table>
     {% endfor %}

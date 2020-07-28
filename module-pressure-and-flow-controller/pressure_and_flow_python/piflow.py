@@ -17,6 +17,8 @@ class PiFlow:
   PACKET_TYPE_GET_FLOW_ACTUAL     = 7
   PACKET_TYPE_SET_CONTROL_MODE    = 8
   PACKET_TYPE_GET_CONTROL_MODE    = 9
+  PACKET_TYPE_SET_FPID_CONSTS     = 10
+  PACKET_TYPE_GET_FPID_CONSTS     = 11
   
   NUM_CONTROLLERS                 = 4
   
@@ -175,3 +177,26 @@ class PiFlow:
       control_modes.extend( [control_mode] )
     return ( valid and ( data[0] == 0 ), control_modes )
 
+  def set_flow_pid_consts( self, indices, pid_consts ):
+    data_bytes = []
+    for i in range(len(indices)):
+      mask = 1 << indices[i]
+      pid_const = pid_consts[i]
+      data_bytes.extend( [mask] + list( pid_const[0].to_bytes( 2, 'little', signed=False ) ) )
+      data_bytes.extend( list( pid_const[1].to_bytes( 2, 'little', signed=False ) ) )
+      data_bytes.extend( list( pid_const[2].to_bytes( 2, 'little', signed=False ) ) )
+    valid, data = self.packet_query( self.PACKET_TYPE_SET_FPID_CONSTS, data_bytes )
+    return ( ( valid and ( data[0] == 0 ) ) )
+
+  def get_flow_pid_consts( self ):
+    valid, data = self.packet_query( self.PACKET_TYPE_GET_FPID_CONSTS, [] )
+    count = int( ( len(data) - 1 ) / ( 3 * 2 ) )
+    pid_consts=[]
+    for i in range(count):
+      consts=[]
+      for j in range(3):
+        index = 1 + ( 2 * ( 3 * i + j ) )
+        const = int.from_bytes( data[index:index+2], byteorder='little', signed=False )
+        consts.extend( [const] )
+      pid_consts.append( consts )
+    return ( valid and ( data[0] == 0 ), pid_consts )
