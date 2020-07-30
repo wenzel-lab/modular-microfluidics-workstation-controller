@@ -11,8 +11,9 @@ class Camera(object):
 #    last_access = 0
     
     def __init__( self, exit_event, socketio ):
-      print( "Init Camera ----------------------" )
+      print( "Init Camera Pi -------------------" )
       self.exit_event = exit_event
+      self.close_request = False
       self.socketio = socketio
       self.strobe_cam = PiStrobeCam( picommon.PORT_STROBE, 0.1 )
       self.camera = self.strobe_cam.camera
@@ -27,7 +28,7 @@ class Camera(object):
       
       self.cam_read_time_us = 0
       
-      self.cam_data = { 'camera': 'none', 'status': '' }
+      self.cam_data = { 'camera': 'rpi', 'status': '' }
       
       @self.socketio.on( 'cam' )
       def on_cam( data ):
@@ -51,8 +52,11 @@ class Camera(object):
 
     def get_frame( self ):
 #      self.last_access = time.time()
-      self.initialize()
-      return self.frame
+      if self.close_request:
+        return None
+      else:
+        self.initialize()
+        return self.frame
     
     def save( self ):
       img=Image.open( io.BytesIO( self.frame ) )
@@ -94,12 +98,23 @@ class Camera(object):
 #                if time.time() - self.last_access > 10:
 #                  print( "Stop Camera thread" )
 #                  break
-                if self.exit_event.isSet():
+                if self.exit_event.isSet() or self.close_request:
                   print( "Pi Camera thread exiting" )
                   break
             self.camera.close()
+            self.thread_copy = self.thread
             self.thread = None
+#            self.close_request = False
     
+    def close( self ):
+      self.close_request = True
+      
+      while self.thread != None:
+        pass
+      
+      self.thread_copy.join()
+      print( "Pi Camera thread exited" )
+      
     def emit( self ):
       self.socketio.emit( 'cam', self.cam_data )
       self.socketio.emit( 'strobe', self.strobe_data )

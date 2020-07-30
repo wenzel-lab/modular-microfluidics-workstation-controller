@@ -7,6 +7,7 @@ import picommon
 from pistrobe import PiStrobe
 from piholder_web import heater_web
 #from camera import Camera
+from camera_base import CameraBase
 from camera_pi import Camera
 #from vimba_pi import Camera
 from piflow_web import flow_web
@@ -37,9 +38,27 @@ app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
 thread = None
 
-cam = Camera( exit_event, socketio )
+cam = CameraBase( exit_event, socketio )
+cam_selected = cam.cam_data['camera']
+#cam = Camera( exit_event, socketio )
 #cam.initialize()
 #cam.init2()
+
+def switch_camera( cam_new ):
+#  cam_new = cam.cam_data['camera']
+  global cam
+  global cam_selected
+  oldcam = cam;
+  
+  if cam_new != cam_selected:
+    if ( cam_new == 'none' ):
+      cam = CameraBase( exit_event, socketio )
+    elif ( cam_new == 'rpi' ):
+      cam = Camera( exit_event, socketio )
+    
+    oldcam.close()
+  
+  cam_selected = cam_new
 
 def update_heater_data( index, heater ):
   heaters_data[index]['status'] = heater.status_text
@@ -132,7 +151,7 @@ def on_connect():
 @socketio.on( 'cam_select' )
 def on_cam( data ):
   if ( data['cmd'] == 'select' ):
-    cam.cam_data['camera'] = data['parameters']['camera']
+    switch_camera( data['parameters']['camera'] )
     socketio.emit( 'reload' )
 #    socketio.emit( 'cam', cam.cam_data )
 
@@ -200,6 +219,9 @@ def on_flow( data ):
 def gen( camera ):
   while True:
     frame = camera.get_frame()
+    if frame == None:
+      frame = b''
+    
     yield ( b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n' )
 
