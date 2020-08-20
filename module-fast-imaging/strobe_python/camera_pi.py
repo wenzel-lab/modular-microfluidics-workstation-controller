@@ -60,7 +60,7 @@ class Camera(object):
     
     def save( self ):
       img=Image.open( io.BytesIO( self.frame ) )
-      img.save( "snapshot.jpg", "JPEG" )
+      img.save( "/home/pi/snapshots/snapshot.jpg", "JPEG" )
 #      self.strobe_cam.camera.capture( "snapshot.jpg" )
     
 #    @classmethod
