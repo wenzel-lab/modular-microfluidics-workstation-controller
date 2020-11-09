@@ -1,15 +1,24 @@
 ## Pressure and flow controller module
 
 This is the core piece of the workstation. 
-This electronic controller module aims to regulate and distrbute the pressure (originating from the pressure source module) into the sample tubes, so that the samples (aqueous, gel pre-cursors and oils) flow onto the microfluidic chip and the collection resarvoirs.
-We aim to regulate pressures enough for ultra-high throughput agarose bead generation (several bar), in a smooth fashion that avoids pulsing especially at steady state.
-This controller requires a custom cuircuit board in addition to connectors and mechanical parts. Nothing in this controller should be manual.
+This electronic controller module aims to regulate and distrbute the pressure (originating from the pressure source module) into the sample tubes, so that the samples (aqueous, gel pre-cursors and oils) flow onto the microfluidic chip and the collection reservoirs.
+We aim to regulate pressures enough for ultra-high throughput agarose bead generation (several bar), in a smooth fashion that avoids pulsing, especially at steady state.
+This controller consists of a custom circuit board that plugs into the Raspberry Pi hat, in addition to connectors for connecting external pressure controllers and flow sensors. Pressure and flow control are fully automatic.
 
-The flow controller is a modular part of the circuit board of the pressure controller. Populating this part of the board with components is optional.
-The flow controller and its flow-sensors do not have to be used at all times, but rather for dynamic protocols and for establishing new experiments.
-Once desired flowrates and required pressures are known, it is enough to use the pressure controller unit without setting up the flow sensors.
+The controller module can operate either in pressure control mode or flow control mode.  Flow control mode requires external flow sensors to be connected.  Once desired flow rates have been achieved and associated pressures are known, the experiment can be reproduced using only pressure control, without the need for expensive flow sensors.  Both modes require external pressure controllers to be connected.
 
-More detail to be filled in on our approach and approaches taken in the literature.
+The module contains a PIC microcontroller that communicates with the Raspberry Pi, controls the pressure controllers and reads back pressure and flow.  The pressure target is controlled using a digital-to-analogue converter and the actual pressure is read using an analogue-to-digital converter.  The flow controllers is read via a four channel I2C multiplexer.
+
+### Pressure Controllers
+We have selected the SMC ITV0010 pressure controllers for this application.  The pressure target is supplied to the pressure controller by the module as an analogue voltage and the measured pressure achieved is returned as an analogue voltage.  This approach allows the option to connect alternative analogue pressure controllers, or using a separate pressure sensor instead of the one internal to the pressure controller.
+
+The ITV0010 pressure controllers can be purchased as a compact DIN-mounted manifold block that requires a single pressure supply line.
+
+### Flow Sensors
+We have selected the Sensirion LG* range of flow sensor.  They feature a digital interface via I2C.
+
+### Connectors
+The module features eight Picoblade connectors.  Four connect to the pressure controllers, carrying power, analogue out and analogue in.  The other four connect to the optional flow sensors and carry power and I2C signals.  The module itself is designed to plug into the Raspberry Pi hat.  This allows for power and digital communications with the Raspberry Pi.
 
 ### PCB Components
 
