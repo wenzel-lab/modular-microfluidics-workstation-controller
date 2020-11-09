@@ -13,7 +13,7 @@ More detail to be filled in on our approach and approaches taken in the literatu
 
 ### PCB Components
 
-<img src="images/sample_holder_pcb_placement_top.jpg" width=50%><img src="images/sample_holder_pcb_placement_bottom.jpg" width=50%>
+<img src="images/pcb_copper_top.jpg" width=50%><img src="images/pcb_copper_bottom.jpg" width=50%>
 
 |Qty|Name|Component|Description|
 |-|-|-|-|
