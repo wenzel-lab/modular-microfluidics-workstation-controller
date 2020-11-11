@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=pressure_and_flow_pic
 
 # Active Configuration
-DEFAULTCONF=Snap
+DEFAULTCONF=PICkit4
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Unpowered 3_3V Snap PICkit4 PICkit3 
+ALLCONFS=Unpowered PICkit4_3_3V Snap PICkit4 PICkit3 
 
 
 # build
@@ -46,7 +46,7 @@ ALLCONFS=Unpowered 3_3V Snap PICkit4 PICkit3
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered clean
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3V clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4_3_3V clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4 clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit3 clean
@@ -56,7 +56,7 @@ ALLCONFS=Unpowered 3_3V Snap PICkit4 PICkit3
 # all
 .all-impl: .all-pre .depcheck-impl
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered build
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3V build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4_3_3V build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Snap build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4 build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit3 build

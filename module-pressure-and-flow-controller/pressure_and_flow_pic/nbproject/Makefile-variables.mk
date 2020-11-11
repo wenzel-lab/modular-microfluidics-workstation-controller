@@ -11,13 +11,13 @@ CND_ARTIFACT_PATH_Unpowered=dist/Unpowered/production/pressure_and_flow_pic.prod
 CND_PACKAGE_DIR_Unpowered=${CND_DISTDIR}/Unpowered/package
 CND_PACKAGE_NAME_Unpowered=pressureandflowpic.tar
 CND_PACKAGE_PATH_Unpowered=${CND_DISTDIR}/Unpowered/package/pressureandflowpic.tar
-# 3_3V configuration
-CND_ARTIFACT_DIR_3_3V=dist/3_3V/production
-CND_ARTIFACT_NAME_3_3V=pressure_and_flow_pic.production.hex
-CND_ARTIFACT_PATH_3_3V=dist/3_3V/production/pressure_and_flow_pic.production.hex
-CND_PACKAGE_DIR_3_3V=${CND_DISTDIR}/3_3V/package
-CND_PACKAGE_NAME_3_3V=pressureandflowpic.tar
-CND_PACKAGE_PATH_3_3V=${CND_DISTDIR}/3_3V/package/pressureandflowpic.tar
+# PICkit4_3_3V configuration
+CND_ARTIFACT_DIR_PICkit4_3_3V=dist/PICkit4_3_3V/production
+CND_ARTIFACT_NAME_PICkit4_3_3V=pressure_and_flow_pic.production.hex
+CND_ARTIFACT_PATH_PICkit4_3_3V=dist/PICkit4_3_3V/production/pressure_and_flow_pic.production.hex
+CND_PACKAGE_DIR_PICkit4_3_3V=${CND_DISTDIR}/PICkit4_3_3V/package
+CND_PACKAGE_NAME_PICkit4_3_3V=pressureandflowpic.tar
+CND_PACKAGE_PATH_PICkit4_3_3V=${CND_DISTDIR}/PICkit4_3_3V/package/pressureandflowpic.tar
 # Snap configuration
 CND_ARTIFACT_DIR_Snap=dist/Snap/production
 CND_ARTIFACT_NAME_Snap=pressure_and_flow_pic.production.hex

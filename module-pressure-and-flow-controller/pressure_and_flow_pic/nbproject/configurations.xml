@@ -321,13 +321,13 @@
         <property key="voltagevalue" value="3.25"/>
       </PICkit3PlatformTool>
     </conf>
-    <conf name="3_3V" type="2">
+    <conf name="PICkit4_3_3V" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
         <targetDevice>dsPIC33CK256MP502</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>pk4hybrid</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.41</languageToolchainVersion>
         <platform>3</platform>
@@ -565,6 +565,96 @@
         <property key="programoptions.uselvpprogramming" value="false"/>
         <property key="voltagevalue" value="3.375"/>
       </PICkit3PlatformTool>
+      <pk4hybrid>
+        <property key="ADC" value="true"/>
+        <property key="AutoSelectMemRanges" value="auto"/>
+        <property key="CLC 1" value="true"/>
+        <property key="CLC 2" value="true"/>
+        <property key="CLC 3" value="true"/>
+        <property key="CLC 4" value="true"/>
+        <property key="CRC" value="true"/>
+        <property key="DACFRZ" value="true"/>
+        <property key="DMA" value="true"/>
+        <property key="FRZ" value="true"/>
+        <property key="Freeze All Other Peripherals" value="true"/>
+        <property key="I2C 1" value="true"/>
+        <property key="I2C 2" value="true"/>
+        <property key="I2C 3" value="true"/>
+        <property key="MCCP/SCCP 1" value="true"/>
+        <property key="MCCP/SCCP 2" value="true"/>
+        <property key="MCCP/SCCP 3" value="true"/>
+        <property key="MCCP/SCCP 4" value="true"/>
+        <property key="MCCP/SCCP 5" value="true"/>
+        <property key="MCCP/SCCP 6" value="true"/>
+        <property key="MCCP/SCCP 7" value="true"/>
+        <property key="MCCP/SCCP 8" value="true"/>
+        <property key="MCCP/SCCP 9" value="true"/>
+        <property key="PG1" value="true"/>
+        <property key="PG2" value="true"/>
+        <property key="PG3" value="true"/>
+        <property key="PG4" value="true"/>
+        <property key="PG5" value="true"/>
+        <property key="PG6" value="true"/>
+        <property key="PG7" value="true"/>
+        <property key="PG8" value="true"/>
+        <property key="PTGFRZ" value="true"/>
+        <property key="QEI1" value="true"/>
+        <property key="QEI2" value="true"/>
+        <property key="REFO" value="true"/>
+        <property key="SENT1" value="true"/>
+        <property key="SENT2" value="true"/>
+        <property key="SPI 1" value="true"/>
+        <property key="SPI 2" value="true"/>
+        <property key="SPI 3" value="true"/>
+        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
+        <property key="TIMER1" value="true"/>
+        <property key="ToolFirmwareFilePath"
+                  value="Press to browse for a specific firmware version"/>
+        <property key="ToolFirmwareOption.UpdateOptions"
+                  value="ToolFirmwareOption.UseLatest"/>
+        <property key="communication.activationmode" value="nohv"/>
+        <property key="communication.interface" value=""/>
+        <property key="communication.speed" value="${communication.speed.default}"/>
+        <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="memories.aux" value="false"/>
+        <property key="memories.bootflash" value="true"/>
+        <property key="memories.configurationmemory" value="true"/>
+        <property key="memories.configurationmemory2" value="true"/>
+        <property key="memories.dataflash" value="true"/>
+        <property key="memories.eeprom" value="true"/>
+        <property key="memories.exclude.configurationmemory" value="true"/>
+        <property key="memories.flashdata" value="true"/>
+        <property key="memories.id" value="true"/>
+        <property key="memories.instruction.ram.ranges"
+                  value="${memories.instruction.ram.ranges}"/>
+        <property key="memories.programmemory" value="true"/>
+        <property key="memories.programmemory.ranges" value="0-2beff"/>
+        <property key="poweroptions.powerenable" value="true"/>
+        <property key="programmerToGoFilePath"
+                  value="E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/debug/PICkit4_3_3V/PICkit4_3_3V_ptg"/>
+        <property key="programmerToGoImageName" value="PICkit4_3_3V_ptg"/>
+        <property key="programoptions.donoteraseauxmem" value="false"/>
+        <property key="programoptions.eraseb4program" value="true"/>
+        <property key="programoptions.ledbrightness" value="5"/>
+        <property key="programoptions.pgcconfig" value="none"/>
+        <property key="programoptions.pgcresistor.value" value="4.7"/>
+        <property key="programoptions.pgdconfig" value="none"/>
+        <property key="programoptions.pgdresistor.value" value="4.7"/>
+        <property key="programoptions.pgmentry.voltage" value="low"/>
+        <property key="programoptions.pgmspeed" value="Max"/>
+        <property key="programoptions.preservedataflash" value="false"/>
+        <property key="programoptions.preserveeeprom" value="false"/>
+        <property key="programoptions.preserveeeprom.ranges" value=""/>
+        <property key="programoptions.preserveprogram.ranges"
+                  value="0-ffffffffffffffff"/>
+        <property key="programoptions.preserveprogramrange" value="false"/>
+        <property key="programoptions.preserveuserid" value="false"/>
+        <property key="programoptions.programcalmem" value="false"/>
+        <property key="programoptions.programuserotp" value="false"/>
+        <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
+        <property key="ptgSendImage" value="true"/>
+        <property key="voltagevalue" value="3.25"/>
+      </pk4hybrid>
     </conf>
     <conf name="Snap" type="2">
       <toolsSet>
@@ -872,6 +962,8 @@
                   value="${memories.instruction.ram.ranges}"/>
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-2beff"/>
+        <property key="programmerToGoFilePath"
+                  value="E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/debug/Snap/Snap_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.pgmentry.voltage" value="low"/>
@@ -1198,6 +1290,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-2beff"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="E:/Media/DOCs/Projects/open-microfluidics-workstation/module-pressure-and-flow-controller/pressure_and_flow_pic/debug/PICkit4/PICkit4_ptg"/>
         <property key="programmerToGoImageName" value="PICkit4_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>

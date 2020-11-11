@@ -9522,7 +9522,7 @@ wire to board 1.25 mm (.049 inch) pitch header</description>
 <part name="R10" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="1k"/>
 <part name="P+11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="C5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="C0603K" package3d_urn="urn:adsk.eagle:package:23680/2" value="100nf"/>
-<part name="C6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="C0603K" package3d_urn="urn:adsk.eagle:package:23680/2" value="10uf"/>
+<part name="C6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="C0603K" package3d_urn="urn:adsk.eagle:package:23680/2" value="10uf tantalum"/>
 <part name="P+6" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
 <part name="R11" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="10k"/>
 <part name="C7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="C0603K" package3d_urn="urn:adsk.eagle:package:23680/2"/>
@@ -10338,7 +10338,7 @@ wire to board 1.25 mm (.049 inch) pitch header</description>
 <label x="-15.24" y="91.44" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
-<net name="N$3" class="0">
+<net name="PRESSURE_OUT" class="0">
 <segment>
 <pinref part="IC3" gate="G$1" pin="VOUTA"/>
 <wire x1="10.16" y1="284.48" x2="0" y2="284.48" width="0.1524" layer="91"/>
@@ -10524,7 +10524,7 @@ wire to board 1.25 mm (.049 inch) pitch header</description>
 <junction x="-15.24" y="-48.26"/>
 </segment>
 </net>
-<net name="N$16" class="0">
+<net name="I2C_DATA" class="0">
 <segment>
 <pinref part="IC5" gate="G$1" pin="SD1"/>
 <wire x1="-2.54" y1="-10.16" x2="-12.7" y2="-10.16" width="0.1524" layer="91"/>
@@ -10536,7 +10536,7 @@ wire to board 1.25 mm (.049 inch) pitch header</description>
 <junction x="-12.7" y="-25.4"/>
 </segment>
 </net>
-<net name="N$17" class="0">
+<net name="I2C_CLK" class="0">
 <segment>
 <pinref part="IC5" gate="G$1" pin="SC1"/>
 <wire x1="-2.54" y1="-12.7" x2="-10.16" y2="-12.7" width="0.1524" layer="91"/>
@@ -10557,7 +10557,7 @@ wire to board 1.25 mm (.049 inch) pitch header</description>
 <wire x1="-17.78" y1="248.92" x2="-17.78" y2="241.3" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$24" class="0">
+<net name="PRESSURE_IN" class="0">
 <segment>
 <pinref part="X1" gate="-1" pin="S"/>
 <wire x1="-20.32" y1="256.54" x2="10.16" y2="256.54" width="0.1524" layer="91"/>
