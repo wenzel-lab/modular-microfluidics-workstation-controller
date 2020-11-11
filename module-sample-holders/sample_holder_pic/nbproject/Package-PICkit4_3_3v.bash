@@ -6,7 +6,7 @@
 
 # Macros
 TOP=`pwd`
-CND_CONF=3_3v_Powered
+CND_CONF=PICkit4_3_3v
 CND_DISTDIR=dist
 TMPDIR=build/${CND_CONF}/${IMAGE_TYPE}/tmp-packaging
 TMPDIRNAME=tmp-packaging

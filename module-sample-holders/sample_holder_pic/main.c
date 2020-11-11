@@ -276,6 +276,7 @@ void stir_pid_start( void );
 void stir_pid_stop( void );
 void set_heat_power_limit_pc( uint8_t heat_power_limit_pc );
 bool pid_valid( int32_t pid_p, int32_t pid_i, int32_t pid_d );
+void validate_pid_constants_state( void );
 bool status_check( void );
 
 inline int32_t constrain_i32( int32_t value, int32_t min, int32_t max )
@@ -604,6 +605,9 @@ void autotune_check_cycle( void )
         store_save_pid( hpid_p, hpid_i, hpid_d );
         
         autotune_stop( HTUNE_STATE_FINISHED );
+        
+        validate_pid_constants_state();
+        
         printf( "Autotune Finished: Success\n" );
     }
     else if ( temp_array_len >= HTUNE_CYCLES_MAX )
@@ -833,8 +837,7 @@ err parse_packet_pid_set_coeffs( uint8_t packet_type, uint8_t *packet_data, uint
 
             status_pid_valid = true;
             
-            if ( hpid_state == HPID_STATE_UNCONFIGURED )
-                hpid_state = HPID_STATE_READY;
+            validate_pid_constants_state();
         }
     }
 
@@ -1190,6 +1193,16 @@ bool pid_valid( int32_t pid_p, int32_t pid_i, int32_t pid_d )
         valid = false;
     
     return valid;
+}
+
+void validate_pid_constants_state( void )
+{
+    if ( ( hpid_state == HPID_STATE_UNCONFIGURED ) ||
+         ( ( hpid_state = HPID_STATE_ERROR ) && ( hpid_error == HPID_ERROR_INVALID_PID_CONSTANTS ) ) )
+    {
+        hpid_state = HPID_STATE_READY;
+        hpid_error = HPID_ERROR_NONE;
+    }
 }
 
 bool status_check( void )

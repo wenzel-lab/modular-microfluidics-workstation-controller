@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=sample_holder_pic
 
 # Active Configuration
-DEFAULTCONF=PIC_Snap
+DEFAULTCONF=PICkit4_3_3v
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Unpowered 3_3v_Powered PIC_Snap 
+ALLCONFS=PICkit4_Unpowered PICkit4_3_3v PIC_Snap 
 
 
 # build
@@ -45,16 +45,16 @@ ALLCONFS=Unpowered 3_3v_Powered PIC_Snap
 
 # clobber
 .clobber-impl: .clobber-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered clean
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3v_Powered clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4_Unpowered clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4_3_3v clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PIC_Snap clean
 
 
 
 # all
 .all-impl: .all-pre .depcheck-impl
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Unpowered build
-	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=3_3v_Powered build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4_Unpowered build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PICkit4_3_3v build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=PIC_Snap build
 
 

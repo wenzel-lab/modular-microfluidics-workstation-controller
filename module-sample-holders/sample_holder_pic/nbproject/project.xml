@@ -17,11 +17,11 @@
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>Unpowered</name>
+                    <name>PICkit4_Unpowered</name>
                     <type>2</type>
                 </confElem>
                 <confElem>
-                    <name>3_3v_Powered</name>
+                    <name>PICkit4_3_3v</name>
                     <type>2</type>
                 </confElem>
                 <confElem>
