@@ -15,7 +15,7 @@ We have selected the SMC ITV0010 pressure controllers for this application.  The
 The ITV0010 pressure controllers can be purchased as a compact DIN-mounted manifold block that requires a single pressure supply line.
 
 ### Flow Sensors
-We have selected the Sensirion LG* range of flow sensor.  They feature a digital interface via I2C.
+We have selected the Sensirion LG16 range of flow sensor.  They feature a digital interface via I2C.
 
 ### Connectors
 
@@ -25,15 +25,50 @@ The module features eight Picoblade connectors.  Four connect to the pressure co
 
 #### Pressure Controller Connector
 
-<img src="images/conn_pressure.jpg" width=25%>
+<img src="images/conn_pressure.jpg" width=50%>
+
+|Pin|Description|
+|-|-|
+|1|Pressure In|
+|2|Pressure Out|
+|3|0V Power / GND|
+|4|12V Power|
 
 #### Flow Sensor Connector
 
-<img src="images/conn_flow.jpg" width=25%>
+<img src="images/conn_flow.jpg" width=50%>
+
+|Pin|Description|
+|-|-|
+|1|I2C Data|
+|2|Vdd 3.3V|
+|3|Vss (Digital Ground)|
+|4|I2C Clock|
+
+**Note:** Pin 2 (Vdd 3.3V) must not be used to power Sensirion LG16 sensors, which require 5V.  This 3.3V pin was intended for use with the Sensirion SLF3S-1300F.  Instead use the 5V pin on the Controller Module header block on the Raspberry Pi hat.
 
 ### Pinout
 
 <img src="images/pcb_board_top.jpg" width=50%>
+
+|Pin|Description|
+|-|-|
+|1|ICSP MCLR|
+|2|ICSP Vdd (3V3 Power)|
+|3|ICSP Vss (Digital Ground)|
+|4|ICSP Data|
+|5|ICSP Clock|
+|13|Ground for 12V|
+|14|12V Supply for Pressure Controllers|
+|17|5V Digital Power|
+|23|Digital Ground|
+|24|Digital 3.3V Power|
+|25|SPI Slave Select|
+|26|SPI Clock|
+|27|SPI MOSI|
+|28|SPI MISO|
+
+**Note:** Pin 13 (12V Ground) must be connected with pin 23 (digital ground) externally, and in a way that prevents ground loops.
 
 ### PCB Components
 
