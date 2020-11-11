@@ -26,6 +26,10 @@
                     <name>PICkit3</name>
                     <type>2</type>
                 </confElem>
+                <confElem>
+                    <name>PICkit4_at_5V</name>
+                    <type>2</type>
+                </confElem>
             </confList>
             <formatting>
                 <project-formatting-style>false</project-formatting-style>

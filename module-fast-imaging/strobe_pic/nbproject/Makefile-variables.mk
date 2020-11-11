@@ -25,3 +25,10 @@ CND_ARTIFACT_PATH_PICkit3=dist/PICkit3/production/strobe_pic.production.hex
 CND_PACKAGE_DIR_PICkit3=${CND_DISTDIR}/PICkit3/package
 CND_PACKAGE_NAME_PICkit3=strobepic.tar
 CND_PACKAGE_PATH_PICkit3=${CND_DISTDIR}/PICkit3/package/strobepic.tar
+# PICkit4_at_5V configuration
+CND_ARTIFACT_DIR_PICkit4_at_5V=dist/PICkit4_at_5V/production
+CND_ARTIFACT_NAME_PICkit4_at_5V=strobe_pic.production.hex
+CND_ARTIFACT_PATH_PICkit4_at_5V=dist/PICkit4_at_5V/production/strobe_pic.production.hex
+CND_PACKAGE_DIR_PICkit4_at_5V=${CND_DISTDIR}/PICkit4_at_5V/package
+CND_PACKAGE_NAME_PICkit4_at_5V=strobepic.tar
+CND_PACKAGE_PATH_PICkit4_at_5V=${CND_DISTDIR}/PICkit4_at_5V/package/strobepic.tar
