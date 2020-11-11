@@ -1,18 +1,40 @@
 ## Pressure and flow controller module
 
 This is the core piece of the workstation. 
-This electronic controller module aims to regulate and distrbute the pressure (originating from the pressure source module) into the sample tubes, so that the samples (aqueous, gel pre-cursors and oils) flow onto the microfluidic chip and the collection resarvoirs.
-We aim to regulate pressures enough for ultra-high throughput agarose bead generation (several bar), in a smooth fashion that avoids pulsing especially at steady state.
-This controller requires a custom cuircuit board in addition to connectors and mechanical parts. Nothing in this controller should be manual.
+This electronic controller module aims to regulate and distrbute the pressure (originating from the pressure source module) into the sample tubes, so that the samples (aqueous, gel pre-cursors and oils) flow onto the microfluidic chip and the collection reservoirs.
+We aim to regulate pressures enough for ultra-high throughput agarose bead generation (several bar), in a smooth fashion that avoids pulsing, especially at steady state.
+This controller consists of a custom circuit board that plugs into the Raspberry Pi hat, in addition to connectors for connecting external pressure controllers and flow sensors. Pressure and flow control are fully automatic.
 
-The flow controller is a modular part of the circuit board of the pressure controller. Populating this part of the board with components is optional.
-The flow controller and its flow-sensors do not have to be used at all times, but rather for dynamic protocols and for establishing new experiments.
-Once desired flowrates and required pressures are known, it is enough to use the pressure controller unit without setting up the flow sensors.
+The controller module can operate either in pressure control mode or flow control mode.  Flow control mode requires external flow sensors to be connected.  Once desired flow rates have been achieved and associated pressures are known, the experiment can be reproduced using only pressure control, without the need for expensive flow sensors.  Both modes require external pressure controllers to be connected.
 
-More detail to be filled in on our approach and approaches taken in the literature.
+The module contains a PIC microcontroller that communicates with the Raspberry Pi, controls the pressure controllers and reads back pressure and flow.  The pressure target is controlled using a digital-to-analogue converter and the actual pressure is read using an analogue-to-digital converter.  The flow controllers is read via a four channel I2C multiplexer.
 
-Proportional valve approach?
+### Pressure Controllers
+We have selected the SMC ITV0010 pressure controllers for this application.  The pressure target is supplied to the pressure controller by the module as an analogue voltage and the measured pressure achieved is returned as an analogue voltage.  This approach allows the option to connect alternative analogue pressure controllers, or using a separate pressure sensor instead of the one internal to the pressure controller.
 
-PID controll of solenoid outlet approach? - with vent
+The ITV0010 pressure controllers can be purchased as a compact DIN-mounted manifold block that requires a single pressure supply line.
 
-Regulator modules...
+### Flow Sensors
+We have selected the Sensirion LG* range of flow sensor.  They feature a digital interface via I2C.
+
+### Connectors
+The module features eight Picoblade connectors.  Four connect to the pressure controllers, carrying power, analogue out and analogue in.  The other four connect to the optional flow sensors and carry power and I2C signals.  The module itself is designed to plug into the Raspberry Pi hat.  This allows for power and digital communications with the Raspberry Pi.
+
+### PCB Components
+
+<img src="images/pcb_copper_top.jpg" width=50%><img src="images/pcb_copper_bottom.jpg" width=50%>
+
+|Qty|Name|Component|Description|
+|-|-|-|-|
+|7|C1-C5,C8-C9|100nf Capacitor 0603|Decoupling Capacitors|
+|2|C6,C10|10uF Capacitor 0603|Bypass,Bulk Capacitor|
+|1|C7|Not fitted||
+|1|C2|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
+|1|C3|AD5624R|DAC|
+|1|C4|ADS1115|ADC|
+|1|C5|PCA9544APW,112|I2C Multiplexer|
+|1|C6|25AA040ST|EEPROM|
+|12|R1-R10,R12-R13|1k Resistor 0603||
+|1|R11|10k Resistor 0603||
+|8|X1-X8|Picoblade 53047-0410|Connectors|
+
