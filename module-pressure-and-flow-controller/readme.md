@@ -18,7 +18,22 @@ The ITV0010 pressure controllers can be purchased as a compact DIN-mounted manif
 We have selected the Sensirion LG* range of flow sensor.  They feature a digital interface via I2C.
 
 ### Connectors
+
+<img src="images/pcb_placement_top.jpg" width=50%>
+
 The module features eight Picoblade connectors.  Four connect to the pressure controllers, carrying power, analogue out and analogue in.  The other four connect to the optional flow sensors and carry power and I2C signals.  The module itself is designed to plug into the Raspberry Pi hat.  This allows for power and digital communications with the Raspberry Pi.
+
+#### Pressure Controller Connector
+
+<img src="images/conn_pressure.jpg" width=25%>
+
+#### Flow Sensor Connector
+
+<img src="images/conn_flow.jpg" width=25%>
+
+### Pinout
+
+<img src="images/pcb_board_top.jpg" width=50%>
 
 ### PCB Components
 
