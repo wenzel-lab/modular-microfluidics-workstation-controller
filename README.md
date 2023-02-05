@@ -91,6 +91,7 @@ The aim is to create a prototype of a *compact* working station that is based on
  * Microfluidic droplet sorting workstation driven by the droplet workstation tools describes here. This is beeing developed in a seperate repository: https://github.com/MakerTobey/Open_FPGA_control_for_FADS
  * High Pressure Source Module in sub-replository https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-high-pressure-source
  * Anaerobic Chamber Module (this module might have its own repository)
+ * Note, there is also a previous general open source microfluidics repository with re-builds and design considerations: https://github.com/MakerTobey/OpenMicrofluidics
 
 ## Acknowledgment
-The authors would like to thank Dr. Richard Bowman for his guidance during the software and hardware development. This technical index is based on the [OpenFlexure technical overview](https://gitlab.com/openflexure/microscope-technical-overview/-/tree/main). 
+This technical index is based on the [OpenFlexure technical overview](https://gitlab.com/openflexure/microscope-technical-overview/-/tree/main) and discussions with Richard Bowman. 
