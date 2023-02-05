@@ -89,7 +89,7 @@ The aim is to create a prototype of a *compact* working station that is based on
 
 ## Modules Wish List
  * Microfluidic droplet sorting workstation driven by the droplet workstation tools describes here. This is beeing developed in a seperate repository: https://github.com/MakerTobey/Open_FPGA_control_for_FADS
- * High Pressure Source Module
+ * High Pressure Source Module in sub-replository https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-high-pressure-source
  * Anaerobic Chamber Module (this module might have its own repository)
 
 ## Acknowledgment
