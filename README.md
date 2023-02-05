@@ -88,6 +88,7 @@ The aim is to create a prototype of a *compact* working station that is based on
     * **TO DO**: OM Workstation operating system (This collates all software and builds a pre-written SD card image for the Raspberry Pi)
 
 ## Modules Wish List
+ * Microfluidic droplet sorting workstation driven by the droplet workstation tools describes here. This is beeing developed in a seperate repository: https://github.com/MakerTobey/Open_FPGA_control_for_FADS
  * High Pressure Source Module
  * Anaerobic Chamber Module (this module might have its own repository)
 
