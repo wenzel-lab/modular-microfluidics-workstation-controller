@@ -52,7 +52,7 @@ The aim is to create a prototype of a *compact* working station that is based on
 
 * **TO DO**: Assembly instructions
     * **TO DO**: Parts list
-    * **TO DO**: Software installation
+    * [Software installation](https://github.com/wenzel-lab/open-microfluidics-workstation/wiki/Install-the-Software)
     * **TO DO**: Go all the way to being ready to image and/or calibrate
 
 * **TO DO**: Usage instructions
