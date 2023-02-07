@@ -84,7 +84,7 @@ The aim is to create a prototype of a *compact* working station that is based on
     * [Sample Reservoirs](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module_sample_reservoirs)
  
 * **TO DO**: Software source code
-    * **TO DO**: OM Workstation server (This code runs on the built-in Raspberry Pi, and includes the web application for the user interface.)
+    * [OM Workstation server](https://github.com/wenzel-lab/open-microfluidics-workstation/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi, and includes the web application for the user interface.)
     * **TO DO**: OM Workstation operating system (This collates all software and builds a pre-written SD card image for the Raspberry Pi)
 
 ## Modules Wish List
