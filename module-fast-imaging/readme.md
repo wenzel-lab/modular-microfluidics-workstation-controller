@@ -32,3 +32,6 @@ Camera Mako U-051B mono; 800x600 CMOS C-Mount 391fps 10bit-ADC 128MB-buffer; ca.
 
 Camera Mako U-029B mono; 640x480 CMOS C-Mount 550fps 10bit-ADC 128MB-buffer; ca. 300 Euro net
 
+In the end we decided to use the camera Allied-Vision Mako U-029B with global shutter: 
+https://www.1stvision.com/cameras/AVT/dataman/MakoU_TechMan_en.pdf,
+https://www.spectratech.gr/en/product/43606/Allied-Vision_Mako_U-029B?path=54-40
