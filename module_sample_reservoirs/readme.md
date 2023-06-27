@@ -8,7 +8,7 @@ Created with a CNC cutting process using Delrin, a pressure robust, sterilisable
 
 <img src="4-cap-manifold.png" width=50%> <img src="4-cap-mainfold_w_hidden_edges.png" width=44%>
 
-<img src="vial_holder" width=50%>
+<img src="vial_holder.jpg" width=50%>
 
 For 100ml high-pressure Duran glass bottles
 
