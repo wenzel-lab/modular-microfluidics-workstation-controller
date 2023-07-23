@@ -1,4 +1,4 @@
-# Open Microfluidics Workstation
+# Open Microfluidics Workstation [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
 Repository for developing the *compact* *modules* of a free and *open-source* microfluidic workstation for *high-throughput droplet microfluidic* biological assays. It addresses gas-pressure control to push microfluidic samples onto chips, pressure, and flow measurement with feedback control, sample holders with heating and stirring, and imaging of fast droplet generation processes with open-source microscopy and stroboscopic illumination.
 
@@ -8,9 +8,19 @@ This is an open, collaborative project, and *your participation* (comments, inpu
 
 > **Please Note:** This technical index is very much under construction and is at present an incomplete summary of the various documents that exist elsewhere in the Open Microfluidics Workstation repositories on GitHub and elsewhere.
 
-## Table of Contents
+<!--- ## Table of Contents --->
 
-### Design files and source code
+<!--- ## Background --->
+
+## Usage
+
+* Assembly instructions
+    * [Software installation](https://github.com/wenzel-lab/open-microfluidics-workstation/wiki/Install-the-Software)
+
+### Applications
+* Strobe-enhanced microscopy stage: [assembly instructions](https://librehub.github.io/3_Levels_Stage/) and [repository](https://github.com/LIBREhub/3_Levels_Stage) 
+
+## Design files and source code
 
 * Hardware designs
     * [Fast Imaging Module](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-fast-imaging)
@@ -21,14 +31,6 @@ This is an open, collaborative project, and *your participation* (comments, inpu
 * Software source code
     * [OM Workstation server](https://github.com/wenzel-lab/open-microfluidics-workstation/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.)
 
-### Instructions
-
-* Assembly instructions
-    * [Software installation](https://github.com/wenzel-lab/open-microfluidics-workstation/wiki/Install-the-Software)
- 
-### Applications
-* Strobe-enhanced microscopy stage: [assembly instructions](https://librehub.github.io/3_Levels_Stage/) and [repository](https://github.com/LIBREhub/3_Levels_Stage) 
-
 ## Modules Wish List
 * Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/MakerTobey/Open_FPGA_control_for_FADS) (This is being developed in a separate repository).
 * High-Pressure Source Module in [sub-repository](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-high-pressure-source)
@@ -36,5 +38,11 @@ This is an open, collaborative project, and *your participation* (comments, inpu
 
 > **Please Note:** There is also a previous general [open-source microfluidics repository](https://github.com/MakerTobey/OpenMicrofluidics) with re-builds and design considerations. 
 
-## Acknowledgment
-This technical index is based on the [OpenFlexure technical overview](https://gitlab.com/openflexure/microscope-technical-overview/-/tree/main) and discussions with Richard Bowman. 
+## Contribute
+
+Feel free to dive in! [Open an issue](https://github.com/wenzel-lab/open-microfluidics-workstation/issues/new).
+For interactions in our team and with the community applies the [GOSH Code of Conduct](https://openhardware.science/gosh-2017/gosh-code-of-conduct/).
+
+## License
+
+[CERN OHL 2W](LICENSE) © Tobias Wenzel, Christie Nel, and Pierre Pardilla. This project is Open Source Hardware - please acknlwoedge us when using the hardware or sharing modifications.
