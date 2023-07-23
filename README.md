@@ -1,12 +1,15 @@
-# Open Microfluidics Workstation [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+# Modular microfluidics workstation controller [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
-Repository for developing the *compact* *modules* of a free and *open-source* microfluidic workstation for *high-throughput droplet microfluidic* biological assays. It addresses gas-pressure control to push microfluidic samples onto chips, pressure, and flow measurement with feedback control, sample holders with heating and stirring, and imaging of fast droplet generation processes with open-source microscopy and stroboscopic illumination.
+This repository contains the free and *open-source* design and documentation for the *brain of a microfluidics workstation* to enable *high-throughput droplet microfluidic* biological assays. The design contains an electronics board "hat" that plugs onto a Raspberry Pi single-board computer and interfaces with our *compact* *modules* e.g. for gas-pressure control to push microfluidic samples onto chips, pressure, and flow measurement with feedback control, sample holders with heating and stirring, and imaging of fast droplet generation processes with open-source microscopy and stroboscopic illumination
 
-The aim is to create a prototype of a *compact* working station that is based on *connectable*, *open*, modern, and *low-cost* components (Rasberry Pi, Arduino, 3D printing, on-board components, open or at least accessible design software and operation software - python). This workstation is aimed to be fully functional research-grade equipment with good specifications, such as fast reaction times and low-pressure fluctuations. It is modular so that parts of the workstation can be repurposed and improved in the open-source hardware sense and easily combined, exchanged, or used independently in challenging environments such as an anaerobic chamber.
+Our aim is to create a prototype of a *compact* working station that is based on *connectable*, *open*, modern, and *low-cost* components (Rasberry Pi, Arduino, 3D printing, on-board components, open or at least accessible design software and operation software - python). This workstation is aimed to be fully functional research-grade equipment with good specifications, such as fast reaction times and low-pressure fluctuations. It is modular so that parts of the workstation can be repurposed and improved in the open-source hardware sense and easily combined, exchanged, or used independently in challenging environments such as an anaerobic chamber.
 
-This is an open, collaborative project, and *your participation* (comments, inputs, contributions) are explicitly welcome! Please submit your message as an issue in this repository to participate.
+This is an open, collaborative project by the Wenzel Lab in Chile, and *your participation* (comments, inputs, contributions) are explicitly welcome! Please submit your message as an issue in this repository to participate.
 
 > **Please Note:** This technical index is very much under construction and is at present an incomplete summary of the various documents that exist elsewhere in the Open Microfluidics Workstation repositories on GitHub and elsewhere.
+
+Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.youtube.com/@librehub), [#LinkedIn](https://www.linkedin.com/company/92802424), [#instagram](https://www.instagram.com/wenzellab/), [#Printables](https://www.printables.com/@WenzelLab), [#LIBREhub website](https://librehub.github.io), [#IIBM website](https://ingenieriabiologicaymedica.uc.cl/en/people/faculty/821-tobias-wenzel)
+
 
 <!--- ## Table of Contents --->
 
@@ -15,7 +18,7 @@ This is an open, collaborative project, and *your participation* (comments, inpu
 ## Usage
 
 * Assembly instructions
-    * [Software installation](https://github.com/wenzel-lab/open-microfluidics-workstation/wiki/Install-the-Software)
+    * [Software installation](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/wiki/Install-the-Software)
 
 ### Applications
 * Strobe-enhanced microscopy stage: [assembly instructions](https://librehub.github.io/3_Levels_Stage/) and [repository](https://github.com/LIBREhub/3_Levels_Stage) 
@@ -23,26 +26,26 @@ This is an open, collaborative project, and *your participation* (comments, inpu
 ## Design files and source code
 
 * Hardware designs
-    * [Fast Imaging Module](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-fast-imaging)
-    * [Pressure and Flow Controller Module](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-pressure-and-flow-controller)
-    * [Sample Holders Module](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-sample-holders)
-    * [Sample Reservoirs](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module_sample_reservoirs)
+    * [Fast Imaging Module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-fast-imaging)
+    * [Pressure and Flow Controller Module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-pressure-and-flow-controller)
+    * [Sample Holders Module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-sample-holders)
+    * [Sample Reservoirs](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module_sample_reservoirs)
  
 * Software source code
-    * [OM Workstation server](https://github.com/wenzel-lab/open-microfluidics-workstation/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.)
+    * [OM Workstation server](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.
 
-## Modules Wish List
+### Modules Wish List
 * Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/MakerTobey/Open_FPGA_control_for_FADS) (This is being developed in a separate repository).
-* High-Pressure Source Module in [sub-repository](https://github.com/wenzel-lab/open-microfluidics-workstation/tree/master/module-high-pressure-source)
+* High-Pressure Source Module in [sub-repository](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-high-pressure-source)
 * Anaerobic Chamber Module (this module might have its own repository)
 
 > **Please Note:** There is also a previous general [open-source microfluidics repository](https://github.com/MakerTobey/OpenMicrofluidics) with re-builds and design considerations. 
 
 ## Contribute
 
-Feel free to dive in! [Open an issue](https://github.com/wenzel-lab/open-microfluidics-workstation/issues/new).
+Feel free to dive in! [Open an issue](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/issues/new).
 For interactions in our team and with the community applies the [GOSH Code of Conduct](https://openhardware.science/gosh-2017/gosh-code-of-conduct/).
 
 ## License
 
-[CERN OHL 2W](LICENSE) © Tobias Wenzel, Christie Nel, and Pierre Pardilla. This project is Open Source Hardware - please acknlwoedge us when using the hardware or sharing modifications.
+[CERN OHL 2W](LICENSE) © Tobias Wenzel, Christie Nel, and Pierre Pardilla. This project is Open Source Hardware - please acknowledge us when using the hardware or sharing modifications.
