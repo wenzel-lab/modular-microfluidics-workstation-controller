@@ -21,23 +21,23 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
     * [Software installation](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/wiki/Install-the-Software)
 
 ### Applications
-* Strobe-enhanced microscopy stage: [assembly instructions](https://librehub.github.io/3_Levels_Stage/) and [repository](https://github.com/LIBREhub/3_Levels_Stage) 
+* This controller powers the [strobe-enhanced microscopy stage](https://wenzel-lab.github.io/strobe-enhanced-microscopy-stage/) see also [it's repository](https://github.com/wenzel-lab/strobe-enhanced-microscopy-stage) 
 
 ## Design files and source code
 
 * Hardware designs
-    * [Fast Imaging Module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-fast-imaging)
-    * [Pressure and Flow Controller Module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-pressure-and-flow-controller)
-    * [Sample Holders Module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-sample-holders)
-    * [Sample Reservoirs](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module_sample_reservoirs)
+    * [Fast imaging module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-fast-imaging)
+    * [Pressure and flow controller module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-pressure-and-flow-controller)
+    * [Sample holders module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-sample-holders)
+    * [Sample reservoirs](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module_sample_reservoirs)
  
 * Software source code
-    * [OM Workstation server](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.
+    * [Microfluidics workstation server](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.
 
 ### Modules Wish List
 * Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/MakerTobey/Open_FPGA_control_for_FADS) (This is being developed in a separate repository).
-* High-Pressure Source Module in [sub-repository](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-high-pressure-source)
-* Anaerobic Chamber Module (this module might have its own repository)
+* High-pressure source module in [sub-repository](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-high-pressure-source)
+* Anaerobic chamber module (this module might have its own repository)
 
 > **Please Note:** There is also a previous general [open-source microfluidics repository](https://github.com/MakerTobey/OpenMicrofluidics) with re-builds and design considerations. 
 
