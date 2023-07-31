@@ -1,13 +1,15 @@
 /*
  * To do:
  * - Report if detected frame rate is slower than configured strobe pulse
+ * 
+ * #include <pic16f18857.h>
  */
 
 #include "mcc_generated_files/mcc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pic16f18857.h>
+#include <pic16f18856.h>
 #include "common.h"
 #include "spi.h"
 
