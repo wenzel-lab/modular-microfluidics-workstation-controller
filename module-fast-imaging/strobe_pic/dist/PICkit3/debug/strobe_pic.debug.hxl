@@ -1,16 +1,16 @@
 ### HEXMate logfile and output summary ###
 
 ### Command-line arguments ###
- C:\Users\HP\AppData\Local\Temp\xcAscpc.\driver_tmp_3.o
+ C:\Users\ppadi\AppData\Local\Temp\xcAss98.\driver_tmp_3.o
  -Odist/PICkit3/debug\strobe_pic.debug.hex
  -logfile=dist/PICkit3/debug\strobe_pic.debug.hxl
  -addressing=2
 
 ### Memory Usage ###
  Input file ranges:
-  0h - FFFh		(C:\Users\HP\AppData\Local\Temp\xcAscpc.\driver_tmp_3.o)
-  1F44h - 1FFFh		(C:\Users\HP\AppData\Local\Temp\xcAscpc.\driver_tmp_3.o)
-  1000Eh - 10017h		(C:\Users\HP\AppData\Local\Temp\xcAscpc.\driver_tmp_3.o)
+  0h - FFFh		(C:\Users\ppadi\AppData\Local\Temp\xcAss98.\driver_tmp_3.o)
+  1F44h - 1FFFh		(C:\Users\ppadi\AppData\Local\Temp\xcAss98.\driver_tmp_3.o)
+  1000Eh - 10017h		(C:\Users\ppadi\AppData\Local\Temp\xcAss98.\driver_tmp_3.o)
  Unused ranges:
   1000h - 1F43h
   2000h - 1000Dh
@@ -18,7 +18,7 @@
 ### Hex Memory Map ###
  Legend:
   -- = Unused memory
-  H1 = Input file             (C:\Users\HP\AppData\Local\Temp\xcAscpc.\driver_tmp_3.o)
+  H1 = Input file             (C:\Users\ppadi\AppData\Local\Temp\xcAss98.\driver_tmp_3.o)
 ----------------------------------------------------------
          | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
 ----------------------------------------------------------

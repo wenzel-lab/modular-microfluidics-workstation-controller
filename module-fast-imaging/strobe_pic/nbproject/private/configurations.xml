@@ -4,7 +4,7 @@
   <defaultConf>2</defaultConf>
   <confs>
     <conf name="PICkit4" type="2">
-      <platformToolSN></platformToolSN>
+      <platformToolSN>noToolString</platformToolSN>
       <languageToolchainDir>C:\Program Files\Microchip\xc8\v2.41\bin</languageToolchainDir>
       <mdbdebugger version="1">
         <placeholder1>place holder 1</placeholder1>
