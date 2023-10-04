@@ -8,4 +8,4 @@ eventlet==0.33.3
 spidev==3.6
 RPi.GPIO==0.7.1
 picamera==1.13
-Pillow==9.4.0
+Pillow==10.0.1
