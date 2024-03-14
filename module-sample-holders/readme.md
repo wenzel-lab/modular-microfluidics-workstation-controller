@@ -87,6 +87,8 @@ A power FET is mounted on the bottom of the PCB and drives the heaters.  It is i
 |1|C3|1nf Capacitor 0603|Motor Drive Capacitor|
 |1|C5|10uf Capacitor 1206|Bulk Capacitor|
 
+Please note that our current implementation is based on compact, low-cost and scalable PIC microcontrollers that fit onto the Pi-hat modules. These cannot simply be programmed with a micro-USB cables. Instead, they need an [additional small hardware ICSP interface](https://www.digikey.com/en/product-highlight/m/microchip-technology/pickit-3-in-circuit-debugger-programmer) (or equivalent) to load new code onto the PIC microcontrollers.  
+
 ## Heaters and Sensors
 
 <img src="images/sample_holder_heaters_and_sensors.jpg" width=50%>
