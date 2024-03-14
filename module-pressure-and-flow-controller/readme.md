@@ -88,3 +88,4 @@ The module features eight Picoblade connectors.  Four connect to the pressure co
 |1|R11|10k Resistor 0603||
 |8|X1-X8|Picoblade 53047-0410|Connectors|
 
+Please note that our current implementation is based on compact, low-cost and scalable PIC microcontrollers that fit onto the Pi-hat modules. These cannot simply be programmed with a micro-USB cables. Instead, they need an [additional small hardware ICSP interface](https://www.digikey.com/en/product-highlight/m/microchip-technology/pickit-3-in-circuit-debugger-programmer) (or equivalent) to load new code onto the PIC microcontrollers.  
