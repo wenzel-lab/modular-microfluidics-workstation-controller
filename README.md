@@ -1,4 +1,4 @@
-# Modular microfluidics workstation controller [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+# "Rio" the modular microfluidics controller [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
 This repository contains the free and *open-source* design and documentation for the *brain of a microfluidics workstation* to enable *high-throughput droplet microfluidic* biological assays. The design contains an electronics board "hat" that plugs onto a Raspberry Pi single-board computer and interfaces with our *compact* *modules* e.g. for gas-pressure control to push microfluidic samples onto chips, pressure, and flow measurement with feedback control, sample holders with heating and stirring, and imaging of fast droplet generation processes with open-source microscopy and stroboscopic illumination
 
