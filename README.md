@@ -17,8 +17,9 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
 
 ## Usage
 
-* Assembly instructions
+* Installation instructions
     * [Software installation](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/wiki/Install-the-Software)
+* Our modules are used in our [flow-microscopy-platform, see repostiory for documentation and instructions](https://github.com/wenzel-lab/flow-microscopy-platform)
 
 ### Applications
 * This controller powers the [strobe-enhanced microscopy stage](https://wenzel-lab.github.io/strobe-enhanced-microscopy-stage/) see also [it's repository](https://github.com/wenzel-lab/strobe-enhanced-microscopy-stage) 
