@@ -94,8 +94,7 @@ Please note that our current implementation is based on compact, low-cost and sc
 
 Flow Controller Module End
 
-Connector Type: Picoblade 1.25mm 4-way (51021-0400)
-
+Connector Type: Picoblade 1.25mm 4-way (51021-0400)<br/>
 Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 
 |Pin|Wire|Function|
@@ -113,8 +112,7 @@ Connector Type: DuPont Standard Female
 
 Flow Sensor End (Sensirion LG16)
 
-Connector Type: Picoblade 1.25mm 5-way (51021-0500)
-
+Connector Type: Picoblade 1.25mm 5-way (51021-0500)<br/>
 Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 
 |Pin|Wire|Function|
