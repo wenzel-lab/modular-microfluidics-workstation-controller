@@ -92,7 +92,7 @@ Please note that our current implementation is based on compact, low-cost and sc
 
 ### Cable for Sensirion LG16
 
-Pressure Controller Module End
+Flow Controller Module End
 
 Connector Type: Picoblade 1.25mm 4-way (51021-0400)
 Connector Crimps: Picoblade 26-28 AWG (50079-8000)
@@ -100,12 +100,25 @@ Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 |Pin|Wire|Function|
 |-|-|-|
 |1|1|I2C Data|
-|2|2|Not Connected|
-|3|3|Vss|
+|2|-|Not Connected|
+|3|3|VSS|
 |4|4|I2C Clock|
 
 Connector Type: DuPont Standard Female
 
 |Pin|Wire|Function|
 |-|-|-|
-|1|2|5V|
+|1|2|VDD 5V|
+
+Flow Sensor End (Sensirion LG16)
+
+Connector Type: Picoblade 1.25mm 5-way (51021-0500)
+Connector Crimps: Picoblade 26-28 AWG (50079-8000)
+
+|Pin|Wire|Function|
+|-|-|-|
+|1|1|I2C Data|
+|2|4|I2C Clock|
+|3|2|VDD 5V|
+|4|3|VSS|
+|5|-|Not Connected|
