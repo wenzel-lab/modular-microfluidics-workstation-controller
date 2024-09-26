@@ -88,4 +88,24 @@ The module features eight Picoblade connectors.  Four connect to the pressure co
 |1|R11|10k Resistor 0603||
 |8|X1-X8|Picoblade 53047-0410|Connectors|
 
-Please note that our current implementation is based on compact, low-cost and scalable PIC microcontrollers that fit onto the Pi-hat modules. These cannot simply be programmed with a micro-USB cables. Instead, they need an [additional small hardware ICSP interface](https://www.digikey.com/en/product-highlight/m/microchip-technology/pickit-3-in-circuit-debugger-programmer) (or equivalent) to load new code onto the PIC microcontrollers.  
+Please note that our current implementation is based on compact, low-cost and scalable PIC microcontrollers that fit onto the Pi-hat modules. These cannot simply be programmed with a micro-USB cables. Instead, they need an [additional small hardware ICSP interface](https://www.digikey.com/en/product-highlight/m/microchip-technology/pickit-3-in-circuit-debugger-programmer) (or equivalent) to load new code onto the PIC microcontrollers.
+
+### Cable for Sensirion LG16
+
+Pressure Controller Module End
+
+Connector Type: Picoblade 1.25mm 4-way (51021-0400)
+Connector Crimps: Picoblade 26-28 AWG (50079-8000)
+
+|Pin|Wire|Function|
+|-|-|-|
+|1|1|I2C Data|
+|2|2|Not Connected|
+|3|3|Vss|
+|4|4|I2C Clock|
+
+Connector Type: DuPont Standard Female
+
+|Pin|Wire|Function|
+|-|-|-|
+|1|2|5V|
