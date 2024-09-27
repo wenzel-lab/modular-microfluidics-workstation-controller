@@ -1,0 +1,1 @@
+The Pi HAT (hardware attached on top), an expansion board, helps to physically connect the Raspberry Pi board with modules for bi-directional communication and supply current to the actuators.
