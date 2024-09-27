@@ -3,8 +3,8 @@ Version 4.0 HI-TECH Software Intermediate Code
 [; ;./spi.h: 15: {
 [s S1561 `uc -> 32 `i `uc 1 ]
 [n S1561 . buf buf_bytes ]
-"63 C:\Program Files\Microchip\xc8\v2.41\pic\include\c99\stdlib.h
-[; ;C:\Program Files\Microchip\xc8\v2.41\pic\include\c99\stdlib.h: 63: long labs (long);
+"79 C:\Program Files\Microchip\xc8\v2.46\pic\include\c99\stdlib.h
+[; ;C:\Program Files\Microchip\xc8\v2.46\pic\include\c99\stdlib.h: 79: long labs (long);
 [v _labs `(l ~T0 @X0 0 ef1`l ]
 "9165 C:/Users/ppadi/.mchp_packs/Microchip/PIC16F1xxxx_DFP/1.19.363/xc8\pic\include\proc\pic16f18856.h
 [; ;C:/Users/ppadi/.mchp_packs/Microchip/PIC16F1xxxx_DFP/1.19.363/xc8\pic\include\proc\pic16f18856.h: 9165:     struct {
@@ -2246,7 +2246,7 @@ Version 4.0 HI-TECH Software Intermediate Code
 }
 [e $U 1584  ]
 [e :U 1585 ]
-[e [\ -> _packet_type `i , $ -> 0 `i 1586
+[e [\ _packet_type , $ -> 0 `i 1586
  , $ -> 1 `i 1587
  , $ -> 2 `i 1590
  , $ -> 3 `i 1593

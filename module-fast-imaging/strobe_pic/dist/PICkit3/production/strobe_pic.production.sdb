@@ -3,8 +3,8 @@
 [d edition pro ]
 [d chip 16F18856 ]
 [d frameptr 6 ]
-"88 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr2.c
-[e E11641 . `uc
+"88 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr2.c
+[e E11651 . `uc
 TMR2_ROP_STARTS_TMRON 0
 TMR2_ROP_STARTS_TMRON_ERSHIGH 1
 TMR2_ROP_STARTS_TMRON_ERSLOW 2
@@ -28,7 +28,7 @@ TMR2_MS_STARTS_TMRON_ERSFALLINGEDGEDETECT 18
 TMR2_MS_STARTS_TMRON_ERSBOTHEDGE 19
 ]
 "94
-[e E11664 . `uc
+[e E11674 . `uc
 TMR2_T2INPPS 0
 TMR2_RESERVED 1
 TMR2_T4POSTSCALED 2
@@ -48,8 +48,8 @@ TMR2_CLC2_OUT 15
 TMR2_CLC3_OUT 16
 TMR2_CLC4_OUT 17
 ]
-"88 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr4.c
-[e E11641 . `uc
+"88 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr4.c
+[e E11651 . `uc
 TMR4_ROP_STARTS_TMRON 0
 TMR4_ROP_STARTS_TMRON_ERSHIGH 1
 TMR4_ROP_STARTS_TMRON_ERSLOW 2
@@ -73,7 +73,7 @@ TMR4_MS_STARTS_TMRON_ERSFALLINGEDGEDETECT 18
 TMR4_MS_STARTS_TMRON_ERSBOTHEDGE 19
 ]
 "94
-[e E11664 . `uc
+[e E11674 . `uc
 TMR4_T4INPPS 0
 TMR4_T2POSTSCALED 1
 TMR4_RESERVED 2
@@ -93,23 +93,23 @@ TMR4_CLC2_OUT 15
 TMR4_CLC3_OUT 16
 TMR4_CLC4_OUT 17
 ]
-"5 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\__lldiv.c
+"5 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\__lldiv.c
 [v ___lldiv __lldiv `(ul  1 e 4 0 ]
-"1 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\labs.c
+"1 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\labs.c
 [v _labs labs `(l  1 e 4 0 ]
-"4 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\memcpy.c
+"4 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\memcpy.c
 [v _memcpy memcpy `(*.5v  1 e 2 0 ]
-"10 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\sprcadd.c
+"10 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\sprcadd.c
 [v ___fladd __fladd `(d  1 e 4 0 ]
-"15 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\Umul32.c
+"15 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\Umul32.c
 [v ___lmul __lmul `(ul  1 e 4 0 ]
-"4 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\Umul8_16.c
+"4 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\Umul8_16.c
 [v __Umul8_16 _Umul8_16 `(ui  1 e 2 0 ]
-"6 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\pic\__eeprom.c
+"6 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\pic\__eeprom.c
 [v ___eecpymem __eecpymem `(v  1 e 1 0 ]
 "39
 [v ___memcpyee __memcpyee `(v  1 e 1 0 ]
-"40 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\main.c
+"40 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\main.c
 [v _find_scalers_time find_scalers_time `(ul  1 e 4 0 ]
 "104
 [v _set_strobe_enable set_strobe_enable `(v  1 e 1 0 ]
@@ -119,25 +119,25 @@ TMR4_CLC4_OUT 17
 [v _set_strobe_timing set_strobe_timing `(v  1 e 1 0 ]
 "167
 [v _main main `(v  1 e 1 0 ]
-"58 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/clc1.c
+"58 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/clc1.c
 [v _CLC1_Initialize CLC1_Initialize `(v  1 e 1 0 ]
-"58 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/clc2.c
+"58 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/clc2.c
 [v _CLC2_Initialize CLC2_Initialize `(v  1 e 1 0 ]
-"58 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/clc3.c
+"58 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/clc3.c
 [v _CLC3_Initialize CLC3_Initialize `(v  1 e 1 0 ]
-"52 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/interrupt_manager.c
+"52 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/interrupt_manager.c
 [v _INTERRUPT_InterruptManager INTERRUPT_InterruptManager `II(v  1 e 1 0 ]
-"50 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
+"50 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
 [v _SYSTEM_Initialize SYSTEM_Initialize `(v  1 e 1 0 ]
 "64
 [v _OSCILLATOR_Initialize OSCILLATOR_Initialize `(v  1 e 1 0 ]
 "78
 [v _PMD_Initialize PMD_Initialize `(v  1 e 1 0 ]
-"55 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/pin_manager.c
+"55 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/pin_manager.c
 [v _PIN_MANAGER_Initialize PIN_MANAGER_Initialize `(v  1 e 1 0 ]
 "126
 [v _PIN_MANAGER_IOC PIN_MANAGER_IOC `(v  1 e 1 0 ]
-"60 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
+"60 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
 [v _SPI1_Initialize SPI1_Initialize `(v  1 e 1 0 ]
 "80
 [v _SPI1_ISR SPI1_ISR `(v  1 e 1 0 ]
@@ -145,7 +145,7 @@ TMR4_CLC4_OUT 17
 [v _SPI1_setExchangeHandler SPI1_setExchangeHandler `(v  1 e 1 0 ]
 "92
 [v _SPI1_DefaultExchangeHandler SPI1_DefaultExchangeHandler `(uc  1 e 1 0 ]
-"63 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
+"63 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
 [v _TMR1_Initialize TMR1_Initialize `(v  1 e 1 0 ]
 "104
 [v _TMR1_ReadTimer TMR1_ReadTimer `(us  1 e 2 0 ]
@@ -153,7 +153,7 @@ TMR4_CLC4_OUT 17
 [v _TMR1_WriteTimer TMR1_WriteTimer `(v  1 e 1 0 ]
 "147
 [v _TMR1_StartSinglePulseAcquisition TMR1_StartSinglePulseAcquisition `(v  1 e 1 0 ]
-"62 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr2.c
+"62 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr2.c
 [v _TMR2_Initialize TMR2_Initialize `(v  1 e 1 0 ]
 "100
 [v _TMR2_Start TMR2_Start `(v  1 e 1 0 ]
@@ -165,7 +165,7 @@ TMR4_CLC4_OUT 17
 [v _TMR2_Counter8BitSet TMR2_Counter8BitSet `(v  1 e 1 0 ]
 "147
 [v _TMR2_Period8BitSet TMR2_Period8BitSet `(v  1 e 1 0 ]
-"62 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr4.c
+"62 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr4.c
 [v _TMR4_Initialize TMR4_Initialize `(v  1 e 1 0 ]
 "100
 [v _TMR4_Start TMR4_Start `(v  1 e 1 0 ]
@@ -177,7 +177,7 @@ TMR4_CLC4_OUT 17
 [v _TMR4_Counter8BitSet TMR4_Counter8BitSet `(v  1 e 1 0 ]
 "147
 [v _TMR4_Period8BitSet TMR4_Period8BitSet `(v  1 e 1 0 ]
-"36 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\spi.c
+"36 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\spi.c
 [v _spi_init spi_init `(v  1 e 1 0 ]
 "54
 [v _spi_read_bytes_available spi_read_bytes_available `(uc  1 e 1 0 ]
@@ -687,7 +687,7 @@ TMR4_CLC4_OUT 17
 "38425
 [v _LC3G3POL LC3G3POL `VEb  1 e 0 @28970 ]
 [s S1103 . 33 `[32]uc 1 buf 32 0 `uc 1 buf_bytes 1 32 ]
-"31 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\main.c
+"31 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\main.c
 [v _spi_packet spi_packet `S1103  1 e 33 0 ]
 "32
 [v _packet_type packet_type `uc  1 e 1 0 ]
@@ -699,11 +699,11 @@ TMR4_CLC4_OUT 17
 [v _return_buf return_buf `[9]uc  1 e 9 0 ]
 "38
 [v _cam_read_time_us cam_read_time_us `us  1 e 2 0 ]
-"55 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
+"55 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
 [v _SPI1_xchgHandler SPI1_xchgHandler `*.37(uc  1 e 2 0 ]
-"57 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
+"57 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
 [v _timer1ReloadVal timer1ReloadVal `VEus  1 e 2 0 ]
-"17 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\spi.c
+"17 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\spi.c
 [v _read_buf read_buf `VE[32]uc  1 e 32 0 ]
 "18
 [v _read_buf_head read_buf_head `VEuc  1 e 1 0 ]
@@ -719,7 +719,7 @@ TMR4_CLC4_OUT 17
 [v _write_buf_tail write_buf_tail `VEuc  1 e 1 0 ]
 "27
 [v _write_buf_remaining write_buf_remaining `VEuc  1 e 1 0 ]
-"167 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\main.c
+"167 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\main.c
 [v _main main `(v  1 e 1 0 ]
 {
 "220
@@ -730,7 +730,7 @@ TMR4_CLC4_OUT 17
 [v main@rc rc `uc  1 a 1 77 ]
 "277
 } 0
-"240 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\spi.c
+"240 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\spi.c
 [v _spi_packet_write spi_packet_write `(uc  1 e 1 0 ]
 {
 [v spi_packet_write@packet_type packet_type `uc  1 a 1 wreg ]
@@ -804,7 +804,7 @@ TMR4_CLC4_OUT 17
 [v spi_read_byte@byte byte `uc  1 a 1 3 ]
 "80
 } 0
-"4 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\memcpy.c
+"4 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\memcpy.c
 [v _memcpy memcpy `(*.5v  1 e 2 0 ]
 {
 [v memcpy@d1 d1 `*.5v  1 a 1 wreg ]
@@ -822,7 +822,7 @@ TMR4_CLC4_OUT 17
 [v memcpy@d1 d1 `*.5v  1 a 1 9 ]
 "18
 } 0
-"119 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\spi.c
+"119 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\spi.c
 [v _spi_packet_clear spi_packet_clear `(v  1 e 1 0 ]
 {
 [s S1103 . 33 `[32]uc 1 buf 32 0 `uc 1 buf_bytes 1 32 ]
@@ -838,7 +838,7 @@ TMR4_CLC4_OUT 17
 {
 "51
 } 0
-"127 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\main.c
+"127 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\main.c
 [v _set_strobe_timing set_strobe_timing `(v  1 e 1 0 ]
 {
 [v set_strobe_timing@wait_target_ns wait_target_ns `*.4ul  1 a 1 wreg ]
@@ -893,13 +893,13 @@ TMR4_CLC4_OUT 17
 [v find_scalers_time@period period `*.4uc  1 p 1 24 ]
 "102
 } 0
-"1 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\labs.c
+"1 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\labs.c
 [v _labs labs `(l  1 e 4 0 ]
 {
 [v labs@a a `l  1 p 4 2 ]
 "4
 } 0
-"15 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\Umul32.c
+"15 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\Umul32.c
 [v ___lmul __lmul `(ul  1 e 4 0 ]
 {
 "17
@@ -909,7 +909,7 @@ TMR4_CLC4_OUT 17
 [v ___lmul@multiplicand multiplicand `ul  1 p 4 6 ]
 "129
 } 0
-"5 C:\Program Files\Microchip\xc8\v2.41\pic\sources\c99\common\__lldiv.c
+"5 C:\Program Files\Microchip\xc8\v2.46\pic\sources\c99\common\__lldiv.c
 [v ___lldiv __lldiv `(ul  1 e 4 0 ]
 {
 "10
@@ -921,7 +921,7 @@ TMR4_CLC4_OUT 17
 [v ___lldiv@dividend dividend `ul  1 p 4 8 ]
 "30
 } 0
-"120 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\main.c
+"120 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\main.c
 [v _set_strobe_hold set_strobe_hold `(v  1 e 1 0 ]
 {
 [v set_strobe_hold@hold hold `uc  1 a 1 wreg ]
@@ -939,7 +939,7 @@ TMR4_CLC4_OUT 17
 [v set_strobe_enable@enable enable `uc  1 a 1 2 ]
 "118
 } 0
-"120 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
+"120 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
 [v _TMR1_WriteTimer TMR1_WriteTimer `(v  1 e 1 0 ]
 {
 [v TMR1_WriteTimer@timerVal timerVal `us  1 p 2 2 ]
@@ -961,27 +961,27 @@ TMR4_CLC4_OUT 17
 [v TMR1_ReadTimer@readValHigh readValHigh `uc  1 a 1 2 ]
 "118
 } 0
-"50 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
+"50 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
 [v _SYSTEM_Initialize SYSTEM_Initialize `(v  1 e 1 0 ]
 {
 "62
 } 0
-"62 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr4.c
+"62 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr4.c
 [v _TMR4_Initialize TMR4_Initialize `(v  1 e 1 0 ]
 {
 "86
 } 0
-"62 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr2.c
+"62 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr2.c
 [v _TMR2_Initialize TMR2_Initialize `(v  1 e 1 0 ]
 {
 "86
 } 0
-"63 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
+"63 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/tmr1.c
 [v _TMR1_Initialize TMR1_Initialize `(v  1 e 1 0 ]
 {
 "90
 } 0
-"60 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
+"60 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
 [v _SPI1_Initialize SPI1_Initialize `(v  1 e 1 0 ]
 {
 "77
@@ -992,42 +992,42 @@ TMR4_CLC4_OUT 17
 [v SPI1_setExchangeHandler@InterruptHandler InterruptHandler `*.37(uc  1 p 2 2 ]
 "88
 } 0
-"78 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
+"78 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
 [v _PMD_Initialize PMD_Initialize `(v  1 e 1 0 ]
 {
 "92
 } 0
-"55 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/pin_manager.c
+"55 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/pin_manager.c
 [v _PIN_MANAGER_Initialize PIN_MANAGER_Initialize `(v  1 e 1 0 ]
 {
 "124
 } 0
-"64 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
+"64 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/mcc.c
 [v _OSCILLATOR_Initialize OSCILLATOR_Initialize `(v  1 e 1 0 ]
 {
 "76
 } 0
-"58 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/clc3.c
+"58 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/clc3.c
 [v _CLC3_Initialize CLC3_Initialize `(v  1 e 1 0 ]
 {
 "83
 } 0
-"58 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/clc2.c
+"58 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/clc2.c
 [v _CLC2_Initialize CLC2_Initialize `(v  1 e 1 0 ]
 {
 "83
 } 0
-"58 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/clc1.c
+"58 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/clc1.c
 [v _CLC1_Initialize CLC1_Initialize `(v  1 e 1 0 ]
 {
 "83
 } 0
-"52 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/interrupt_manager.c
+"52 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/interrupt_manager.c
 [v _INTERRUPT_InterruptManager INTERRUPT_InterruptManager `II(v  1 e 1 0 ]
 {
 "74
 } 0
-"80 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
+"80 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/spi1.c
 [v _SPI1_ISR SPI1_ISR `(v  1 e 1 0 ]
 {
 "83
@@ -1038,13 +1038,13 @@ TMR4_CLC4_OUT 17
 [v SPI1_DefaultExchangeHandler@byte byte `uc  1 p 1 0 ]
 "96
 } 0
-"277 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\spi.c
+"277 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\spi.c
 [v _spi_handler spi_handler `(uc  1 s 1 spi_handler ]
 {
 [v spi_handler@byte byte `uc  1 p 1 0 ]
 "309
 } 0
-"126 C:\GitHub\open-microfluidics-workstation\module-fast-imaging\strobe_pic\mcc_generated_files/pin_manager.c
+"126 C:\GitHub\modular-microfluidics-workstation-controller\module-fast-imaging\strobe_pic\mcc_generated_files/pin_manager.c
 [v _PIN_MANAGER_IOC PIN_MANAGER_IOC `(v  1 e 1 0 ]
 {
 "128
