@@ -79,11 +79,11 @@ The module features eight Picoblade connectors.  Four connect to the pressure co
 |7|C1-C5,C8-C9|100nf Capacitor 0603|Decoupling Capacitors|
 |2|C6,C10|10uF Capacitor 0603|Bypass,Bulk Capacitor|
 |1|C7|Not fitted||
-|1|C2|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
-|1|C3|AD5624R|DAC|
-|1|C4|ADS1115|ADC|
-|1|C5|PCA9544APW,112|I2C Multiplexer|
-|1|C6|25AA040ST|EEPROM|
+|1|IC2|dsPIC33CK256MP502-I/SS SSOP28|PIC Microprocessor|
+|1|IC3|AD5624R|DAC|
+|1|IC4|ADS1115|ADC|
+|1|IC5|PCA9544APW,112|I2C Multiplexer|
+|1|IC6|25AA040ST|EEPROM|
 |12|R1-R10,R12-R13|1k Resistor 0603||
 |1|R11|10k Resistor 0603||
 |8|X1-X8|Picoblade 53047-0410|Connectors|
