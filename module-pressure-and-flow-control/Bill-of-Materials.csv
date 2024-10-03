@@ -1,1 +1,12 @@
 ﻿Item #,Ref Des,Full Name/Description,Category,Part/Catalog Number,Manufacturer/Supplier,Notes
+7,C1-C5;C8-C9,100nf Capacitor 0603,,,,Decoupling Capacitors
+2,C6;C10,10uF Capacitor 0603,,,,Bypass / Bulk Capacitor
+1,C7,Not fitted,,,,
+1,IC2,PIC Microprocessor,,dsPIC33CK256MP502-I/SS SSOP28,,
+1,IC3,DAC,,AD5624R,,
+1,IC4,ADC,,ADS1115,,
+1,IC5,I2C Multiplexer,,PCA9544APW;112,,
+1,IC6,EEPROM,,25AA040ST,,
+12,R1-R10;R12-R13,1k Resistor 0603,,,,
+1,R11,10k Resistor 0603,,,,
+8,X1-X8,Connectors,,Picoblade 53047-0410,,
