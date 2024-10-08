@@ -6,7 +6,7 @@
 1,IC3,DAC,Electronics,AD5624R,Analog Devices,
 1,IC4,ADC,Electronics,ADS1115,Texas Instruments,
 1,IC5,I2C Multiplexer,Electronics,PCA9544APW;112,NXP,
-1,IC6,EEPROM,,25AA040ST,Microchip,
+1,IC6,EEPROM,Electronics,25AA040ST,Microchip,
 12,R1-R10;R12-R13,1k Resistor 0603,Electronics,,,
 1,R11,10k Resistor 0603,Electronics,,,
 8,X1-X8,Connectors,Electronics,Picoblade 53047-0410,Molex,
