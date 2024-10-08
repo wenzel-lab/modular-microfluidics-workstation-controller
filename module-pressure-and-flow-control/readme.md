@@ -92,6 +92,7 @@ Please note that our current implementation is based on compact, low-cost and sc
 
 ### Cable for Sensirion LG16
 <img src="images/Sensirion Cable.png" width=50%>
+
 Flow Controller Module End
 
 Connector Type: Picoblade 1.25mm 4-way (51021-0400)<br/>
@@ -125,6 +126,7 @@ Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 
 ### Cable for SMC ITV Electro-Pneumatic Regulator
 <img src="images/SMC ITV Cable.png" width=50%>
+
 This cable was purchased from bpx.co.uk and a Picoblade connector fitted, which plugs into the Flow Controller Module.  The wires are too thick to fit directly into the crimps, so thinner wires must be soldered onto the cable.
 
 Cable: M84DSX3MG4<br/>
