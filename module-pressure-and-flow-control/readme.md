@@ -124,6 +124,7 @@ Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 |5|-|Not Connected|
 
 ### Cable for SMC ITV Electro-Pneumatic Regulator
+<img src="images/SMC ITV Cable.png" width=50%>
 This cable was purchased from bpx.co.uk and a Picoblade connector fitted, which plugs into the Flow Controller Module.  The wires are too thick to fit directly into the crimps, so thinner wires must be soldered onto the cable.
 
 Cable: M84DSX3MG4<br/>
