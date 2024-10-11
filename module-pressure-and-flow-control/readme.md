@@ -135,7 +135,7 @@ Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 
 |Pin|Colour|Function|
 |-|-|-|
-|1|White|Input Signal
-|2|Black|Monitor Output
-|3|Blue|GND (Common)
-|4|Brown|Power
+|1|Black|Input Signal|
+|2|White|Monitor Output|
+|3|Blue|GND (Common)|
+|4|Brown|Power|
