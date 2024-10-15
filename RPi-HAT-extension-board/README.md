@@ -16,3 +16,4 @@ This is a 2x5 standard DuPont male header.
 
 #### Cable for Flow Module Power Connector
 
+<img src="images/pi_flow_power_cable.png" width=70%>
