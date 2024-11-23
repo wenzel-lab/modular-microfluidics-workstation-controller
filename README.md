@@ -20,9 +20,7 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
 * Installation instructions
     * [Software installation](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/wiki/Install-the-Software)
 * Our modules are used in our [flow-microscopy-platform, see repostiory for documentation and instructions](https://github.com/wenzel-lab/flow-microscopy-platform)
-
-### Applications
-* This controller powers the [strobe-enhanced microscopy stage](https://wenzel-lab.github.io/strobe-enhanced-microscopy-stage/) see also [it's repository](https://github.com/wenzel-lab/strobe-enhanced-microscopy-stage) 
+* And it also powers our [strobe-enhanced microscopy stage](https://wenzel-lab.github.io/strobe-enhanced-microscopy-stage/) see also [it's repository](https://github.com/wenzel-lab/strobe-enhanced-microscopy-stage) 
 
 ## Design files and source code
 
@@ -30,7 +28,6 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
     * [Fast imaging module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-fast-imaging)
     * [Pressure and flow controller module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-pressure-and-flow-controller)
     * [Sample holders module](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-sample-holders)
-    * [Sample reservoirs](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module_sample_reservoirs)
  
 * Software source code
     * [Microfluidics workstation server](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.
