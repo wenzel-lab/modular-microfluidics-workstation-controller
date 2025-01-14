@@ -20,7 +20,7 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
 
 Our aim is to create a prototype of a _compact_ working station for microfluidic research that is based on _connectable_, _open_, modern, and _low-cost_ components (Rasberry Pi, Arduino, 3D printing, on-board components, open or at least accessible design software and operation software - python).
 
-**Rio** serves a platform to implement fully functional research-grade workstations with good specifications, such as fast reaction times and low-pressure fluctuations. It is modular so that parts of this platform can be repurposed and improved in the open-source hardware sense and easily combined, exchanged, or used independently in challenging environments.
+**Rio** serves as a platform to implement fully functional research-grade workstations with good specifications, such as fast reaction times and low-pressure fluctuations. It is modular so that parts of this platform can be repurposed and improved in the open-source hardware sense and easily combined, exchanged, or used independently in challenging environments.
 
 ## Getting Started ##
 
@@ -61,7 +61,7 @@ The core board consists of a Raspberry Pi 4B+ and a custom Pi HAT (hardware atta
 
 ### Software
 
-The software follows a client-server architecture and allow users to control the physical hardware through a graphical interface. It runs on a Raspberry Pi 32-bit operating system.
+The software follows a client-server architecture and allows users to control the physical hardware through a graphical interface. It runs on a Raspberry Pi 32-bit operating system.
 
 <table>
 <tr>
@@ -78,10 +78,10 @@ The software follows a client-server architecture and allow users to control the
 ## Use Cases ##
 
 Single-module solution:
-* Strobe-enhanced microscopy stage ( [Repository](https://github.com/wenzel-lab/strobe-enhanced-microscopy-stage) | [Assembly Instructions](https://github.com/wenzel-lab/flow-microscopy-platform) )
+* Strobe-enhanced microscopy stage ( [Repository](https://github.com/wenzel-lab/strobe-enhanced-microscopy-stage) | [Assembly Instructions](https://wenzel-lab.github.io/strobe-enhanced-microscopy-stage/) )
 
 Three-modules solution:
-* Flow microscopy platform ( [Repository](https://github.com/wenzel-lab/flow-microscopy-platform) | [Assembly Instructions]() )
+* Flow microscopy platform ( [Repository](https://github.com/wenzel-lab/flow-microscopy-platform) | Assembly Instructions (Soon) )
 
 ## Read the Paper ##
 
