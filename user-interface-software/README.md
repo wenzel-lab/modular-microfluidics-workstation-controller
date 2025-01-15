@@ -1,6 +1,6 @@
 # Software 
 
-The software of the platform follows a client-server architecture and runs on a Raspberry Pi 32-bit operating system (OS). Therefore, the physical hardware is controlled by a server application written in Python, where specific scripts handle each module:
+The [software of the platform](src/webapp) follows a client-server architecture and runs on a Raspberry Pi 32-bit operating system (OS). Therefore, the physical hardware is controlled by a server application written in Python, where specific scripts handle each module:
 
 - Core Board: `pi_webapp.py`, `picommon.py`
 - Strobe Imaging Module: `camera_pi.py`, `pistrobe.py`, `pistrobecam`

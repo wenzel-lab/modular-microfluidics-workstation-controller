@@ -1,4 +1,25 @@
-## Fast imaging module for microfluidic droplet generation
+# Strobe Imaging Module
+
+This module was designed for imaging fast processes, particularly developed for microfluidic droplet generation.
+
+## Features:
+
+Main components:
+* **Controller:** Strobe imaging controller
+* **Sensor:** Raspberry Pi camera V2
+* **Actuator:** High-power star LED
+
+Specifications:
+* A field of view of almost 1mm
+* Up to 50 fps
+
+
+## Manufacturing
+
+[Bill of Materials](Bill-of-Materials.csv) 
+
+<!--
+Fast imaging module for microfluidic droplet generation
 
 Imaging unit based on compact 3D printed microscope (https://gitlab.com/openflexure/openflexure-microscope), with Objective (10x?)
 
@@ -35,3 +56,4 @@ Camera Mako U-029B mono; 640x480 CMOS C-Mount 550fps 10bit-ADC 128MB-buffer; ca.
 In the end we decided to use the camera Allied-Vision Mako U-029B with global shutter: 
 https://www.1stvision.com/cameras/AVT/dataman/MakoU_TechMan_en.pdf,
 https://www.spectratech.gr/en/product/43606/Allied-Vision_Mako_U-029B?path=54-40
+-->

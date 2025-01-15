@@ -1,15 +1,15 @@
 ﻿Item #,Ref Des,Full Name/Description,Category,Part/Catalog Number,Manufacturer/Supplier,Notes
-7,C1-C5;C8-C9,100nf Capacitor 0603,Electronics,,,Decoupling Capacitors
-2,C6;C10,10uF Capacitor 0603,Electronics,,,Bypass / Bulk Capacitor
-1,C7,Not fitted,Electronics,,,
-1,IC2,PIC Microprocessor,Electronics,dsPIC33CK256MP502-I/SS SSOP28,Microchip,
-1,IC3,DAC,Electronics,AD5624R,Analog Devices,
-1,IC4,ADC,Electronics,ADS1115,Texas Instruments,
-1,IC5,I2C Multiplexer,Electronics,PCA9544APW;112,NXP,
-1,IC6,EEPROM,Electronics,25AA040ST,Microchip,
-12,R1-R10;R12-R13,1k Resistor 0603,Electronics,,,
-1,R11,10k Resistor 0603,Electronics,,,
-8,X1-X8,Connectors,Electronics,Picoblade 53047-0410,Molex,
+7,C1-C5;C8-C9,100nf Capacitor 0603,Controller,,,Decoupling Capacitors
+2,C6;C10,10uF Capacitor 0603,Controller,,,Bypass / Bulk Capacitor
+1,C7,Not fitted,Controller,,,
+1,IC2,PIC Microprocessor,Controller,dsPIC33CK256MP502-I/SS SSOP28,Microchip,
+1,IC3,DAC,Controller,AD5624R,Analog Devices,
+1,IC4,ADC,Controller,ADS1115,Texas Instruments,
+1,IC5,I2C Multiplexer,Controller,PCA9544APW;112,NXP,
+1,IC6,EEPROM,Controller,25AA040ST,Microchip,
+12,R1-R10;R12-R13,1k Resistor 0603,Controller,,,
+1,R11,10k Resistor 0603,Controller,,,
+8,X1-X8,Connectors,Controller,Picoblade 53047-0410,Molex,
 8,,Picoblade 1.25mm 4-way,Cables,51021-0400,Molex,
 4,,Picoblade 1.25mm 5-way,Cables,51021-0500,Molex,
 52,,Picoblade 26-28 AWG Crimps,Cables,50079-8000,Molex,
