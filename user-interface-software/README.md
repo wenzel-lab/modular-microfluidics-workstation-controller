@@ -32,7 +32,7 @@ More detailed information on installing a Raspberry Pi operating system image on
 
 * Mount the microSD card with the OS on your Pi.
 * Connect your Pi to a display, mouse, keyboard, and power source. When the Pi first boots, you could be asked to complete a quick setup or install updates.
-* Click on the Desktop shortcut to start using the web app.
+* Click on the Desktop shortcut to start using the web UI.
 
 #### STEP 4: Captured images
 
@@ -47,7 +47,7 @@ If you are familiar with command lines, follow the instructions below:
   <summary>Instructions</summary>
 
 #### STEP 1: Write your SD Card
-You must install an operating system first to set up and use the Raspberry Pi board. Bullseye OS is a Debian-based computer operating system for Raspberry Pi board. Raspberry Pi OS 32-bit must be installed.
+You must install an operating system first to set up and use the Raspberry Pi board. Bullseye OS is a Debian-based computer operating system for the Raspberry Pi board. Raspberry Pi OS 32-bit must be installed.
 
 * **Before you start, please make sure you have:**
 
@@ -72,7 +72,7 @@ Once you have installed and configured the Raspberry Pi OS, you can install the 
 
 #### STEP 2: Enable SSH, SPI, VNC and Camera
 
-* **Method 1:** Use the graphical tool "Raspberry Pi Configuration". This is found under Menu > Preferences > Raspberry Pi Configuration. Then you must select the "Interfaces" tab and set SSH, SPI, VNC and Camera to "Enabled".
+* **Method 1:** Use the graphical tool "Raspberry Pi Configuration". This is found under Menu > Preferences > Raspberry Pi Configuration. Then you must select the "Interfaces" tab and set SSH, SPI, VNC, and Camera to "Enabled".
 
 * **Method 2:** From the command line or Terminal window, start by running `sudo raspi-config`. This will launch the raspi-config utility:
 
