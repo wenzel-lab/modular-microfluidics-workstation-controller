@@ -7,7 +7,7 @@ The software of the platform follows a client-server architecture and runs on a 
 - Pressure and Flow Control Module: `piflow.py`, `piflow_web.py`
 - Heating and Stirring Module: `piholder.py`, `piholder_web.py`
 
-The Graphical User Interface (GUI) is the client application. It is based on the HTTP method and [HTML framework](src/templates) and allows simple interaction in a web environment.
+The Graphical User Interface (GUI) is the client application. It is based on the HTTP method and [HTML framework](src/webapp/templates) and allows simple interaction in a web environment.
 
 Using this software approach, local and remote control is possible through Internet protocol (IP) networks, and new systems can be implemented easily using the Python script approach. 
 
