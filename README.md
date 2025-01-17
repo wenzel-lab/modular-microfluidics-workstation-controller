@@ -105,4 +105,10 @@ For interactions in our team and with the community applies the [GOSH Code of Co
 
 ## License ##
 
-[CERN OHL 2W](LICENSE) © Tobias Wenzel, Christie Nel, and Pierre Padilla-Huamantinco. This project is Open-Source Hardware - please acknowledge us when using the hardware or sharing modifications.
+**Hardware:** All source files located in the `electronics` directories are released under the [CERN-OHL-W-2.0](https://ohwr.org/cern_ohl_w_v2.txt) license.
+
+**Software:** The source codes located in the `user-interface-software/src/webapp` and `firmware` directories are released under the [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) license.
+
+**Other materials:** All other materials, including instructions and pictures, are released under the [Creative Commons CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) license.
+
+© Tobias Wenzel, Christie Nel, and Pierre Padilla-Huamantinco. This project is Open-Source Hardware - please acknowledge us when using the hardware or sharing modifications.
