@@ -24,7 +24,24 @@ Our aim is to create a prototype of a _compact_ working station for microfluidic
 
 ## Getting Started ##
 
-### Core Board and Modules
+In order to implement a workstation, you must build the core board and any module of your interest. The user interface software will allow you to control and monitor the operations of the modules.
+
+### Core Board
+
+The core board consists of a Raspberry Pi 4B+ and a custom Pi HAT (hardware attached to the top). The Pi HAT is an extension board for bidirectional communication and power supply to the controllers. 
+
+<table>
+<tr>
+    <td align="center"><b>Core Board</b></td>
+</tr>
+<tr>
+    <td align="center"><img src="RPi-HAT-extension-board/images/Pi-HAT.png" width=400 />
+</tr>
+    <td align="center"><a href=https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/tree/documentation/beta/RPi-HAT-extension-board><br><b>Build the Pi HAT</b></a><br><br></td>
+</tr>
+</table>
+
+### Modules
 
 A _module_ commonly consists of a compact controller, sensors, and actuators, and operates with distinct power supply and data connections. The controllers convert physical data into digital data, manipulate the actuators, and supply energy to external components. 
 
@@ -43,19 +60,6 @@ A _module_ commonly consists of a compact controller, sensors, and actuators, an
     <td align="center"><a href=https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/tree/documentation/beta/module-strobe-imaging><br><b>Build the controller</b></a><br><br></td>
     <td align="center"><a href=https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/tree/documentation/beta/module-pressure-and-flow-control><br><b>Build the controller</b></a><br><br></td>
     <td align="center"><a href=https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/tree/documentation/beta/module-heating-and-stirring><br><b>Build the controller</b></a><br><br></td>
-</tr>
-</table>
-
-The core board consists of a Raspberry Pi 4B+ and a custom Pi HAT (hardware attached to the top). The Pi HAT is an extension board for bidirectional communication and power supply to the controllers. 
-
-<table>
-<tr>
-    <td align="center"><b>Core Board</b></td>
-</tr>
-<tr>
-    <td align="center"><img src="RPi-HAT-extension-board/images/Pi-HAT.png" width=400 />
-</tr>
-    <td align="center"><a href=https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/tree/documentation/beta/RPi-HAT-extension-board><br><b>Build the Pi HAT</b></a><br><br></td>
 </tr>
 </table>
 
