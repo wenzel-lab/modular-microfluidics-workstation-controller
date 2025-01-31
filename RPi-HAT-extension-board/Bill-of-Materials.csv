@@ -1,1 +1,8 @@
 ﻿Item #,Ref Des,Full Name/Description,Category,Part/Catalog Number,Manufacturer/Supplier,Notes
+,R1,RES SMD 1K OHM 1% 1/4W 1206,HAT,MCR18EZPF1001,Rohm Semiconductor,https://www.digikey.com/en/products/detail/rohm-semiconductor/MCR18EZPF1001/1213455
+,"JP1, JP2","Header - 2x5 Pin (Male, 1.27mm)",HAT,PRT-15362,,https://www.sparkfun.com/header-2x5-pin-male-1-27mm.html
+,"JP3, JP4, JP10",Header - 1x5 Pin,HAT,,,
+,"JP5, JP6, JP7, JP8","Header - 2x3 (Male, 0.1"")",HAT,PRT-12807,,https://www.sparkfun.com/header-2x3-male-0-1.html
+,JP9,Header - 1x4 Pin,HAT,,,
+,K1,"Female Header: 2x20-Pin, Straight",HAT,,,https://www.pololu.com/product/1037
+,"X1, X2, X3, X4","14-Contact, 1-Row, 2.54mm Pitch, Solder Termination",HAT,,,https://uk.rs-online.com/web/p/pcb-sockets/7655770
