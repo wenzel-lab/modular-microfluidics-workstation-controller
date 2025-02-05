@@ -1,5 +1,5 @@
 ﻿Item #,Ref Des,Full Name/Description,Category,Part/Catalog Number,Manufacturer/Supplier,Notes
-,R1,"Resistor - 1K, 1206",HAT,198-8477,Yageo,https://uk.rs-online.com/web/p/surface-mount-resistors/1988477
+,R1,"Resistor - 1K, 1206",HAT,RC1206JR-071KL,Yageo,https://uk.rs-online.com/web/p/surface-mount-resistors/1988477
 ,"JP1, JP2","Header - 2x5 Pin (Male, 0.1"")",HAT,251-8143,RS Pro,https://uk.rs-online.com/web/p/pcb-headers/2518143
 ,"JP3, JP4, JP10","Header - 1x5 Pin (Male 0.1"")",HAT,251-8121,RS Pro,https://uk.rs-online.com/web/p/pcb-headers/2518121
 ,"JP5, JP6, JP7, JP8","Header - 2x3 (Male, 0.1"")",HAT,251-8137,RS Pro,https://uk.rs-online.com/web/p/pcb-headers/2518137
