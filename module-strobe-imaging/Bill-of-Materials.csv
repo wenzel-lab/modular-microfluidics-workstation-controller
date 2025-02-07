@@ -1,8 +1,8 @@
 Count,Ref Des,Full Name/Description,Category,Part/Catalog Number,Manufacturer/Supplier,Notes
-1,C1,Capacitor - 100 nf 1206,Controller,C1206C104M5RACTU,Kemet,https://uk.rs-online.com/web/p/mlccs-multilayer-ceramic-capacitors/2053277
+1,C1,Capacitor - 100nf 1206,Controller,C1206C104M5RACTU,Kemet,https://uk.rs-online.com/web/p/mlccs-multilayer-ceramic-capacitors/2053277
 1,C2,Capacitor - 1uf 1206,Controller,C1206C105K4RACTU,Kemet,https://uk.rs-online.com/web/p/mlccs-multilayer-ceramic-capacitors/6480733
 2,IC1,"Header - 1x14 Pin (Male 0.1"")",Controller,TSW-114-07-T-S,Samtec,https://uk.rs-online.com/web/p/pcb-headers/1801881
-1,IC2,PIC Microcontroller IC 8-Bit 32MHz 28KB (16K x 14) FLASH 28-SOIC,Controller,PIC16F18856-I/SO,Microchip Technology,https://www.digikey.com/en/products/detail/microchip-technology/PIC16F18856-I-SO/6192925
+1,IC2,PIC Microcontroller IC 8-Bit 32MHz 28KB (16K x 14) FLASH 28-SOIC,Controller,PIC16F18856-I/SO,Microchip Technology,https://uk.rs-online.com/web/p/microcontrollers/1115557
 1,Q1,60V LOGIC N-Channel MOSFET,Controller,FQP30N06L,Onsemi,https://uk.rs-online.com/web/p/mosfets/6715082
 1,R1,Resistor - 1K 1206,Controller,RC1206JR-071KL,Yageo,https://uk.rs-online.com/web/p/surface-mount-resistors/1988477
 1,R2,Resistor - 510 Ohm 1206,Controller,RC1206FR-07510RL,Yageo,https://uk.rs-online.com/web/p/surface-mount-resistors/1988417
