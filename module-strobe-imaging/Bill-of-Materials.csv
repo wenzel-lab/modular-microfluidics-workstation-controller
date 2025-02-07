@@ -1,7 +1,7 @@
 Count,Ref Des,Full Name/Description,Category,Part/Catalog Number,Manufacturer/Supplier,Notes
 1,C1,Capacitor - 100 nf 1206,Controller,C1206C104M5RACTU,Kemet,https://uk.rs-online.com/web/p/mlccs-multilayer-ceramic-capacitors/2053277
 1,C2,CAP CER 1UF 50V X7R 1206,Controller,CL31B105KBHNNNF,Samsung Electro-Mechanics,https://www.digikey.com/en/products/detail/samsung-electro-mechanics/CL31B105KBHNNNF/3894672
-2,IC1,Header - 1x14 Pin (Male 0.1"),Controller,TSW-114-07-T-S,Samtec,https://uk.rs-online.com/web/p/pcb-headers/1801881
+2,IC1,"Header - 1x14 Pin (Male 0.1"")",Controller,TSW-114-07-T-S,Samtec,https://uk.rs-online.com/web/p/pcb-headers/1801881
 1,IC2,PIC Microcontroller IC 8-Bit 32MHz 28KB (16K x 14) FLASH 28-SOIC,Controller,PIC16F18856-I/SO,Microchip Technology,https://www.digikey.com/en/products/detail/microchip-technology/PIC16F18856-I-SO/6192925
 1,Q1,60V LOGIC N-Channel MOSFET,Controller,FQP30N06L,Onsemi,https://uk.rs-online.com/web/p/mosfets/6715082
 1,R1,RES SMD 1K OHM 1% 1/4W 1206,Controller,MCR18EZPF1001,Rohm Semiconductor,https://www.digikey.com/en/products/detail/rohm-semiconductor/MCR18EZPF1001/1213455
