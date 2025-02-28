@@ -1,17 +1,36 @@
 name: "Rio: Modular Microfluidics Workstation Controller"
 description: "An open-source modular microfluidics workstation controller for bioengineering applications, featuring pressure and flow control, heating and stirring, and stroboscopic illumination for microscopy."
 version: "1.0"
-keywords: ["bioengineering", "microscopy", "microfluidics", "open hardware", "electronics", "flow-control", "raspberry pi"]
+keywords: 
+  - "bioengineering"
+  - "microscopy"
+  - "microfluidics"
+  - "open hardware"
+  - "electronics"
+  - "flow-control"
+  - "raspberry pi"
 license: "CERN-OHL-2-W"
 documentation: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
+documentation-home: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
 design_files: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
 bom: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/blob/master/RPi-HAT-extension-board/Bill-of-Materials.csv"
-maintainers:
+manifest-author:
+  name: "Tobias Wenzel"
+  affiliation: "Institute for Biological and Medical Engineering, Pontificia Universidad Católica de Chile"
+  email: "tobias.wenzel@uc.cl"
+manifest-language: en-GB
+contact:
+  name: "Tobias Wenzel"
+  affiliation: "Institute for Biological and Medical Engineering, Pontificia Universidad Católica de Chile"
+  email: "tobias.wenzel@uc.cl"
+  social:
+    - platform: "orcid"
+      user-handle: "0000-0001-8443-1315"
+contributors:
   - name: "Tobias Wenzel"
-    affiliation: "Institute for Biological and Medical Engineering, Pontificia Universidad Católica de Chile"
-    email: "tobias.wenzel@uc.cl"
-    orcid: "0000-0001-8443-1315"
-
+  - name: "Christie Nel"
+  - name: "Pierre Padilla-Huamantinco"
+  - name: "Fernando Javier Huanca Perez"
 modules:
   - name: "RPi Hat Interface"
     description: "Raspberry Pi (RPi) HAT to interface modular controllers, providing connections for additional control modules."
@@ -21,7 +40,10 @@ modules:
     description: "Electronic module inserted onto the RPi HAT to control a high-power LED for imaging fast processes, synchronized with an RPi camera or a USB camera trigger."
   - name: "Pressure and Flow Control Module"
     description: "Module that controls up to 4 pressure controllers and up to 4 flow sensors for precise fluid control in microfluidic applications."
-
-sources:
-  - type: "github"
-    url: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
+intended-use: "Control of high-end research fluidics platforms, as well as low-resource microfluidics research and teaching."
+development-stage: "Prototype"
+made: true
+made-independently: false
+software:
+  - path: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/tree/master/user-interface-software"
+    title: "User Interface Software for Modular Microfluidics Workstation Controller"
