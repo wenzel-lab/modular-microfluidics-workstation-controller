@@ -5,7 +5,7 @@ keywords: ["bioengineering", "microscopy", "microfluidics", "open hardware", "el
 license: "CERN-OHL-2-W"
 documentation: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
 design_files: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
-bom: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/blob/main/BOM.csv"
+bom: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/blob/master/RPi-HAT-extension-board/Bill-of-Materials.csv"
 maintainers:
   - name: "Tobias Wenzel"
     affiliation: "Institute for Biological and Medical Engineering, Pontificia Universidad Católica de Chile"
