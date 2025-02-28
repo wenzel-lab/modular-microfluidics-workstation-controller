@@ -1,27 +1,5 @@
 title: "Rio: Modular Microfluidics Workstation Controller"
-    description: "An open-source modular microfluidics workstation controller."
-    topics: ["open-hardware", "microfluidics", "bioengineering", "electronics", "flow-control", "raspberry-pi"]
-    license: "CERN-OHL-2-W"
-    docs_url: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
-
-# OSHWA Certification
-oshwa-certification.json:
-  name: "Rio: Modular Microfluidics Workstation Controller"
-  version: "1.0"
-  certification_date: "2025-02-28"
-  hardware_license: "CERN-OHL-2-W"
-  documentation_url: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
-  repo_url: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
-  author:
-    name: "Tobias Wenzel"
-    affiliation: "Institute for Biological and Medical Engineering, Pontificia Universidad Católica de Chile"
-    email: "tobias.wenzel@uc.cl"
-    orcid: "0000-0001-8443-1315"
-
-# DIN SPEC 3105 Compliance
-din-spec.yml:
-  title: "Rio: Modular Microfluidics Workstation Controller"
-  design_files: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
-  license: "CERN-OHL-2-W"
-  certification_status: "Self-certified under DIN SPEC 3105"
-  manufacturing_instructions: "See https://github.com/wenzel-lab/modular-microfluidics-workstation-controller/blob/main/assembly.pdf"
+description: "An open-source modular microfluidics workstation controller."
+topics: ["open-hardware", "microfluidics", "bioengineering", "electronics", "flow-control", "raspberry-pi"]
+license: "CERN-OHL-2-W"
+docs_url: "https://github.com/wenzel-lab/modular-microfluidics-workstation-controller"
