@@ -96,9 +96,10 @@ DOI: [https://dx.doi.org/10.3791/67659](https://dx.doi.org/10.3791/67659)
 
 ## Modules Wish List ##
 
-* High-pressure source module.
-* Anaerobic chamber module (this module might have its own repository).
-* Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/MakerTobey/Open_FPGA_control_for_FADS) (This is being developed in a separate repository).
+* High-pressure source module to replace large gas bottles with a small soda CO2 bottle
+* Support for small piezo pumps
+* Smart cultivation sleeves for vials, smaller and with OD-tracking - the V2 of our current sample holders and strirrers
+* Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/wenzel-lab/droplet-sorter-master/tree/main) (This is being developed in a separate repository).
 
 > **Please Note:** There is also a previous general [open-source microfluidics repository](https://github.com/MakerTobey/OpenMicrofluidics) with re-builds and design considerations. 
 
