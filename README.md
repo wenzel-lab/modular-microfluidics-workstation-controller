@@ -35,9 +35,6 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
 ### Modules Wish List
 * Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/MakerTobey/Open_FPGA_control_for_FADS) (This is being developed in a separate repository).
 * High-pressure source module in [sub-repository](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-high-pressure-source)
-* Anaerobic chamber module (this module might have its own repository)
-
-> **Please Note:** There is also a previous general [open-source microfluidics repository](https://github.com/MakerTobey/OpenMicrofluidics) with re-builds and design considerations. 
 
 ## Contribute
 
