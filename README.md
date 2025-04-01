@@ -33,9 +33,11 @@ Follow us! [#twitter](https://twitter.com/WenzelLab), [#YouTube](https://www.you
     * [Microfluidics workstation server](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/blob/master/module-pi/webapp.zip) (This code runs on the built-in Raspberry Pi and includes the web application for the user interface.
 
 ### Modules Wish List
-* Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/MakerTobey/Open_FPGA_control_for_FADS) (This is being developed in a separate repository).
-* High-pressure source module in [sub-repository](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-high-pressure-source)
-
+* High-pressure source module to replace large gas bottles with a small soda CO2 bottle, developed in this [sub-repository](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/tree/master/module-high-pressure-source)
+* Support for small piezo pumps
+* Smart cultivation sleeves for vials, smaller and with OD-tracking - the V2 of our current sample holders and strirrers
+* Microfluidic droplet sorting workstation driven by the droplet workstation tools is described [here](https://github.com/wenzel-lab/droplet-sorter-master/tree/main) (This is being developed in a separate repository).
+  
 ## Contribute
 
 Feel free to dive in! [Open an issue](https://github.com/wenzel-lab/moldular-microfluidics-workstation-controller/issues/new).
