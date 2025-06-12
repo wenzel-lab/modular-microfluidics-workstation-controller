@@ -139,3 +139,17 @@ Connector Crimps: Picoblade 26-28 AWG (50079-8000)
 |2|White|Monitor Output|
 |3|Blue|GND (Common)|
 |4|Brown|Power|
+
+### Connectors
+
+The Pi Hat features * connectors.
+
+#### Flow Module Power Connector
+
+<img src="images/pi_flow_connector.png" width=30%>
+
+This is a 2x5 standard DuPont male header.
+
+#### Cable for Flow Module Power Connector
+
+<img src="images/pi_flow_power_cable.png" width=70%>
