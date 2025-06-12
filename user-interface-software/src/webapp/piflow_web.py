@@ -22,8 +22,6 @@ class flow_web:
 
   def __init__( self, port ):
     self.flow = piflow.PiFlow( port, 0.1 )
-    
-#    self.pid_enabled = False
     self.status_text            = [ ("Init")  for i in range(self.flow.NUM_CONTROLLERS) ]
     self.pressure_mbar_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     self.pressure_mbar_targets  = [ (0.00)    for i in range(self.flow.NUM_CONTROLLERS) ]
@@ -31,12 +29,32 @@ class flow_web:
     self.control_modes          = [ (0)       for i in range(self.flow.NUM_CONTROLLERS) ]
     self.control_modes_text     = [ ("")      for i in range(self.flow.NUM_CONTROLLERS) ]
     
+    # --- track fluid type per channel ---
+    # Options: 'water', 'fluorinated', 'mineral'
+    self.fluid_types = ['water'] * self.flow.NUM_CONTROLLERS
+    
     valid, id, id_valid = self.flow.get_id()
     print( "ID OK:{}, ID={}".format( id_valid, id ) )
     self.enabled = valid and id_valid
-    
     self.get_pressure_targets()
     self.get_control_modes()
+
+  # --- for setting flow rate targets from the backend ---
+  def set_flow_target(self, index, flow_ul_hr):
+      try:
+          flows = [0] * self.flow.NUM_CONTROLLERS
+          flows[index] = int(flow_ul_hr)
+
+          # 1. Set flow target via SPI
+          result = self.flow.set_flow_target([index], flows)
+
+          # 2. Set control mode to Flow Closed Loop (3)
+          self.set_control_mode(index, 3)
+
+          return result
+      except Exception as e:
+          print("Error setting flow target:", e)
+          return False
 
   def get_pressure_targets( self ):
     valid, pressures_mbar_targets = self.flow.get_pressure_target()
@@ -51,7 +69,6 @@ class flow_web:
 
   def set_pressure( self, index, pressure_mbar ):
     try:
-#      pressure = round( float( pressure_mbar ), 2 )
       pressure = int( pressure_mbar )
       self.flow.set_pressure( [index], [pressure] )
       self.get_pressure_targets()
@@ -61,74 +78,56 @@ class flow_web:
   def set_control_mode( self, index, control_mode ):
     try:
       self.flow.set_control_mode( [index], [control_mode] )
-#      self.pressure_targets[index] = self.get_temp_target()
-#      self.pressure_targets[index] = pressure
       self.get_control_modes()
     except:
       pass
   
   def set_pid_running( self, run ):
     try:
-      #run = 0 if self.pid_enabled else 1
-      #temp = round( float( self.temp_target_box.value ), 2 )
-      #self.holder.set_pid_running( run, temp )
       self.holder.set_pid_running( run )
-      #self.temp_c_target = self.get_temp_target()
     except:
       pass
   
   def update( self ):
-    if not self.enabled:
-      self.status_text = [ ( "Offline" ) for i in range (self.flow.NUM_CONTROLLERS) ]
-#      self.status_text = "Offline"
-    else:
-#      valid, pid_status, pid_error = self.holder.get_pid_status()
-      valid = True
-      
-      okay = valid
-      valid, pressures_actual = self.flow.get_pressure_actual();
-      if valid:
-        self.pressures_actual = pressures_actual
-      okay = okay and valid
-      
-      valid, flows_actual = self.flow.get_flow_actual();
-      if valid:
-        self.flows_actual = flows_actual
-#        self.flows_actual = [11, 22, 33, 44]
-      okay = okay and valid
-      
-      if not okay:
-        self.status_text = [ ( "Connection Error" ) for i in range (self.flow.NUM_CONTROLLERS) ]
-#        self.status_text = "Connection Error"
-      else:
-#        if ( pid_status == 4 ):
-#          if ( pid_error == 2 ):
-#            self.status_text = "No Sensor"
-#          else:
-#            self.status_text = "Error ".format( pid_error )
-#        else:
-          try:
-#            self.status_text = "{}".format( self.pid_status_str[pid_status] )
-            self.status_text = [ ( "Connected" ) for i in range (self.flow.NUM_CONTROLLERS) ]
-          except:
-            pass
-      
-      try:
-        self.pressure_mbar_text = [ ( "{} / {}".format( round( self.pressures_actual[i], 2 ), round( self.pressure_mbar_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-        self.flow_ul_hr_text = [ ( "{}".format( round( self.flows_actual[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-#        self.flow_ul_hr_text = [ ( "{} / {}".format( round( self.flows_actual[i], 2 ), round( self.flow_targets[i], 2 ) ) ) for i in range (self.flow.NUM_CONTROLLERS) ]
-      except:
-        pass
-      
-#      self.pid_enabled = ( pid_status == 2 )
-      
-#    if ( not self.pid_enabled ):
-#      self.set_pid_enable_btn.text = "Enable PID"
-#    else:
-#      self.set_pid_enable_btn.text = "Disable PID"
+        if not self.enabled:
+            self.status_text = ["Offline"] * self.flow.NUM_CONTROLLERS
+            return
+        # Read actual pressures and flows
+        ok1, pressures = self.flow.get_pressure_actual()
+        ok2, flows_raw = self.flow.get_flow_actual()
+        if not (ok1 and ok2):
+            self.status_text = ["Connection Error"] * self.flow.NUM_CONTROLLERS
+            return
+        self.pressures_actual = pressures
+        self.flows_actual     = flows_raw
+        self.status_text      = ["Connected"] * self.flow.NUM_CONTROLLERS    
     
-    try:
-#      self.autotune_status_text = "{}".format( self.autotune_status_str[autotune_status] )
-      pass
-    except:
-      pass
+
+        
+        # Prepare calibrated flow readings
+        calibrated = []
+        for i in range(self.flow.NUM_CONTROLLERS):
+            raw = self.flows_actual[i]
+            ft  = self.fluid_types[i]
+            if   ft=='water':
+                 cal = raw
+            elif ft=='fluorinated':
+                 # Cubic calibration for Novec oil
+                 cal = (5.92715985e-06 * raw**3
+                       + 2.26989221e-03 * raw**2
+                       + 9.84302695e-01 * raw
+                       + 7.92965050e+00)
+            elif ft=='mineral':
+                 # Cubic calibration for mineral oil
+                 cal = (-2.71749525e-07 * raw**3
+                       + 2.36655640e-03 * raw**2
+                       + 8.39461407e-01 * raw
+                       + 3.46965708e+01)
+            else:
+                 cal = raw
+            calibrated.append(cal)
+        
+        # Format display text
+        self.pressure_mbar_text = [f"{p:.2f} / {t:.2f}" \
+                                   for p, t in zip(self.pressures_actual, self.pressure_mbar_targets)]
+        self.flow_ul_hr_text    = [f"{c:.2f}" for c in calibrated]

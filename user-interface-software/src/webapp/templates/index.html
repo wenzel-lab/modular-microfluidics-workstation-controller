@@ -1,71 +1,62 @@
 <doctype html="">
   <head>
+    <title>Open Microfluidics Station</title>
     {% if cam.camera == 'rpi' %}
       {% import 'camera_pi.html' as cam_html %}
     {% else %}
       {% import 'camera_none.html' as cam_html %}
     {% endif %}
-    
-    <title>Open Microfluidics Station</title>
-    <!--meta http-equiv="refresh" content="2" /-->
-    <h2>Open Microfluidics Station</h2>
 
-    <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
-    <!--<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>-->
+    <script
+      src="//code.jquery.com/jquery-1.12.4.min.js"
+      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" 
+      crossorigin="anonymous">
+    </script>
+    <script
+      src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" 
+      integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" 
+      crossorigin="anonymous">
+    </script>
     <script type="text/javascript" charset="utf-8">
-    //  var socket = io.connect('http://' + document.domain + ':' + location.port);
+      
       {{ cam_html.js_functions( cam, strobe ) }}
       
       var socket = io();
-      //var strobe = {{strobe|tojson}}
       var heaters = {{heaters|tojson}}
       var flows = {{flows|tojson}}
-      //var cam = {{cam|tojson}}
       
-      function heaters_update_init()
-      {
-        for ( var i=0; i<=3; i++ )
-        {
-          $('#input_heater'+(i+1)+'_temp_c_target').val( heaters[i].temp_c_target.toString() );
-          $('#input_heater'+(i+1)+'_autotune_target_temp').val( heaters[i].autotune_target_temp.toString() );
-          $('#input_heater'+(i+1)+'_power_limit').val( heaters[i].power_limit.toString() );
-          $('#input_heater'+(i+1)+'_stir_speed').val( heaters[i].stir_speed_target.toString() );
+      function heaters_update_init(){
+        for ( var i=0; i<4; i++){
+          $('#input_heater'+(i+1)+'_temp_c_target').val(heaters[i].temp_c_target.toString());
+          $('#input_heater'+(i+1)+'_autotune_target_temp').val(heaters[i].autotune_target_temp.toString());
+          $('#input_heater'+(i+1)+'_power_limit').val(heaters[i].power_limit.toString());
+          $('#input_heater'+(i+1)+'_stir_speed').val(heaters[i].stir_speed_target.toString());
         }
       }
       
-      function heaters_update()
-      {
-        for ( var i=0; i<=3; i++ )
-        {
+      function heaters_update(){
+        for (var i=0; i<4; i++){
           $('#heater'+(i+1)+'_pid_enabled').html( heaters[i].pid_enabled ? "Enabled" : "Disabled" );
           $('#btn_heater'+(i+1)+'_pid_enabled').html( heaters[i].pid_enabled ? 'Disable' : 'Enable' );
-          
           $('#heater'+(i+1)+'_autotune_status').html( heaters[i].autotune_status );
           $('#btn_heater'+(i+1)+'_autotune').html( heaters[i].autotuning ? 'Stop' : 'Start' );
-          
           $('#heater'+(i+1)+'_power_limit').html( heaters[i].power_limit );
-          
           $('#heater'+(i+1)+'_stir_speed').html( heaters[i].stir_speed_text );
           $('#btn_heater'+(i+1)+'_stir').html( heaters[i].stir_enabled ? 'Stop' : 'Start' );
-          
           $('#heater'+(i+1)+'_status').html( heaters[i].status );
           $('#heater'+(i+1)+'_temp_text').html( heaters[i].temp_text );
         }
       }
       
-      function flows_update_init()
-      {
-        for ( var i=0; i<=3; i++ )
-        {
-          $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_target.toString() );
+      function flows_update_init(){
+        for ( var i=0; i<4; i++ ){
+          $('#input_flow'+(i+1)+'_pressure_mbar_target').val( flows[i].pressure_mbar_target.toString());
+          $('#select_flow'+(i+1)+'_fluid').val(flows[i].fluid_type); // Fluid
         }
       }
       
-      function flows_update()
-      {
-        for ( var i=0; i<=3; i++ )
-        {
+      function flows_update(){
+        for ( var i=0; i<4; i++ ){
           $('#flow'+(i+1)+'_status').html( flows[i].status );
           $('#flow'+(i+1)+'_pressure_mbar_text').html( flows[i].pressure_mbar_text );
           $('#flow'+(i+1)+'_flow_ul_hr_text').html( flows[i].flow_ul_hr_text );
@@ -82,27 +73,12 @@
         heaters_update();
         flows_update();
         
-        socket.on( 'connect', function() {
-          console.log( 'Websocket connected!' );
-        });
-        socket.on('disconnect', function(){
-          console.log( 'Websocket connection lost!' );
-        });
-        socket.on( 'reload', function( data ) {
-//          $('#select_camera').val( data.camera )
-          location.reload( true )
-        });
-        socket.on( 'debug', function( data ) {
-          $('#update_count').html( data.update_count );
-        });
-        socket.on( 'heaters', function( data ) {
-          heaters = data;
-          heaters_update();
-        });
-        socket.on( 'flows', function( data ) {
-          flows = data;
-          flows_update();
-        });
+        socket.on('connect',    function(){ console.log( 'Websocket connected!' ); });
+        socket.on('disconnect', function(){ console.log( 'Websocket connection lost!' ); });
+        socket.on('reload',     function( data ) { location.reload( true ); });
+        socket.on('debug',      function( data ) { $('#update_count').html( data.update_count ); });
+        socket.on('heaters',    function( data ) { heaters = data; heaters_update(); });
+        socket.on('flows',      function( data ) { flows = data; flows_update(); });
       });
       
       function cam_select() {
@@ -126,35 +102,37 @@
       function flow_pressure_mbar_target( index ) {
         socket.emit( 'flow', { cmd: 'pressure_mbar_target', parameters: { 'index': index, 'pressure_mbar_target': ( $('#input_flow'+(index+1)+'_pressure_mbar_target').val() ) } } );
       }
-      function flow_flow_ul_hr_target( index ) {
-        socket.emit( 'flow', { cmd: 'flow_ul_hr_target', parameters: { 'index': index, 'flow_ul_hr_target': ( $('#input_flow'+(index+1)+'_flow_ul_hr_target').val() ) } } );
-      }
-      function flow_control_mode( index ) {
+      function flow_control_mode ( index ) {
         socket.emit( 'flow', { cmd: 'control_mode', parameters: { 'index': index, 'control_mode': ( $('input:radio[name=input_flow'+(index+1)+'_control_mode]:checked').val() ) } } );
       }
+      
+      //Fluid Type
+      function flow_fluid_type(index) {
+        socket.emit('flow_fluid', { index: index, fluid: $('#select_flow' + (index + 1) + '_fluid').val()});
+      }
+      
+      //Flow Target
+      function flow_flow_ul_hr_target(index) {
+        socket.emit('flow_target', {
+          index: index,
+          flow_ul_hr: $('#input_flow' + (index + 1) + '_flow_ul_hr_target').val()
+        });
+      }       
     </script>
   </head>
 
   <body>
-    <p></p><p>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        </p><ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
 
+    <h2>Open Microfluidics Station</h2>
+    
     <p>Update Count: <a id='update_count'>{{debug.update_count}}</a></p>
 
     <h3>Camera</h3>
-    <!--<p>Camera: {{cam.camera}}</p>-->
     <select id="select_camera" onchange="cam_select()">
-      <option value="none">None</option>
+      <option value="none"{% if cam.camera == "none" %} selected{%endif%}>None</option>
       <option value="rpi"{% if cam.camera == "rpi" %} selected{%endif%}>RPI</option>
-    </select>    
+    </select>
+        
     {{ cam_html.html() }}
     
     {% for flow in flows %}
@@ -171,21 +149,49 @@
           <td>
           {% set flow_loop = loop %}
           {% for mode_str in flows[flow_loop.index-1].control_modes %}
-            <input type="radio" name="input_flow{{flow_loop.index}}_control_mode" value="{{loop.index-1}}" onclick="flow_control_mode({{flow_loop.index-1}})" {% if flows[flow_loop.index-1].control_mode == mode_str %} checked{%endif%}><label>{{mode_str}}</label><br>
+            <input
+              type="radio"
+              name="input_flow{{flow_loop.index}}_control_mode"
+              value="{{loop.index-1}}"
+              onclick="flow_control_mode({{flow_loop.index-1}})"
+              {% if flows[flow_loop.index-1].control_mode == mode_str %} checked{%endif%}>
+              <label>{{mode_str}}</label><br>
           {% endfor %}
           </td>
         </tr>
         <tr>
-          <td>Pressure (mbar)</td>
+        <td>Fluid</td>
+        <td>
+          <select
+            id="select_flow{{ loop.index }}_fluid"
+            onchange="flow_fluid_type({{ loop.index0 }})">
+            <option value="water"      {% if flows[loop.index0].fluid_type=='water'      %}selected{% endif %}>Water</option>
+            <option value="fluorinated"{% if flows[loop.index0].fluid_type=='fluorinated'%}selected{% endif %}>Fluorinated Oil</option>
+            <option value="mineral"    {% if flows[loop.index0].fluid_type=='mineral'   %}selected{% endif %}>Mineral Oil</option>
+          </select>
+        </td>
+        </tr>
+        <tr>
+          <td>Pressure (mbar)<br><small>(10–5000 mbar)</small></td>
           <td><p id='flow{{loop.index}}_pressure_mbar_text'></p></td>
-          <td><input type="number" id="input_flow{{loop.index}}_pressure_mbar_target" min="0" max="10000"></td>
+          <td><input
+                type="number"
+                id="input_flow{{loop.index}}_pressure_mbar_target"
+                min="0" max="10000"></td>
           <td><button id='btn_flow{{loop.index}}_pressure_mbar_target', onclick="flow_pressure_mbar_target({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
         <tr>
-          <td>Flow (ul/hr)</td>
+          <td>Flow (µl/hr)<br><small>(0–4800 µL/hr)</small></td>
           <td><p id='flow{{loop.index}}_flow_ul_hr_text'></p></td>
-          <!--<td><input type="number" id="input_flow{{loop.index}}_flow_ul_hr_target" min="0" max="10000"></td>
-          <td><button id='btn_flow{{loop.index}}_flow_ul_hr_target', onclick="flow_flow_ul_hr_target({{loop.index-1}})", style="width: 100px">Set</button></td>-->
+        </tr>
+        <tr>
+        <td>Flow Target (µl/hr)</td>
+        <td><input
+              type="number"
+              id="input_flow{{loop.index}}_flow_ul_hr_target"
+              min="0"
+              max="4800"></td>
+        <td><button onclick="flow_flow_ul_hr_target({{loop.index-1}})">Set</button></td>
         </tr>
       </table>
     {% endfor %}
@@ -206,29 +212,132 @@
         <tr>
           <td>Temperature (degC)</td>
           <td><p id='heater{{loop.index}}_temp_text'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_temp_c_target" min="-50" max="100"></td>
+          <td><input
+                type="number"
+                id="input_heater{{loop.index}}_temp_c_target"
+                min="-50"
+                max="100"></td>
           <td><button id='btn_heater{{loop.index}}_temp_c_target', onclick="heater_temp_c_target({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
         <tr>
           <td>Autotune Status</td>
           <td><p id='heater{{loop.index}}_autotune_status'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_autotune_target_temp" min="-50" max="100"></td>
+          <td><input
+                type="number"
+                id="input_heater{{loop.index}}_autotune_target_temp"
+                min="-50"
+                max="100"></td>
           <td><button id='btn_heater{{loop.index}}_autotune', onclick="heater_autotune({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
         <tr>
           <td>Power Limit (%)</td>
           <td><p id='heater{{loop.index}}_power_limit'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_power_limit" min="1" max="100"></td>
+          <td><input
+                type="number"
+                id="input_heater{{loop.index}}_power_limit"
+                min="1"
+                max="100"></td>
           <td><button id='btn_heater{{loop.index}}_power_limit', onclick="heater_set_power_limit({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
         <tr>
           <td>Stir Speed</td>
           <td><p id='heater{{loop.index}}_stir_speed'></p></td>
-          <td><input type="number" id="input_heater{{loop.index}}_stir_speed" min="0" max="100"></td>
+          <td><input
+                type="number"
+                id="input_heater{{loop.index}}_stir_speed"
+                min="0"
+                max="100"></td>
           <td><button id='btn_heater{{loop.index}}_stir' onclick="heater_stir({{loop.index-1}})", style="width: 100px">Set</button></td>
         </tr>
       </table>
     {% endfor %}
+
+    <!-- Chart.js CDN 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <canvas id="flowChart" width="800" height="200"></canvas>
+    <canvas id="pressureChart" width="800" height="200"></canvas>
+
+    <script>
+    let flowChart, pressureChart;
+    let flowData = {
+        labels: [],
+        datasets: [{
+            label: 'Flow (ul/hr)',
+            borderColor: 'blue',
+            data: [],
+            fill: false
+        }, {
+            label: 'Flow Target (ul/hr)',
+            borderColor: 'green',
+            data: [],
+            fill: false
+        }]
+    };
+
+    let pressureData = {
+        labels: [],
+        datasets: [{
+            label: 'Pressure (mbar)',
+            borderColor: 'red',
+            data: [],
+            fill: false
+        }]
+    };
+
+    function createCharts() {
+        const ctx1 = document.getElementById('flowChart').getContext('2d');
+        const ctx2 = document.getElementById('pressureChart').getContext('2d');
+        flowChart = new Chart(ctx1, {
+            type: 'line',
+            data: flowData,
+            options: {
+                animation: false,
+                scales: { x: { display: false } }
+            }
+        });
+        pressureChart = new Chart(ctx2, {
+            type: 'line',
+            data: pressureData,
+            options: {
+                animation: false,
+                scales: { x: { display: false } }
+            }
+        });
+    }
+
+    function updateCharts(flow, flowTarget, pressure) {
+        const maxPoints = 300;
+        const now = new Date().toLocaleTimeString();
+
+        flowData.labels.push(now);
+        pressureData.labels.push(now);
+        flowData.datasets[0].data.push(flow);
+        flowData.datasets[1].data.push(flowTarget);
+        pressureData.datasets[0].data.push(pressure);
+
+        if (flowData.labels.length > maxPoints) {
+            flowData.labels.shift();
+            pressureData.labels.shift();
+            flowData.datasets.forEach(ds => ds.data.shift());
+            pressureData.datasets.forEach(ds => ds.data.shift());
+        }
+
+        flowChart.update();
+        pressureChart.update();
+    }
+
+    $(document).ready(() => {
+        createCharts();
+        socket.on('flows_data', (data) => {
+            if (data && data.pressure && data.flow && data.flow_target) {
+                // Use channel 0 for demo
+                updateCharts(data.flow[0], data.flow_target[0], data.pressure[0]);
+            }
+        });
+    });
+    </script>
+    -->
 
   </body>
 

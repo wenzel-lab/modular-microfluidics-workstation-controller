@@ -1,28 +1,34 @@
 from pistrobe import PiStrobe
 from picamera import PiCamera
+from fractions import Fraction
 
 class PiStrobeCam:
+    # These will store the actual values acknowledged by the strobe hardware
     strobe_wait_ns = 0
     strobe_period_ns = 0
     framerate_set = 0
     
     def __init__( self, port, reply_pause_s ):
         self.strobe = PiStrobe( port, reply_pause_s )
-        self.camera = PiCamera(
-            #resolution=()
-            #framerate=Fraction(1, 1),
-            #framerate = 50,
-            #sensor_mode=3
-        )
-        #self.camera.resolution = ( 0, 0 )
-        self.camera.awb_mode = 'auto'
-        self.camera.exposure_mode = 'off'
-        #ISO will not adjust gains when exposure_mode='off'
-        #self.camera.iso = 800
+        self.camera = PiCamera()
+        
+        # Basic camera setup
+        self.camera.resolution = ( 1024, 768 ) #(1280, 720)
+        self.camera.awb_mode = 'auto'        
+        self.camera.exposure_mode = 'off' # Essential for manual shutter_speed control
+        #self.camera.iso = 200 # ISO will not adjust gains when exposure_mode='off'
     
     def set_timing( self, pre_padding_ns, strobe_period_ns, post_padding_ns ):
+        
+        # Calculate total camera shutter speed required to encompass the strobe pulse and paddings
+        # pre_padding_ns: Time from when shutter opens to when strobe pulse begins
+        # strobe_period_ns: Desired duration of the strobe pulse
+        # post_padding_ns: Time from when strobe pulse ends to when shutter closes
+        
         shutter_speed_us = int( ( strobe_period_ns + pre_padding_ns + post_padding_ns ) / 1000 )
+        
         framerate = 1000000 / shutter_speed_us
+        
         if ( framerate > 60 ):
             framerate = 60
         self.camera.framerate = framerate

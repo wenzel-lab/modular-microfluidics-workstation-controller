@@ -1,3 +1,4 @@
+import os
 import time
 from threading import Thread, Event
 from flask import Flask, flash, render_template, request, redirect, Response
@@ -6,43 +7,62 @@ import eventlet
 import picommon
 from pistrobe import PiStrobe
 from piholder_web import heater_web
-#from camera import Camera
 from camera_pi import Camera
-#from vimba_pi import Camera
 from piflow_web import flow_web
 
+# patch eventlet for GPIO and SPI
 eventlet.monkey_patch( os=True, select=True, socket=True, thread=False, time=True, psycopg=True )
-#eventlet.monkey_patch()
 
 exit_event = Event()
 
+# initialize SPI for sensors and actuators
 picommon.spi_init( 0, 2, 30000 )
 
 debug_data = { 'update_count': 0 }
 
-heaters_data = [ { 'status': '', 'temp_text': '', 'temp_c_actual': 0.0, 'temp_c_target': 0.0, 'pid_enabled': False,
-                   'power_limit': 0, 'autotune_status': '', 'autotune_target_temp': 0.0, 'autotuning': False,
-                   'stir_speed_text': '', 'stir_speed_target': 0, 'stir_enabled': False } for i in range(4) ]
+# set up heaters
+heaters_data = [
+    { 'status': '',
+      'temp_text': '',
+      'temp_c_actual': 0.0,
+      'temp_c_target': 0.0,
+      'pid_enabled': False,
+      'power_limit': 0, 
+      'autotune_status': '',
+      'autotune_target_temp': 0.0,
+      'autotuning': False,
+      'stir_speed_text': '',
+      'stir_speed_target': 0,
+      'stir_enabled': False } for i in range(4) 
+]
 heater1 = heater_web( 1, picommon.PORT_HEATER1 )
 heater2 = heater_web( 2, picommon.PORT_HEATER2 )
 heater3 = heater_web( 3, picommon.PORT_HEATER3 )
 heater4 = heater_web( 4, picommon.PORT_HEATER4 )
 heaters = [heater1, heater2, heater3, heater4]
 
-flows_data = [ { 'status': '', 'pressure_mbar_text': '', 'pressure_mbar_target': 0.0, 'flow_ul_hr_text':'', 'control_modes': [], 'control_mode': '' } for i in range(4) ]
+# set up flows
+flows_data = [
+    { 'status': '',
+      'pressure_mbar_text': '',
+      'pressure_mbar_target': 0.0,
+      'flow_ul_hr_text':'',
+      'control_modes': [],
+      'control_mode': '',
+      'fluid_type':'water'}
+    for i in range(4)
+]
 flow = flow_web( picommon.PORT_FLOW )
 
 app = Flask( __name__ )
 socketio = SocketIO( app, async_mode = 'eventlet' )
 thread = None
 
+# camera (Raspberry Pi Camera v2 + strobe)
 cam = Camera( exit_event, socketio )
-#cam.initialize()
-#cam.init2()
 
 def update_heater_data( index, heater ):
   heaters_data[index]['status'] = heater.status_text
-#  heaters_data[index]['temp_text'] = '{}'.format( round( heater.temp_text, 2 ) )
   heaters_data[index]['temp_text'] = heater.temp_text
   heaters_data[index]['temp_c_target'] = heater.temp_c_target
   heaters_data[index]['pid_enabled'] = heater.pid_enabled
@@ -55,14 +75,9 @@ def update_heater_data( index, heater ):
   heaters_data[index]['stir_enabled'] = heater.stir_enabled
 
 def update_heaters_data():
-  heater1.update()
-  heater2.update()
-  heater3.update()
-  heater4.update()
-  update_heater_data( 0, heater1 )
-  update_heater_data( 1, heater2 )
-  update_heater_data( 2, heater3 )
-  update_heater_data( 3, heater4 )
+  heater1.update(); heater2.update(); heater3.update(); heater4.update()
+  for i, h in enumerate(heaters):
+      update_heater_data(i, h)
 
 def update_flow_data( index ):
   flows_data[index]['status'] = flow.status_text[index]
@@ -71,13 +86,12 @@ def update_flow_data( index ):
   flows_data[index]['flow_ul_hr_text'] = flow.flow_ul_hr_text[index]
   flows_data[index]['control_modes'] = flow.ctrl_mode_str
   flows_data[index]['control_mode'] = flow.control_modes[index]
+  flows_data[index]['fluid_type'] = flow.fluid_types[index]
 
 def update_flows_data():
   flow.update()
-  update_flow_data( 0 )
-  update_flow_data( 1 )
-  update_flow_data( 2 )
-  update_flow_data( 3 )
+  for i in range(4):
+      update_flow_data(i)
 
 def update_all_data():
   cam.update_strobe_data()
@@ -86,14 +100,9 @@ def update_all_data():
 
 def background_stuff():
   while True:
-    time.sleep( 1 )
-#    event.wait( 1 )
-#    pi_wait_s( 1 )
-    
+    time.sleep( 1 )    
     debug_data['update_count'] = debug_data['update_count'] + 1
-    
     update_all_data()
-    
     socketio.emit( 'debug', debug_data )
     socketio.emit( 'heaters', heaters_data )
     socketio.emit( 'flows', flows_data )
@@ -102,17 +111,7 @@ def background_stuff():
 def start_server():
   global thread
   if thread is None:
-#    thread = socketio.start_background_task( target=background_stuff, args=(picommon.pi_lock,) )
     thread = socketio.start_background_task( target=background_stuff )
-#    thread = Thread( target=background_stuff )
-#    thread.start()
-
-#@app.route('/', methods=['GET', 'POST'])
-@app.route( '/' )
-def index():
-  debug_data['update_count'] = debug_data['update_count'] + 1
-#  start_server()
-  return render_template( 'index.html', debug=debug_data, strobe=cam.strobe_data, heaters=heaters_data, flows=flows_data, cam=cam.cam_data )
 
 @socketio.on( 'create' )
 def on_create( data ):
@@ -129,7 +128,6 @@ def on_cam( data ):
   if ( data['cmd'] == 'select' ):
     cam.cam_data['camera'] = data['parameters']['camera']
     socketio.emit( 'reload' )
-#    socketio.emit( 'cam', cam.cam_data )
 
 @socketio.on( 'heater' )
 def on_heater( data ):
@@ -180,12 +178,45 @@ def on_flow( data ):
     
     update_flows_data()
     socketio.emit( 'flows', flows_data )
+    
+# --- new handler for fluid selection ---
+@socketio.on('flow_fluid')
+def on_flow_fluid(data):
+    idx = data['index']
+    ft  = data['fluid']
+    flow.fluid_types[idx]      = ft
+    flows_data[idx]['fluid_type'] = ft
+    update_flows_data()
+    socketio.emit('flows', flows_data)
+
+# --- new handler for flow target ---
+@socketio.on('flow_target')
+def on_flow_target(data):
+    try:
+        index = int(data['index'])
+        flow_ul_hr = int(data['flow_ul_hr'])
+        flow.set_flow_target(index, flow_ul_hr)
+        update_flows_data()
+        socketio.emit('flows', flows_data)
+    except Exception as e:
+        print("Error in flow_target handler:", e)
 
 def gen( camera ):
   while True:
     frame = camera.get_frame()
     yield ( b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n' )
+
+@app.route( '/' )
+def index():
+  debug_data['update_count'] = debug_data['update_count'] + 1
+  return render_template(
+        'index.html',
+        debug=debug_data,
+        strobe=cam.strobe_data,
+        heaters=heaters_data,
+        flows=flows_data,
+        cam=cam.cam_data )
 
 @app.route( '/video' )
 def video():
@@ -194,12 +225,13 @@ def video():
 def before_first_request():
   print( "Before First Request -----------------------------" )
 
+
 if __name__ == '__main__':
     update_all_data()
-#    app.run( debug=True, host='0.0.0.0', threaded=True )
     app.before_first_request( before_first_request )
     socketio.run( app, host='0.0.0.0', debug=True, use_reloader=False )
-#    socketio.run( app, host='0.0.0.0', debug=True )
     
+    # clean up SPI on exit
+    picommon.spi_close()
     exit_event.set()
     

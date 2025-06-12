@@ -205,11 +205,19 @@ class PiHolder:
     valid, data = self.packet_query( self.PACKET_TYPE_HEAT_POWER_LIMIT_SET, send_bytes )
     return ( ( valid and ( data[0] == 0 ) ) )
 
-  def get_heat_power_limit_pc( self ):
-    valid, data = self.packet_query( self.PACKET_TYPE_HEAT_POWER_LIMIT_GET, [] )
-    if valid:
-      heat_power_limit_pc = data[1]
+  def get_heat_power_limit_pc(self):
+    valid, data = self.packet_query(self.PACKET_TYPE_HEAT_POWER_LIMIT_GET, [])
+    if valid and len(data) > 1:
+        heat_power_limit_pc = data[1]
+        return (data[0] == 0, heat_power_limit_pc)
     else:
-      heat_power_limit_pc = 0
-    return ( valid and ( data[0] == 0 ), heat_power_limit_pc )
+        return (False, 0)
+
+#  def get_heat_power_limit_pc( self ):
+#    valid, data = self.packet_query( self.PACKET_TYPE_HEAT_POWER_LIMIT_GET, [] )
+#    if valid:
+#      heat_power_limit_pc = data[1]
+#    else:
+#      heat_power_limit_pc = 0
+#    return ( valid and ( data[0] == 0 ), heat_power_limit_pc )
 

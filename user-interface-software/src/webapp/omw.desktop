@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Open Microfluidic Workstation
+Exec=/usr/bin/python3 /home/pi/webapp/pi_webapp.py

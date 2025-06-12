@@ -43,7 +43,6 @@ class PiStrobe:
     try:
       picommon.spi_lock()
       self.packet_write( type, data )
-#      time.sleep( self.reply_pause_s )
       picommon.pi_wait_s( self.reply_pause_s )
       valid = True
       data_read = []
@@ -71,7 +70,6 @@ class PiStrobe:
     valid, data = self.packet_query( 2, wait_ns_bytes + period_ns_bytes )
     actual_wait_ns = int.from_bytes( data[1:5], byteorder='little', signed=False )
     actual_period_ns = int.from_bytes( data[5:9], byteorder='little', signed=False )
-    #print( "data={}, wait={}, period={}, wait_bytes={}".format( data, actual_wait_ns, actual_period_ns, data[1:5] ) )
     return ( ( valid and ( data[0] == 0 ) ), actual_wait_ns, actual_period_ns )
 
   def set_hold( self, hold ):
