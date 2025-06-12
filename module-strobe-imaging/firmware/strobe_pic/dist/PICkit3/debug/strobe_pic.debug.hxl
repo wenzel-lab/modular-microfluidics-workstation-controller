@@ -1,30 +1,28 @@
 ### HEXMate logfile and output summary ###
 
 ### Command-line arguments ###
- C:\Users\ppadi\AppData\Local\Temp\xcAs9nk.\driver_tmp_3.o
+ C:\Users\ppadi\AppData\Local\Temp\xcAslko.\driver_tmp_3.o
  -Odist/PICkit3/debug\strobe_pic.debug.hex
  -logfile=dist/PICkit3/debug\strobe_pic.debug.hxl
  -addressing=2
 
 ### Memory Usage ###
  Input file ranges:
-  0h - 5h		(C:\Users\ppadi\AppData\Local\Temp\xcAs9nk.\driver_tmp_3.o)
-  8h - FFFh		(C:\Users\ppadi\AppData\Local\Temp\xcAs9nk.\driver_tmp_3.o)
-  1F6Ch - 1FFFh		(C:\Users\ppadi\AppData\Local\Temp\xcAs9nk.\driver_tmp_3.o)
-  1000Eh - 10017h		(C:\Users\ppadi\AppData\Local\Temp\xcAs9nk.\driver_tmp_3.o)
+  0h - FFFh		(C:\Users\ppadi\AppData\Local\Temp\xcAslko.\driver_tmp_3.o)
+  1F5Eh - 1FFFh		(C:\Users\ppadi\AppData\Local\Temp\xcAslko.\driver_tmp_3.o)
+  1000Eh - 10017h		(C:\Users\ppadi\AppData\Local\Temp\xcAslko.\driver_tmp_3.o)
  Unused ranges:
-  6h - 7h
-  1000h - 1F6Bh
+  1000h - 1F5Dh
   2000h - 1000Dh
 
 ### Hex Memory Map ###
  Legend:
   -- = Unused memory
-  H1 = Input file             (C:\Users\ppadi\AppData\Local\Temp\xcAs9nk.\driver_tmp_3.o)
+  H1 = Input file             (C:\Users\ppadi\AppData\Local\Temp\xcAslko.\driver_tmp_3.o)
 ----------------------------------------------------------
          | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
 ----------------------------------------------------------
-00000000 | H1 H1 H1 H1 H1 H1 -- -- H1 H1 H1 H1 H1 H1 H1 H1
+00000000 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00000010 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00000020 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00000030 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
@@ -281,7 +279,8 @@
 00000FE0 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00000FF0 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 ----------------------------------------------------------
-00001F60 | -- -- -- -- -- -- -- -- -- -- -- -- H1 H1 H1 H1
+00001F50 | -- -- -- -- -- -- -- -- -- -- -- -- -- -- H1 H1
+00001F60 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00001F70 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00001F80 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00001F90 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
