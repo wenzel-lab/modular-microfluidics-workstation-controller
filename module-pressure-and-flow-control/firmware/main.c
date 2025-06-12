@@ -159,7 +159,7 @@ uint8_t packet_type;
 uint8_t packet_data[SPI_PACKET_BUF_SIZE];
 uint8_t packet_data_size;
 
-inline int32_t constrain_i32( int32_t value, int32_t min, int32_t max )
+static inline int32_t constrain_i32( int32_t value, int32_t min, int32_t max )
 {
     if ( value < min )
         return min;

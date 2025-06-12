@@ -24,10 +24,10 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=pressure_and_flow_pic
+PROJECTNAME=firmware
 
 # Active Configuration
-DEFAULTCONF=PICkit4
+DEFAULTCONF=PICkit3
 CONF=${DEFAULTCONF}
 
 # All Configurations
